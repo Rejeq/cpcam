@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+option java_package = "com.rejeq.cpcam.data.datastore";
+option java_multiple_files = true;
+
+enum VideoCodecProto {
+    VIDEO_CODEC_UNSPECIFIED = 0;
+    VIDEO_CODEC_H264 = 1;
+    VIDEO_CODEC_MJPEG = 2;
+
+    // NEXT AVAILABLE ID: 3
+}
+
+enum EndpointTypeProto {
+    ENDPOINT_TYPE_UNSPECIFIED = 0;
+    ENDPOINT_TYPE_OBS = 1;
+
+    // NEXT AVAILABLE ID: 2
+}
+
+enum StreamProtocolProto {
+    STREAM_PROTOCOL_UNSPECIFIED = 0;
+    STREAM_PROTOCOL_MPEGTS = 1;
+    STREAM_PROTOCOL_MJPEG = 2;
+
+    // NEXT AVAILABLE ID: 3
+}
+
+enum ThemeConfigProto {
+    THEME_CONFIG_UNSPECIFIED = 0;
+    THEME_CONFIG_FOLLOW_SYSTEM = 1;
+    THEME_CONFIG_LIGHT = 2;
+    THEME_CONFIG_DARK = 3;
+
+    // NEXT AVAILABLE ID: 4
+}
+
+message CameraPreferenceProto {
+    optional string resolution = 1;
+    optional string framerate = 2;
+
+    // NEXT AVAILABLE ID: 3
+}
+
+message VideoConfigProto {
+    optional VideoCodecProto codec = 1;
+    optional int32 bit_rate = 2;
+    optional string pix_fmt = 3;
+    optional string resolution = 4;
+    optional int32 framerate = 5;
+
+    // NEXT AVAILABLE ID: 6
+}
+
+message ObsStreamDataProto {
+    StreamProtocolProto stream_protocol = 1;
+    string stream_host = 2;
+    VideoConfigProto video_config = 3;
+
+    // NEXT AVAILABLE ID: 4
+}
+
+message ObsEndpointProto {
+    string url = 1;
+    int32 port = 2;
+    string password = 3;
+    ObsStreamDataProto stream_data = 4;
+
+    // NEXT AVAILABLE ID: 5
+}
+
+message AppPreferences {
+    EndpointTypeProto endpoint_type = 1;
+    ObsEndpointProto obs_endpoint = 2;
+
+    map<string, CameraPreferenceProto> camera_preferences = 4;
+    string last_opened_camera = 5;
+
+    bool keep_screen_awake = 6;
+    int32 dim_screen_time = 7;
+    ThemeConfigProto theme_config = 8;
+    bool use_dynamic_color = 9;
+
+    repeated string launched_permissions = 10;
+
+    // NEXT AVAILABLE ID: 11
+}

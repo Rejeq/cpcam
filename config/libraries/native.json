@@ -1,0 +1,15 @@
+{
+  "uniqueId": "native.ffmpeg",
+  "developers": [
+    {
+      "name": "FFmpeg team"
+    }
+  ],
+  "artifactVersion": "7.1.1",
+  "description": "FFmpeg is the leading multimedia framework, able to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created.",
+  "name": "FFmpeg",
+  "website": "http://ffmpeg.org",
+  "licenses": [
+    "LGPL-2.1-or-later"
+  ]
+}

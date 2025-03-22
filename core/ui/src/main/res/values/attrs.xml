@@ -1,0 +1,3 @@
+<declare-styleable name="Theme.Cpcam">
+    <attr name="colorControlNormal" format="color" />
+</declare-styleable>
