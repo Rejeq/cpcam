@@ -2,11 +2,13 @@ package com.rejeq.cpcam.core.ui
 
 import android.content.Context
 import android.os.Build
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
 fun Context.isFollowDarkModeSupported(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 

@@ -1,5 +1,4 @@
 <resources>
-    <string name="stream">Stream</string>
     <string name="endpoint_started">Started</string>
     <string name="endpoint_stopped">Stopped</string>
     <string name="endpoint_connecting">Connecting</string>

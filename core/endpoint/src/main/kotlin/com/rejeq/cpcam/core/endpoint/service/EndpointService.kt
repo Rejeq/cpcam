@@ -26,7 +26,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -274,6 +273,7 @@ internal fun stopEndpointService(context: Context) {
     ContextCompat.startForegroundService(context, intent)
 }
 
+@SuppressLint("InlinedApi")
 private fun Context.createServiceNotificationChannel() {
     val manager = NotificationManagerCompat.from(this)
 

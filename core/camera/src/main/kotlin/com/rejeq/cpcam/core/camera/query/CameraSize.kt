@@ -87,7 +87,7 @@ fun queryMaxRecordSize(
     format: Int,
 ): Resolution? {
     val level = char.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
-    requireNotNull(level, { "INFO_SUPPORTED_HARDWARE_LEVEL should exist" })
+    requireNotNull(level) { "INFO_SUPPORTED_HARDWARE_LEVEL should exist" }
 
     return when {
         isLevelSupported(level, INFO_SUPPORTED_HARDWARE_LEVEL_FULL) -> {
@@ -164,7 +164,7 @@ fun querySupportedSizes(
     format: Int,
 ): List<Resolution> {
     val config = char.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-    requireNotNull(config, { "SCALER_STREAM_CONFIGURATION_MAP should exist" })
+    requireNotNull(config) { "SCALER_STREAM_CONFIGURATION_MAP should exist" }
     assert(config.isOutputSupportedFor(format))
 
     // NOTE: getOutputSizes(Class<T>) behave same as

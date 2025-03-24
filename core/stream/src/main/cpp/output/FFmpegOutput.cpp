@@ -30,11 +30,6 @@ FFmpegOutput *FFmpegOutput::build(std::string url,
     }
 
     auto *output = new FFmpegOutput(std::move(url), octx);
-    if (!output) {
-        LOG_ERROR("Unable to allocate FFmpegOutput");
-        avformat_free_context(octx);
-        return nullptr;
-    }
 
     return output;
 }
