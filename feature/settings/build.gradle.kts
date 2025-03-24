@@ -21,5 +21,4 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.kotlinx.collections.immutables)
-    implementation(libs.camerax.video)
 }

@@ -4,7 +4,6 @@ import android.util.Log
 import android.util.Size
 import android.view.SurfaceHolder
 import android.view.ViewGroup
-import androidx.camera.core.SurfaceRequest
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,10 +11,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.viewinterop.AndroidView
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.ui.AutoFitSurfaceView
 
 @Composable
-fun CameraPreview(request: SurfaceRequest, modifier: Modifier = Modifier) {
+fun CameraPreview(
+    request: SurfaceRequestWrapper,
+    modifier: Modifier = Modifier,
+) {
     // HACK: Because of SurfaceView, some animations that perform anything
     // related to CameraPreview (transitions, scaling, ...) will be out of sync.
     // But if we draw something before SurfaceView, it will magically work.
@@ -56,10 +59,10 @@ fun CameraPreview(request: SurfaceRequest, modifier: Modifier = Modifier) {
 
 private fun surfaceLifecycleHandler() = object : SurfaceHolder.Callback {
     private var isCreated = false
-    private var request: SurfaceRequest? = null
+    private var request: SurfaceRequestWrapper? = null
     private var holder: SurfaceHolder? = null
 
-    fun setRequest(request: SurfaceRequest) {
+    fun setRequest(request: SurfaceRequestWrapper) {
         if (request == this.request) {
             return
         }

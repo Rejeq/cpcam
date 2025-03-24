@@ -1,7 +1,7 @@
 package com.rejeq.cpcam.core.stream.target
 
 import android.util.Log
-import androidx.camera.core.SurfaceRequest
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.common.di.ApplicationScope
@@ -54,7 +54,7 @@ class CameraVideoTarget @Inject constructor(
     }
 
     private fun attachRelay(
-        surfaceRequest: SurfaceRequest,
+        surfaceRequest: SurfaceRequestWrapper,
         relay: VideoRelay,
     ) {
         Log.d(TAG, "Attaching relay to surface request")

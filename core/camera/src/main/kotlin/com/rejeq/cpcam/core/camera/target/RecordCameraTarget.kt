@@ -11,6 +11,7 @@ import androidx.camera.core.impl.CameraInfoInternal
 import androidx.camera.core.impl.UseCaseConfigFactory.CaptureType
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import com.rejeq.cpcam.core.camera.CameraTargetId
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.di.CameraManagerService
 import com.rejeq.cpcam.core.camera.di.MainExecutor
 import com.rejeq.cpcam.core.camera.query.queryDefaultRecordSize
@@ -248,7 +249,9 @@ class RecordCameraTarget @Inject constructor(
         executor.execute {
             setSurfaceProvider { newSurfaceRequest ->
                 _surfaceRequest.value =
-                    SurfaceRequestState.Available(newSurfaceRequest)
+                    SurfaceRequestState.Available(
+                        SurfaceRequestWrapper(newSurfaceRequest),
+                    )
             }
         }
     }

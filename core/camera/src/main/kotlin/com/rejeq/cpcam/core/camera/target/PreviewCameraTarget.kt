@@ -2,6 +2,7 @@ package com.rejeq.cpcam.core.camera.target
 
 import androidx.camera.core.Preview
 import com.rejeq.cpcam.core.camera.CameraTargetId
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.source.CameraSource
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +31,9 @@ class PreviewCameraTarget @Inject constructor(
     private val useCase = Preview.Builder().build().apply {
         setSurfaceProvider { newSurfaceRequest ->
             _surfaceRequest.value =
-                SurfaceRequestState.Available(newSurfaceRequest)
+                SurfaceRequestState.Available(
+                    SurfaceRequestWrapper(newSurfaceRequest),
+                )
         }
     }
 

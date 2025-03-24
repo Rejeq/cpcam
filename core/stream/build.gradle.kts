@@ -29,7 +29,6 @@ dependencies {
     implementation(projects.core.common)
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.camerax.core)
 
     implementation(libs.kotlinx.coroutines)
 }

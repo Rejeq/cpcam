@@ -3,6 +3,7 @@ package com.rejeq.cpcam.core.camera.target
 import androidx.camera.core.SurfaceRequest
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -28,18 +29,18 @@ sealed interface SurfaceRequestState {
     object Stopped : SurfaceRequestState
 
     /**
-     * Represents the state where a [SurfaceRequest] is available and ready to
-     * be used.
+     * Represents the state where a [SurfaceRequestWrapper] is available and
+     * ready to be used.
      *
      * This state indicates that a surface request has been successfully
      * processed and is now available for the client to interact with
      * (e.g., to provide a Surface or release the request).
      *
-     * @property value The [SurfaceRequest] that is available. This represents
-     *           the actual request object that can be used to provide a
-     *           surface.
+     * @property value The [SurfaceRequestWrapper] that is available. This
+     *           represents the actual request object that can be used to
+     *           provide a surface.
      */
-    class Available(val value: SurfaceRequest) : SurfaceRequestState
+    class Available(val value: SurfaceRequestWrapper) : SurfaceRequestState
 }
 
 /**
