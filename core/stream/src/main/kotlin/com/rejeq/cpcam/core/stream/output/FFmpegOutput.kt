@@ -10,7 +10,8 @@ import com.rejeq.cpcam.core.stream.jni.toFFmpegConfig
 import com.rejeq.cpcam.core.stream.jni.toFFmpegString
 
 internal class FFmpegOutput(val protocol: StreamProtocol, host: String) {
-    private val detail = FFmpegOutputJni(protocol.toFFmpegString(), host)
+    private var detail: FFmpegOutputJni? =
+        FFmpegOutputJni(protocol.toFFmpegString(), host)
 
     fun makeVideoStream(config: VideoConfig): FFmpegVideoStreamJni? {
         val config = config.toFFmpegConfig()
@@ -19,21 +20,26 @@ internal class FFmpegOutput(val protocol: StreamProtocol, host: String) {
             return null
         }
 
-        return detail.makeVideoStream(config)
+        return detail?.makeVideoStream(config)
     }
 
     fun open(): StreamResult<Unit> {
-        detail.open()
+        detail?.open()
 
         // TODO: Proper error handling
         return StreamResult.Success(Unit)
     }
 
     fun close(): StreamResult<Unit> {
-        detail.close()
+        detail?.close()
 
         // TODO: Proper error handling
         return StreamResult.Success(Unit)
+    }
+
+    fun destroy() {
+        detail?.destroy()
+        detail = null
     }
 }
 

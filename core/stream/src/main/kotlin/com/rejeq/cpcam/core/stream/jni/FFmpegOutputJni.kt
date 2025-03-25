@@ -11,6 +11,7 @@ internal class FFmpegOutputJni(protocol: String, host: String) {
 
     fun open() = open(handle)
     fun close() = close(handle)
+    fun destroy() = destroy(handle)
 
     fun makeVideoStream(config: FFmpegVideoConfig) =
         FFmpegVideoStreamJni(makeVideoStream(handle, config))
