@@ -55,6 +55,17 @@ data class VideoConfig(
 )
 
 /**
+ * Represents the configuration for a video relay.
+ *
+ * Defines parameters that a video relay should adhere to when passing
+ * data to a video stream.
+ *
+ * @property framerate The target frame rate
+ * @property resolution The resolution of images
+ */
+data class VideoRelayConfig(val framerate: Int?, val resolution: Resolution?)
+
+/**
  * Represents the data required to connect to and stream from an OBS instance.
  *
  * @property protocol The streaming protocol to use.

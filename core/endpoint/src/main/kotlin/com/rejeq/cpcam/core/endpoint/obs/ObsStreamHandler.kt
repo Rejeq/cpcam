@@ -7,6 +7,7 @@ import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
+import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.stream.StreamHandler
 import com.rejeq.cpcam.core.stream.StreamResult
@@ -45,11 +46,18 @@ class ObsStreamHandler @AssistedInject constructor(
     val streamHandler = StreamHandler(
         streamData.protocol,
         streamData.host,
-        VideoStreamConfig(
+        videoStreamConfig = VideoStreamConfig(
             target = videoTarget,
-            streamData.videoConfig,
+            data = streamData.videoConfig,
         ),
-    )
+    ).also {
+        it.setVideoRelayConfig(
+            VideoRelayConfig(
+                resolution = streamData.videoConfig.resolution,
+                framerate = null,
+            ),
+        )
+    }
 
     val data = streamRepo.obsData.map { StreamHandlerState.Valid(it) }
         .stateIn(

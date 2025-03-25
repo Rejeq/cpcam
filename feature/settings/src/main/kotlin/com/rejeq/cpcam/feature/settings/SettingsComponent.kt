@@ -1,22 +1,28 @@
 package com.rejeq.cpcam.feature.settings
 
 import android.graphics.ImageFormat
+import android.util.Log
 import com.arkivanov.decompose.ComponentContext
-import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
+import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
+import com.rejeq.cpcam.core.data.repository.CameraRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 class SettingsComponent @AssistedInject constructor(
     private val appearanceRepo: AppearanceRepository,
-    private val cameraTarget: RecordCameraTarget,
+    private val cameraRepo: CameraRepository,
+    private val cameraDataRepo: CameraDataRepository,
     @ApplicationScope private val externalScope: CoroutineScope,
 
     @Assisted componentContext: ComponentContext,
@@ -29,8 +35,14 @@ class SettingsComponent @AssistedInject constructor(
     val themeConfig = appearanceRepo.themeConfig
     val useDynamicColor = appearanceRepo.useDynamicColor
 
-    val selectedResolution = cameraTarget.resolution
-    val availableResolution = cameraTarget.getSupportedResolutions(
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedResolution = cameraDataRepo.cameraId
+        .filterNotNull()
+        .flatMapLatest {
+            cameraRepo.getResolution(it)
+        }
+
+    val availableResolution = cameraDataRepo.getRecordResolutions(
         // TODO: Do not hardcode
         ImageFormat.YUV_420_888,
     )
@@ -44,7 +56,13 @@ class SettingsComponent @AssistedInject constructor(
     }
 
     fun setCameraResolution(resolution: Resolution?) = externalScope.launch {
-        cameraTarget.setResolution(resolution)
+        val camId = cameraDataRepo.currentCameraId
+        if (camId == null) {
+            Log.e(TAG, "Unable to set camera resolution: Camera id is null")
+            return@launch
+        }
+
+        cameraRepo.setResolution(camId, resolution)
     }
 
     @AssistedFactory
@@ -59,3 +77,5 @@ class SettingsComponent @AssistedInject constructor(
         ): SettingsComponent
     }
 }
+
+private const val TAG = "SettingsComponent"

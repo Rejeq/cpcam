@@ -8,7 +8,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import com.rejeq.cpcam.core.camera.source.CameraLifecycle
 import com.rejeq.cpcam.core.camera.source.CameraSource
 import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
-import com.rejeq.cpcam.core.data.repository.CameraRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -70,14 +69,10 @@ internal object CameraModule {
     @Singleton
     fun provideRecordCameraTarget(
         source: CameraSource,
-        repository: CameraRepository,
         @MainExecutor executor: Executor,
-        @CameraManagerService cameraManager: CameraManager,
     ) = RecordCameraTarget(
         source = source,
-        repository = repository,
         executor = executor,
-        cameraManager = cameraManager,
         scope = CoroutineScope(Dispatchers.Unconfined),
     )
 }

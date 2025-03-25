@@ -26,6 +26,8 @@ internal class FFmpegVideoRelay(
     override val surface: Surface get() = imageReader.surface
 
     init {
+        stream.setResolution(width, height)
+
         imageReader.setOnImageAvailableListener({ reader ->
             val image = reader.acquireLatestImage()
             image?.let { frame ->
@@ -47,12 +49,6 @@ internal class FFmpegVideoRelay(
                 frame.close()
             }
         }, bgHandler)
-    }
-
-    override fun setResolution(width: Int, height: Int) {
-        // TODO: Create new imageReader in this case, since different stream
-        //  and imageReader resolution can seriously slow down pipeline
-        stream.setResolution(width, height)
     }
 
     override fun start() {
