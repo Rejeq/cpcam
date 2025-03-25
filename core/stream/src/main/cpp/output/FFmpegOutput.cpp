@@ -142,13 +142,6 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
         return nullptr;
     }
 
-    // TODO: If stream will be used
-    // res = avcodec_parameters_from_context(stream->codecpar, cctx);
-    // if (res < 0) {
-    //     LOG_ERROR("Could not copy the stream parameters");
-    //     return;
-    // }
-
     auto *stream = FFmpegVideoStream::build(m_octx, cctx);
     if (!stream) {
         LOG_ERROR("Unable to allocate video stream");

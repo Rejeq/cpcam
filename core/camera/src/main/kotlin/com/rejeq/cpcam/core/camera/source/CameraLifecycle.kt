@@ -175,8 +175,7 @@ class CameraLifecycle(
      * provided action on a current thread (direct executor), allowing to
      * return the value from action
      *
-     * @param action The action to perform on the [ProcessCameraProvider].
-     *        This is a lambda function that takes the
+     * @param action The action to perform with [ProcessCameraProvider].
      */
     private suspend fun <T> queryDirectProvider(
         action: (cameraProvider: ProcessCameraProvider) -> T,
