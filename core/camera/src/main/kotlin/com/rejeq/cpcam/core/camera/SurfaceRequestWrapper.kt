@@ -8,7 +8,8 @@ import androidx.camera.core.SurfaceRequest
  * functionality. This wrapper helps reduce direct dependencies on CameraX in
  * modules that only need basic surface management capabilities.
  */
-class SurfaceRequestWrapper(private val request: SurfaceRequest) {
+@JvmInline
+value class SurfaceRequestWrapper(private val request: SurfaceRequest) {
     /**
      * The resolution of the surface request
      *
