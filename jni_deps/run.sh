@@ -39,14 +39,8 @@ function run_cmake {
     ABI=$1
     BUILD_TYPE=$2
 
-    if [[ "$ABI" == "arm64-v8a" ]]; then
-        CMAKE_ABI="aarch64"
-    else
-        CMAKE_ABI="$ABI"
-    fi
-
     TARGET_BUILD_DIR=${BUILD_DIR}/${BUILD_TYPE}/${ABI}
-    TARGET_PREFIX_DIR=${PREFIX_DIR}/${BUILD_TYPE}/${CMAKE_ABI}
+    TARGET_PREFIX_DIR=${PREFIX_DIR}/${BUILD_TYPE}/${ABI}
 
     # For details see:
     # https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html#cross-compiling-for-android-with-the-ndk

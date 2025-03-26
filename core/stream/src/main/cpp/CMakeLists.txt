@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.4.1)
 project(cpcam_jni)
 
 message("Deps target directory: ${DEPS_TARGET_DIR}")
-set(DEPS_DIR "${DEPS_TARGET_DIR}/${CMAKE_BUILD_TYPE}/${CMAKE_SYSTEM_PROCESSOR}")
+set(DEPS_DIR "${DEPS_TARGET_DIR}/${CMAKE_BUILD_TYPE}/${CMAKE_ANDROID_ARCH_ABI}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
