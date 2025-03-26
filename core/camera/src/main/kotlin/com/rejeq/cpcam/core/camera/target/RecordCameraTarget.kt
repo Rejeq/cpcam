@@ -1,12 +1,22 @@
 package com.rejeq.cpcam.core.camera.target
 
 import android.annotation.SuppressLint
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraMetadata.SCALER_AVAILABLE_STREAM_USE_CASES_VIDEO_CALL
+import android.os.Build
+import android.util.Log
 import android.util.Range
+import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Preview
+import androidx.camera.core.impl.CameraInfoInternal
 import androidx.camera.core.impl.UseCaseConfigFactory.CaptureType
 import com.rejeq.cpcam.core.camera.CameraTargetId
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.di.MainExecutor
+import com.rejeq.cpcam.core.camera.query.isStreamUseCaseSupported
 import com.rejeq.cpcam.core.camera.source.CameraSource
 import java.util.concurrent.Executor
 import javax.inject.Inject
@@ -70,6 +80,11 @@ class RecordCameraTarget @Inject constructor(
         Preview.Builder().apply {
             setCaptureType(CaptureType.VIDEO_CAPTURE)
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val streamUseCase = SCALER_AVAILABLE_STREAM_USE_CASES_VIDEO_CALL
+                setStreamUseCase(streamUseCase.toLong())
+            }
+
             if (framerate != null) {
                 setTargetFrameRate(framerate)
             }
@@ -83,6 +98,25 @@ class RecordCameraTarget @Inject constructor(
                 }
             }
         }
+
+    @SuppressLint("RestrictedApi")
+    @OptIn(ExperimentalCamera2Interop::class)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun Preview.Builder.setStreamUseCase(streamUseCase: Long) {
+        val cameraInfo = source.camera.value?.cameraInfo
+        val cameraCharacteristics =
+            (cameraInfo as? CameraInfoInternal)?.cameraCharacteristics
+                as? CameraCharacteristics ?: return
+
+        if (!isStreamUseCaseSupported(cameraCharacteristics, streamUseCase)) {
+            Log.w(TAG, "Unable to set stream use case: Unsupported")
+            return
+        }
+
+        Camera2Interop.Extender(this).apply {
+            setStreamUseCase(streamUseCase)
+        }
+    }
 }
 
 private const val TAG = "RecordCameraTarget"
