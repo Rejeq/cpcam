@@ -68,8 +68,6 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_send(
         data.buff_stride[idx] = stride_ptr[idx];
     }
 
-    env->ReleaseIntArrayElements(strides, stride_ptr, JNI_ABORT);
-
     // TODO: Move deducing actual pixel format to kotlin side
     auto *stream = (FFmpegVideoStream *)rawStream;
     if (!stream->has_pixel_format()) {
@@ -83,7 +81,7 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_send(
 
         stream->set_pixel_format(*pix_fmt);
 
-        env->ReleaseIntArrayElements(strides, stride_ptr, JNI_ABORT);
+        env->ReleaseIntArrayElements(pixelStrides, pixel_stride_ptr, JNI_ABORT);
     }
 
     jobject buffer = env->GetObjectArrayElement(buffers, 0);
@@ -120,6 +118,8 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_send(
             LOG_ERROR("Stream has unknown pixel format: %d", stream->pixel_format());
             return;
     }
+
+    env->ReleaseIntArrayElements(strides, stride_ptr, JNI_ABORT);
 
     stream->send_frame(data);
 }
