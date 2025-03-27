@@ -1,10 +1,12 @@
 package com.rejeq.cpcam.feature.main.camera
 
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
@@ -56,7 +58,16 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
         )
     } else {
         if (request is SurfaceRequestState.Available) {
-            CameraPreview(request = request.value, modifier = modifier)
+            CameraPreview(
+                request = request.value,
+                modifier = modifier.pointerInput(Unit) {
+                    detectTransformGestures { _, _, zoom, _ ->
+                        if (zoom != 0.0f) {
+                            component.shiftZoom(-(1.0f - zoom))
+                        }
+                    }
+                },
+            )
         }
     }
 }

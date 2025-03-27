@@ -76,6 +76,12 @@ class CameraComponent(
         }
     }
 
+    fun shiftZoom(zoom: Float) {
+        scope.launch {
+            controller.shiftZoom(zoom, linear = true)
+        }
+    }
+
     fun startMonitoringDnd() {
         // This should never happen, since this error happens only in android 9
         // see camerax CameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED
