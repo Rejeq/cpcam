@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.camera.CameraController
 import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.camera.CameraType
+import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.DndListener
@@ -35,6 +36,7 @@ class MainComponent @AssistedInject constructor(
     dndListener: DndListener,
     cameraTarget: PreviewCameraTarget,
     endpointHandler: EndpointHandler,
+    cameraDataRepo: CameraDataRepository,
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
     @Assisted val onSettingsClick: () -> Unit,
@@ -52,6 +54,7 @@ class MainComponent @AssistedInject constructor(
         target = cameraTarget,
         onShowPermissionDenied = { nav.showPermissionDenied(it) },
         componentContext = this,
+        cameraDataRepo = cameraDataRepo,
     )
 
     val streamButtonState = MorphButtonState(MorphIconTarget.Stopped)

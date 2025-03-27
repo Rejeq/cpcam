@@ -8,6 +8,7 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.rejeq.cpcam.core.camera.CameraController
 import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
+import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.common.DndListener
 import com.rejeq.cpcam.core.common.DndState
@@ -15,6 +16,7 @@ import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.ui.PermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -26,6 +28,7 @@ class CameraComponent(
     val target: CameraTarget,
     val onShowPermissionDenied: (String) -> Unit,
     componentContext: ComponentContext,
+    cameraDataRepo: CameraDataRepository,
 ) : ComponentContext by componentContext {
     init {
         lifecycle.doOnDestroy {
@@ -43,6 +46,9 @@ class CameraComponent(
     val isCameraPermissionWasLaunched = appearanceRepo.permissionWasLaunched(
         cameraPermission,
     )
+
+    val hasTorch = cameraDataRepo.hasFlashUnit
+    val isTorchEnabled = cameraDataRepo.isTorchEnabled
 
     fun onCameraPermissionResult(state: PermissionState) {
         scope.launch {
@@ -65,6 +71,15 @@ class CameraComponent(
             Log.i(TAG, "Switching camera")
 
             controller.switchNextDevice()
+        }
+    }
+
+    fun toggleTorch() {
+        scope.launch {
+            Log.i(TAG, "Toggling torch")
+
+            val newState = !isTorchEnabled.first()
+            controller.enableTorch(newState)
         }
     }
 

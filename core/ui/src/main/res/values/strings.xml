@@ -6,6 +6,8 @@
     <string name="btn_flip_camera_desc">Switch camera</string>
     <string name="btn_back_screen_desc">Back to previous screen</string>
     <string name="btn_stream_info_desc">Open stream info dialog</string>
+    <string name="btn_torch_on_desc">Turn off torch</string>
+    <string name="btn_torch_off_desc">Turn on torch</string>
 
     <string name="stream_info_desc">Stream Info</string>
 

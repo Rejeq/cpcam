@@ -116,14 +116,27 @@ class CameraController @Inject constructor(
         }
     }
 
-    fun enableTorch(state: Boolean): CameraControllerError {
+    /**
+     * Enables or disables the torch (flashlight) of the camera.
+     *
+     * @param state `true` to enable the torch, `false` to disable it.
+     * @return A [CameraControllerError] indicating the result of the operation.
+     */
+    suspend fun enableTorch(state: Boolean): CameraControllerError {
         val control = source.camera.value?.cameraControl
         if (control == null) {
             return CameraControllerError.CameraNotStarted
         }
 
-        // TODO: Handle failure
-        control.enableTorch(state)
+        try {
+            control.enableTorch(state).await()
+        } catch (e: CameraControl.OperationCanceledException) {
+            Log.w(TAG, "Torch operation was canceled", e)
+            return CameraControllerError.TorchCancelled
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Torch operation got illegal state", e)
+            return CameraControllerError.TorchIllegalState
+        }
 
         return CameraControllerError.Success
     }
@@ -150,6 +163,8 @@ enum class CameraControllerError {
     CameraNotStarted,
     ZoomCancelled,
     ZoomValueOutOfRange,
+    TorchCancelled,
+    TorchIllegalState,
 }
 
 sealed interface FocusPointState {

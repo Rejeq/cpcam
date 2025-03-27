@@ -6,14 +6,20 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.util.Log
 import androidx.camera.core.Camera
+import androidx.camera.core.TorchState
 import androidx.camera.core.impl.CameraInfoInternal
+import androidx.lifecycle.asFlow
+import com.rejeq.cpcam.core.camera.CameraController
 import com.rejeq.cpcam.core.camera.di.CameraManagerService
 import com.rejeq.cpcam.core.camera.query.queryMaxRecordSize
 import com.rejeq.cpcam.core.camera.query.querySupportedSizes
 import com.rejeq.cpcam.core.camera.source.CameraSource
 import com.rejeq.cpcam.core.data.model.Resolution
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class CameraDataRepository @Inject constructor(
@@ -34,6 +40,29 @@ class CameraDataRepository @Inject constructor(
      * The ID of the currently active camera.
      */
     val currentCameraId get() = getCurrentCameraId(source.camera.value)
+
+    /**
+     * Indicates whether the camera's torch is currently enabled.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val isTorchEnabled = source.camera.flatMapLatest {
+        it?.cameraInfo?.torchState?.asFlow() ?: flowOf(TorchState.OFF)
+    }.map {
+        it == TorchState.ON
+    }
+
+    /**
+     * Indicates whether the camera has a flash unit.
+     *
+     * If this property emits `true`, you can control the flash state using the
+     * associated [CameraController.enableTorch] method.
+     *
+     * When no camera is currently available, this flow will emit `false`,
+     * indicating no flash unit and no flash control.
+     */
+    val hasFlashUnit = source.camera.map {
+        it?.cameraInfo?.hasFlashUnit() == true
+    }
 
     /**
      * Returns a Flow emitting a list of supported resolutions for a given

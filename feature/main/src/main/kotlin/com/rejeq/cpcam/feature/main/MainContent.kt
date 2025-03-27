@@ -41,11 +41,17 @@ fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
         },
         top = {
             val hasStreamInfo = component.showInfoButton.collectAsState(false)
+            val hasTorch = component.cam.hasTorch.collectAsState(false)
+            val isTorchEnabled = component.cam.isTorchEnabled
+                .collectAsState(false)
 
             InfoBar(
                 onSettingsClick = component.onSettingsClick,
                 onStreamInfoClick = component.nav::showStreamInfo,
                 hasStreamInfo = hasStreamInfo.value,
+                isTorchEnabled = isTorchEnabled.value,
+                hasTorch = hasTorch.value,
+                onTorchClick = component.cam::toggleTorch,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
@@ -131,20 +137,43 @@ fun InfoBar(
     onSettingsClick: () -> Unit,
     onStreamInfoClick: () -> Unit,
     hasStreamInfo: Boolean,
+    hasTorch: Boolean,
+    isTorchEnabled: Boolean,
+    onTorchClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Row(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.End,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
     ) {
-        SettingsButton(onClick = onSettingsClick)
-
-        SlideFromEdge(
-            visible = hasStreamInfo,
-            edge = Edge.End,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            StreamInfoButton(onClick = onStreamInfoClick)
+            SlideFromEdge(
+                visible = hasTorch,
+                edge = Edge.Start,
+            ) {
+                TorchButton(
+                    isEnabled = isTorchEnabled,
+                    onClick = onTorchClick,
+                )
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.End,
+        ) {
+            SettingsButton(onClick = onSettingsClick)
+
+            SlideFromEdge(
+                visible = hasStreamInfo,
+                edge = Edge.End,
+            ) {
+                StreamInfoButton(onClick = onStreamInfoClick)
+            }
         }
     }
 }
@@ -193,6 +222,9 @@ private fun PreviewInfoBar() {
             onSettingsClick = { },
             onStreamInfoClick = {},
             hasStreamInfo = true,
+            hasTorch = true,
+            isTorchEnabled = false,
+            onTorchClick = {},
         )
     }
 }
