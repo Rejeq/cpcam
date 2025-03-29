@@ -11,8 +11,8 @@ import com.rejeq.cpcam.core.stream.relay.FFmpegVideoRelay
 import com.rejeq.cpcam.core.stream.target.VideoTarget
 
 class StreamHandler(
-    protocol: StreamProtocol,
-    host: String,
+    val protocol: StreamProtocol,
+    val host: String,
     private val videoStreamConfig: VideoStreamConfig?,
 ) {
     private var oldVideoRelayConfig: VideoRelayConfig? = null

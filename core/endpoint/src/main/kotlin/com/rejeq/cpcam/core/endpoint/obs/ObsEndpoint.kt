@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
+import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.endpoint.Endpoint
 import com.rejeq.cpcam.core.endpoint.EndpointState
@@ -30,7 +31,13 @@ class ObsEndpoint(
 
     override suspend fun connect(): Unit = coroutineScope {
         val connJob = launch {
-            connHandler.start(streamHandler.streamData)
+            val streamData = streamHandler.streamData.value
+            if (streamData == null) {
+                Log.w(TAG, "Does not have stream data")
+                return@launch
+            }
+
+            connHandler.start(streamData)
         }
 
         val streamJob = launch {

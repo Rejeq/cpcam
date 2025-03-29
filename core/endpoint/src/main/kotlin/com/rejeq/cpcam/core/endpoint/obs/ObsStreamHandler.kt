@@ -1,10 +1,7 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
+import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsStreamData
-import com.rejeq.cpcam.core.data.model.PixFmt
-import com.rejeq.cpcam.core.data.model.Resolution
-import com.rejeq.cpcam.core.data.model.StreamProtocol
-import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
@@ -19,11 +16,14 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 
 class ObsStreamHandler @AssistedInject constructor(
     streamRepo: StreamRepository,
-    videoTarget: CameraVideoTarget,
+    private val videoTarget: CameraVideoTarget,
     // FIXME: Scope leak, cancel when object to be destroyed
     @Assisted scope: CoroutineScope,
 ) {
@@ -31,56 +31,67 @@ class ObsStreamHandler @AssistedInject constructor(
         MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped)
     val state = _state.asStateFlow()
 
-    // TODO: Do not hardcode. Update from settings
-    val streamData = ObsStreamData(
-        StreamProtocol.MPEGTS,
-        // TODO: Change to tcp
-//        "tcp://192.168.1.101:10002/?listen",
-        "udp://192.168.1.101:10002",
-        VideoConfig(
-            codecName = VideoCodec.H264,
-            pixFmt = PixFmt.NV12,
-//            pixFmt = PixFmt.YUV420P,
-            bitrate = 8_000_000,
-            framerate = 30,
-            resolution = Resolution(1280, 720),
-        ),
-    )
+    private var streamHandler: StreamHandler? = null
 
-    val streamHandler = StreamHandler(
-        streamData.protocol,
-        streamData.host,
-        videoStreamConfig = VideoStreamConfig(
-            target = videoTarget,
-            data = streamData.videoConfig,
-        ),
-    ).also {
-        it.setVideoRelayConfig(
-            VideoRelayConfig(
-                resolution = streamData.videoConfig.resolution,
-                framerate = null,
-            ),
+    val streamData = streamRepo.obsData
+        .onEach(action = ::updateStreamHandler)
+        .stateIn(
+            scope,
+            SharingStarted.WhileSubscribed(5_000),
+            null,
         )
-    }
 
     fun start(): StreamResult<Unit> {
         _state.value = StreamHandlerState.Connecting
-        val res = streamHandler.start()
-        _state.value = StreamHandlerState.Started
+        val res = streamHandler?.start() ?: StreamResult.Failed
+
+        _state.value = when (res) {
+            StreamResult.Failed -> StreamHandlerState.Stopped
+            is StreamResult.Success -> StreamHandlerState.Started
+        }
 
         return res
     }
 
     fun stop(): StreamResult<Unit> {
-        val res = streamHandler.stop()
+        val res = streamHandler?.stop()
         _state.value = StreamHandlerState.Stopped
 
-        return res
+        return res ?: StreamResult.Failed
     }
 
-    // TODO:
-//    private val updateStreamHandler() {
-//    }
+    private fun updateStreamHandler(data: ObsStreamData) {
+        Log.i(TAG, "Updating stream handler to: $data")
+
+        val oldHandler = streamHandler
+        if (oldHandler != null &&
+            oldHandler.protocol == data.protocol &&
+            oldHandler.host == data.host
+        ) {
+            oldHandler.updateStreamVideoRelay(data.videoConfig)
+            return
+        }
+
+        streamHandler = StreamHandler(
+            data.protocol,
+            data.host,
+            videoStreamConfig = VideoStreamConfig(
+                target = videoTarget,
+                data = data.videoConfig,
+            ),
+        ).also {
+            it.updateStreamVideoRelay(data.videoConfig)
+        }
+    }
+
+    private fun StreamHandler.updateStreamVideoRelay(data: VideoConfig) {
+        this.setVideoRelayConfig(
+            VideoRelayConfig(
+                resolution = data.resolution,
+                framerate = null,
+            ),
+        )
+    }
 
     @AssistedFactory
     interface Factory {
