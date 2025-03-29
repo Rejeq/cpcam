@@ -17,8 +17,22 @@ sealed interface EndpointState {
 }
 
 interface Endpoint {
+    /**
+     * Current state of the endpoint.
+     */
     val state: Flow<EndpointState>
 
-    suspend fun connect()
-    suspend fun disconnect()
+    /**
+     * Establishes a connection to the remote endpoint.
+     *
+     * @return New state of the endpoint after this operation.
+     */
+    suspend fun connect(): EndpointState
+
+    /**
+     * Disconnects from the endpoint.
+     *
+     * @return New state of the endpoint after this operation
+     */
+    suspend fun disconnect(): EndpointState
 }

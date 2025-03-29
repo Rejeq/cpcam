@@ -1,14 +1,12 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
-import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.endpoint.Endpoint
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 
 class ObsEndpoint(
     val config: ObsConfig,
@@ -17,39 +15,48 @@ class ObsEndpoint(
 ) : Endpoint {
     private val connHandler = ObsConnectionHandler(config, wbClient)
 
-    override val state =
-        combine(connHandler.state, streamHandler.state) { conn, stream ->
-            if (stream == StreamHandlerState.Started &&
-                conn is ConnectionState.Stopped &&
-                conn.reason != null
-            ) {
-                EndpointState.Started(conn.reason.toEndpointResult())
-            } else {
-                stream.toEndpointState()
-            }
+    override val state = combine(
+        connHandler.state,
+        streamHandler.state,
+        transform = ::getState,
+    )
+
+    override suspend fun connect(): EndpointState = coroutineScope {
+        val connJob = async {
+            connHandler.start(streamHandler.streamData.value)
         }
 
-    override suspend fun connect(): Unit = coroutineScope {
-        val connJob = launch {
-            val streamData = streamHandler.streamData.value
-            if (streamData == null) {
-                Log.w(TAG, "Does not have stream data")
-                return@launch
-            }
-
-            connHandler.start(streamData)
-        }
-
-        val streamJob = launch {
+        val streamJob = async {
             streamHandler.start()
         }
 
-        joinAll(connJob, streamJob)
+        val connState = connJob.await()
+        val streamState = streamJob.await()
+
+        getState(connState, streamState)
     }
 
-    override suspend fun disconnect() {
-        streamHandler.stop()
-        connHandler.stop()
+    override suspend fun disconnect(): EndpointState {
+        val streamState = streamHandler.stop()
+        val connState = connHandler.stop()
+
+        return getState(connState, streamState)
+    }
+
+    private fun getState(
+        conn: ConnectionState,
+        stream: StreamHandlerState,
+    ): EndpointState {
+        val newState = if (stream == StreamHandlerState.Started &&
+            conn is ConnectionState.Stopped &&
+            conn.reason != null
+        ) {
+            EndpointState.Started(conn.reason.toEndpointResult())
+        } else {
+            stream.toEndpointState()
+        }
+
+        return newState
     }
 }
 

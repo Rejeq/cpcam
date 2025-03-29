@@ -41,7 +41,7 @@ class ObsStreamHandler @AssistedInject constructor(
             null,
         )
 
-    fun start(): StreamResult<Unit> {
+    fun start(): StreamHandlerState {
         _state.value = StreamHandlerState.Connecting
         val res = streamHandler?.start() ?: StreamResult.Failed
 
@@ -50,14 +50,14 @@ class ObsStreamHandler @AssistedInject constructor(
             is StreamResult.Success -> StreamHandlerState.Started
         }
 
-        return res
+        return _state.value
     }
 
-    fun stop(): StreamResult<Unit> {
-        val res = streamHandler?.stop()
+    fun stop(): StreamHandlerState {
+        streamHandler?.stop()
         _state.value = StreamHandlerState.Stopped
 
-        return res ?: StreamResult.Failed
+        return _state.value
     }
 
     private fun updateStreamHandler(data: ObsStreamData) {

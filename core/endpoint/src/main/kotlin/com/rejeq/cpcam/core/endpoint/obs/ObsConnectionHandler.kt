@@ -21,7 +21,14 @@ class ObsConnectionHandler(
         MutableStateFlow<ConnectionState>(ConnectionState.Stopped(null))
     val state = _state.asStateFlow()
 
-    suspend fun start(streamData: ObsStreamData) {
+    suspend fun start(streamData: ObsStreamData?): ConnectionState {
+        if (streamData == null) {
+            Log.w(TAG, "Does not have stream data")
+
+            _state.value = ConnectionState.Stopped(ObsErrorKind.NotHaveData)
+            return _state.value
+        }
+
         _state.value = ConnectionState.Connecting
 
         val error = obsConnect(wbClient, config) {
@@ -34,11 +41,15 @@ class ObsConnectionHandler(
             null -> ConnectionState.Started
             else -> ConnectionState.Stopped(error)
         }
+
+        return _state.value
     }
 
-    fun stop() {
+    fun stop(): ConnectionState {
         _state.value = ConnectionState.Stopped(null)
         // TODO: Maybe make obs input invisible?
+
+        return _state.value
     }
 }
 

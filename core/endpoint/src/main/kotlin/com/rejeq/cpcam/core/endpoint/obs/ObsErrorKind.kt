@@ -5,6 +5,8 @@ import com.rejeq.ktobs.AuthError
 import com.rejeq.ktobs.ObsRequestException
 
 sealed interface ObsErrorKind {
+    object NotHaveData : ObsErrorKind
+
     object UnknownHost : ObsErrorKind
     object ConnectionRefused : ObsErrorKind
     object ConnectionTimeout : ObsErrorKind
