@@ -61,14 +61,12 @@ fun buildInfoNotification(
     builder.setOngoing(true)
     builder.setShowWhen(false)
 
-    val state = endpoint.endpoint.value?.state?.value
-
+    val state = endpoint.state.value
     val endpointState = when (state) {
-        EndpointState.Started -> res.getString(R.string.endpoint_started)
-        EndpointState.Connecting ->
+        is EndpointState.Started -> res.getString(R.string.endpoint_started)
+        is EndpointState.Connecting ->
             res.getString(R.string.endpoint_connecting)
-        EndpointState.Stopped -> res.getString(R.string.endpoint_stopped)
-        null -> res.getString(R.string.endpoint_stopped)
+        is EndpointState.Stopped -> res.getString(R.string.endpoint_stopped)
     }
 
     val text = res.getString(R.string.notification_stream_state, endpointState)

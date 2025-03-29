@@ -1,23 +1,23 @@
 package com.rejeq.cpcam.core.endpoint
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Represents the current state of a endpoint session.
  */
-enum class EndpointState {
+sealed interface EndpointState {
     /** Endpoint is not active */
-    Stopped,
+    object Stopped : EndpointState
 
     /** Endpoint is establishing connection */
-    Connecting,
+    object Connecting : EndpointState
 
     /** Endpoint is active and transmitting */
-    Started,
+    class Started(val warning: EndpointResult) : EndpointState
 }
 
 interface Endpoint {
-    val state: StateFlow<EndpointState>
+    val state: Flow<EndpointState>
 
     suspend fun connect()
     suspend fun disconnect()

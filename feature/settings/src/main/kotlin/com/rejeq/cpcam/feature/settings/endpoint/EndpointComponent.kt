@@ -87,7 +87,7 @@ class EndpointComponent @AssistedInject constructor(
                     )
 
                     _connectionState.value = when (hasConnection) {
-                        is EndpointResult.Success<*> -> {
+                        is EndpointResult.Success -> {
                             EndpointConnectionState.Success
                         }
                         else -> {

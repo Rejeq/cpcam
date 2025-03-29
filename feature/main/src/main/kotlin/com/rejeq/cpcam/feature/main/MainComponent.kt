@@ -68,16 +68,16 @@ class MainComponent @AssistedInject constructor(
     }
 
     val showInfoButton = endpointHandler.state.map {
-        it == EndpointState.Started
+        it is EndpointState.Started
     }
 
     init {
         endpoint.state
             .onEach {
                 streamButtonState.animTarget = when (it) {
-                    EndpointState.Stopped -> MorphIconTarget.Stopped
-                    EndpointState.Started -> MorphIconTarget.Started
-                    EndpointState.Connecting -> MorphIconTarget.Loading
+                    is EndpointState.Stopped -> MorphIconTarget.Stopped
+                    is EndpointState.Started -> MorphIconTarget.Started
+                    is EndpointState.Connecting -> MorphIconTarget.Loading
                 }
             }
             .launchIn(scope)

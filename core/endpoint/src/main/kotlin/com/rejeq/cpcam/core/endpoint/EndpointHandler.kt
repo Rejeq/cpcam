@@ -10,6 +10,7 @@ import com.rejeq.cpcam.core.endpoint.di.WebsocketClient
 import com.rejeq.cpcam.core.endpoint.obs.ObsEndpoint
 import com.rejeq.cpcam.core.endpoint.obs.ObsStreamHandler
 import com.rejeq.cpcam.core.endpoint.obs.checkObsConnection
+import com.rejeq.cpcam.core.endpoint.obs.toEndpointResult
 import com.rejeq.cpcam.core.endpoint.service.EndpointService
 import com.rejeq.cpcam.core.endpoint.service.startEndpointService
 import com.rejeq.cpcam.core.endpoint.service.stopEndpointService
@@ -19,13 +20,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 
 @Singleton
 class EndpointHandler @Inject constructor(
@@ -41,9 +43,9 @@ class EndpointHandler @Inject constructor(
     val endpoint = _endpoint.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val state: Flow<EndpointState> = endpoint.flatMapLatest {
+    val state = endpoint.flatMapLatest {
         it?.state ?: flowOf(EndpointState.Stopped)
-    }
+    }.stateIn(scope, SharingStarted.Eagerly, EndpointState.Stopped)
 
     init {
         endpointRepo.endpointConfig
@@ -52,19 +54,14 @@ class EndpointHandler @Inject constructor(
     }
 
     suspend fun connect() {
-        startEndpointService(context)
-
         val endpoint = _endpoint.value
         if (endpoint == null) {
             Log.w(TAG, "Unable to connect: No endpoint configured")
             return
         }
 
-        if (endpoint.state.value != EndpointState.Started) {
-            endpoint.connect()
-        } else {
-            Log.i(TAG, "Unable to connect: Already connected")
-        }
+        startEndpointService(context)
+        endpoint.connect()
     }
 
     suspend fun disconnect() {
@@ -75,16 +72,18 @@ class EndpointHandler @Inject constructor(
         }
     }
 
-    suspend fun checkConnection(config: EndpointConfig) = when (config) {
-        is ObsConfig -> checkObsConnection(wbClient, config)
-    }
+    suspend fun checkConnection(config: EndpointConfig): EndpointResult =
+        when (config) {
+            is ObsConfig -> {
+                checkObsConnection(wbClient, config).toEndpointResult()
+            }
+        }
 
     private suspend fun setConfig(config: EndpointConfig) {
-        val endpoint = _endpoint.value
-        if (endpoint != null) {
-            if (endpoint.state.value != EndpointState.Stopped) {
-                endpoint.disconnect()
-            }
+        if (state.value != EndpointState.Stopped) {
+            // TODO:
+            // hasPendingConfig = true
+            endpoint.value?.disconnect()
         }
 
         _endpoint.value = makeEndpoint(config)

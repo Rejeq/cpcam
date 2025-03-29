@@ -3,7 +3,6 @@ package com.rejeq.cpcam.core.endpoint.obs
 import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
-import com.rejeq.cpcam.core.endpoint.EndpointResult
 import com.rejeq.ktobs.ObsAuthException
 import com.rejeq.ktobs.ObsEventSubs
 import com.rejeq.ktobs.ObsRequestException
@@ -28,30 +27,26 @@ sealed class InputKind(val name: String) {
 
 internal suspend fun obsConnect(
     client: HttpClient,
-    host: String,
-    port: Int,
-    password: String?,
+    config: ObsConfig,
     block: suspend ObsSession.() -> Unit,
-): EndpointResult<Unit> = tryObsCall {
+): ObsErrorKind? = tryObsCall {
     val session = ObsSessionBuilder(client).apply {
-        this.host = host
-        this.port = port
-        this.password = password
+        this.host = config.url
+        this.port = config.port
+        this.password = config.password
         this.eventSubs = ObsEventSubs.None
     }
 
     session.connect(block)
-    EndpointResult.Success(Unit)
+    null
 }
 
 internal suspend fun checkObsConnection(
     client: HttpClient,
     config: ObsConfig,
-): EndpointResult<Unit> = obsConnect(
+): ObsErrorKind? = obsConnect(
     client,
-    config.url,
-    config.port,
-    config.password,
+    config,
     block = {},
 )
 
@@ -69,11 +64,11 @@ internal suspend fun ObsSession.setupObsScene(data: ObsStreamData) {
 internal suspend fun ObsSession.createStreamInput(
     name: String,
     kind: InputKind,
-): EndpointResult<Unit> = tryObsCall {
+): ObsErrorKind? = tryObsCall {
     val kindList = getInputKindList()
     if (!kindList.contains(kind.name)) {
         Log.e(TAG, "OBS doesn't support '${kind.name}' input kind")
-        return EndpointResult.ObsError(ObsErrorKind.UnknownInput(kind))
+        return ObsErrorKind.UnknownInput(kind)
     }
 
     val sceneUuid = getOrCreateActiveScene()
@@ -86,7 +81,7 @@ internal suspend fun ObsSession.createStreamInput(
         settings = settings,
     )
 
-    EndpointResult.Success(Unit)
+    null
 }
 
 internal fun createInputSettings(kind: InputKind) = buildJsonObject {
@@ -118,23 +113,19 @@ internal suspend fun ObsSession.createFallbackScene(): String {
     }
 }
 
-internal suspend inline fun <T> tryObsCall(
-    block: suspend () -> EndpointResult<T>,
-): EndpointResult<T> = try {
+internal suspend inline fun tryObsCall(
+    block: suspend () -> ObsErrorKind?,
+): ObsErrorKind? = try {
     block()
 } catch (e: Exception) {
     when (e) {
-        is ObsRequestException -> EndpointResult.ObsError(
-            ObsErrorKind.RequestFailed(e),
-        )
-        is ObsAuthException -> EndpointResult.ObsError(
-            ObsErrorKind.AuthFailed(e.kind),
-        )
-        is UnresolvedAddressException -> EndpointResult.UnknownHost()
-        is ConnectTimeoutException -> EndpointResult.ConnectionTimeout()
-        is ConnectException -> EndpointResult.ConnectionRefused()
+        is ObsRequestException -> ObsErrorKind.RequestFailed(e)
+        is ObsAuthException -> ObsErrorKind.AuthFailed(e.kind)
+        is UnresolvedAddressException -> ObsErrorKind.UnknownHost
+        is ConnectTimeoutException -> ObsErrorKind.ConnectionTimeout
+        is ConnectException -> ObsErrorKind.ConnectionRefused
         is CancellationException -> throw e
-        else -> EndpointResult.UnknownError(e)
+        else -> ObsErrorKind.Unknown(e)
     }
 }
 

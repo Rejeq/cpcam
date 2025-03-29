@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
-import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.Resolution
@@ -9,6 +8,8 @@ import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
+import com.rejeq.cpcam.core.endpoint.EndpointResult
+import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.stream.StreamHandler
 import com.rejeq.cpcam.core.stream.StreamResult
 import com.rejeq.cpcam.core.stream.VideoStreamConfig
@@ -17,9 +18,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class ObsStreamHandler @AssistedInject constructor(
     streamRepo: StreamRepository,
@@ -27,6 +27,10 @@ class ObsStreamHandler @AssistedInject constructor(
     // FIXME: Scope leak, cancel when object to be destroyed
     @Assisted scope: CoroutineScope,
 ) {
+    private val _state =
+        MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped)
+    val state = _state.asStateFlow()
+
     // TODO: Do not hardcode. Update from settings
     val streamData = ObsStreamData(
         StreamProtocol.MPEGTS,
@@ -59,25 +63,20 @@ class ObsStreamHandler @AssistedInject constructor(
         )
     }
 
-    val data = streamRepo.obsData.map { StreamHandlerState.Valid(it) }
-        .stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            StreamHandlerState.Unknown(),
-        )
+    fun start(): StreamResult<Unit> {
+        _state.value = StreamHandlerState.Connecting
+        val res = streamHandler.start()
+        _state.value = StreamHandlerState.Started
 
-    fun start(): StreamResult<Unit> = when (data.value) {
-        is StreamHandlerState.Valid -> {
-            // TODO: Do not hardcode
-            streamHandler.start()
-        }
-        is StreamHandlerState.Unknown -> {
-            Log.w(TAG, "Unable to start stream: Unknown stream data")
-            StreamResult.Failed
-        }
+        return res
     }
 
-    fun stop(): StreamResult<Unit> = streamHandler.stop()
+    fun stop(): StreamResult<Unit> {
+        val res = streamHandler.stop()
+        _state.value = StreamHandlerState.Stopped
+
+        return res
+    }
 
     // TODO:
 //    private val updateStreamHandler() {
@@ -89,10 +88,16 @@ class ObsStreamHandler @AssistedInject constructor(
     }
 }
 
-sealed interface StreamHandlerState {
-    data class Valid(val value: ObsStreamData) : StreamHandlerState
+enum class StreamHandlerState {
+    Stopped,
+    Connecting,
+    Started,
+}
 
-    class Unknown : StreamHandlerState
+fun StreamHandlerState.toEndpointState() = when (this) {
+    StreamHandlerState.Stopped -> EndpointState.Stopped
+    StreamHandlerState.Connecting -> EndpointState.Connecting
+    StreamHandlerState.Started -> EndpointState.Started(EndpointResult.Success)
 }
 
 private const val TAG = "ObsStreamHandler"
