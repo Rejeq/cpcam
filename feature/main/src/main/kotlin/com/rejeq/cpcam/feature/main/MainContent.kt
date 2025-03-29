@@ -83,8 +83,12 @@ fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
     dialog.child?.instance?.let {
         when (it) {
             is MainNavigation.Dialog.Info -> InfoContent(it.component)
+
             is MainNavigation.Dialog.PermanentNotification ->
                 PermissionDeniedContent(it.component)
+
+            is MainNavigation.Dialog.ConnectionError ->
+                ConnectionErrorContent(it.component)
         }
     }
 }

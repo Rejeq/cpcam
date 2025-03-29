@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
+import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.feature.main.info.InfoComponent
 import kotlinx.serialization.Serializable
 
@@ -19,7 +20,7 @@ class MainNavigation(componentContext: ComponentContext) {
         handleBackButton = true,
     ) { config, childComponentContext ->
         when (config) {
-            DialogConfig.Info -> Dialog.Info(
+            is DialogConfig.Info -> Dialog.Info(
                 InfoComponent(
                     childComponentContext,
                     onFinished = dialogNavigation::dismiss,
@@ -31,6 +32,15 @@ class MainNavigation(componentContext: ComponentContext) {
                     PermissionDeniedComponent(
                         childComponentContext,
                         config.permissions,
+                        onFinished = dialogNavigation::dismiss,
+                    ),
+                )
+
+            is DialogConfig.ConnectionError ->
+                Dialog.ConnectionError(
+                    ConnectionErrorComponent(
+                        childComponentContext,
+                        config.reason,
                         onFinished = dialogNavigation::dismiss,
                     ),
                 )
@@ -47,6 +57,12 @@ class MainNavigation(componentContext: ComponentContext) {
         )
     }
 
+    fun showConnectionError(reason: EndpointErrorKind) {
+        dialogNavigation.activate(
+            DialogConfig.ConnectionError(reason),
+        )
+    }
+
     @Serializable
     private sealed interface DialogConfig {
         @Serializable
@@ -54,6 +70,9 @@ class MainNavigation(componentContext: ComponentContext) {
 
         @Serializable
         data class PermissionDenied(val permissions: String) : DialogConfig
+
+        @Serializable
+        data class ConnectionError(val reason: EndpointErrorKind) : DialogConfig
     }
 
     sealed interface Dialog {
@@ -62,5 +81,8 @@ class MainNavigation(componentContext: ComponentContext) {
         data class PermanentNotification(
             val component: PermissionDeniedComponent,
         ) : Dialog
+
+        data class ConnectionError(val component: ConnectionErrorComponent) :
+            Dialog
     }
 }

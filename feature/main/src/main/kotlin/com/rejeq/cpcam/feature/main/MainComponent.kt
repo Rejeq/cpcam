@@ -87,7 +87,15 @@ class MainComponent @AssistedInject constructor(
         scope.launch {
             Log.i(TAG, "Connecting")
 
-            endpoint.connect()
+            val newState = endpoint.connect()
+            if (newState is EndpointState.Stopped) {
+                val reason = newState.reason
+                if (reason != null) {
+                    nav.showConnectionError(reason)
+                } else {
+                    Log.w(TAG, "Unable to connect to endpoint: Without reason")
+                }
+            }
         }
     }
 

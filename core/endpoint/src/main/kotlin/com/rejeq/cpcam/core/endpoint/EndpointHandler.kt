@@ -53,11 +53,11 @@ class EndpointHandler @Inject constructor(
             .launchIn(scope)
     }
 
-    suspend fun connect() {
+    suspend fun connect(): EndpointState {
         val endpoint = _endpoint.value
         if (endpoint == null) {
             Log.w(TAG, "Unable to connect: No endpoint configured")
-            return
+            return DEFAULT_ENDPOINT_STATE
         }
 
         startEndpointService(context)
@@ -66,9 +66,11 @@ class EndpointHandler @Inject constructor(
         if (newState !is EndpointState.Started) {
             stopEndpointService(context)
         }
+
+        return newState
     }
 
-    suspend fun disconnect() {
+    suspend fun disconnect(): EndpointState {
         val newState = endpoint.value?.disconnect()
 
         if (newState !is EndpointState.Stopped &&
@@ -76,6 +78,8 @@ class EndpointHandler @Inject constructor(
         ) {
             stopEndpointService(context)
         }
+
+        return newState ?: DEFAULT_ENDPOINT_STATE
     }
 
     suspend fun checkConnection(config: EndpointConfig): EndpointResult {
