@@ -5,6 +5,7 @@ import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
+import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.stream.StreamHandler
 import com.rejeq.cpcam.core.stream.StreamResult
@@ -27,7 +28,7 @@ class ObsStreamHandler @AssistedInject constructor(
     @Assisted scope: CoroutineScope,
 ) {
     private val _state =
-        MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped)
+        MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped())
     val state = _state.asStateFlow()
 
     private var streamHandler: StreamHandler? = null
@@ -41,11 +42,21 @@ class ObsStreamHandler @AssistedInject constructor(
         )
 
     fun start(): StreamHandlerState {
+        val handler = streamHandler
+        if (handler == null) {
+            Log.w(TAG, "Unable to start stream handler: No stream data")
+
+            _state.value = StreamHandlerState.Stopped(
+                StreamErrorKind.NoStreamData,
+            )
+            return _state.value
+        }
+
         _state.value = StreamHandlerState.Connecting
-        val res = streamHandler?.start() ?: StreamResult.Failed
+        val res = handler.start()
 
         _state.value = when (res) {
-            StreamResult.Failed -> StreamHandlerState.Stopped
+            StreamResult.Failed -> StreamHandlerState.Stopped(null)
             is StreamResult.Success -> StreamHandlerState.Started
         }
 
@@ -54,7 +65,7 @@ class ObsStreamHandler @AssistedInject constructor(
 
     fun stop(): StreamHandlerState {
         streamHandler?.stop()
-        _state.value = StreamHandlerState.Stopped
+        _state.value = StreamHandlerState.Stopped()
 
         return _state.value
     }
@@ -98,16 +109,24 @@ class ObsStreamHandler @AssistedInject constructor(
     }
 }
 
-enum class StreamHandlerState {
-    Stopped,
-    Connecting,
-    Started,
+enum class StreamErrorKind {
+    NoStreamData,
+}
+
+fun StreamErrorKind.toEndpointError() = EndpointErrorKind.StreamError(this)
+
+sealed interface StreamHandlerState {
+    class Stopped(val reason: StreamErrorKind? = null) : StreamHandlerState
+    object Connecting : StreamHandlerState
+    object Started : StreamHandlerState
 }
 
 fun StreamHandlerState.toEndpointState() = when (this) {
-    StreamHandlerState.Stopped -> EndpointState.Stopped(null)
-    StreamHandlerState.Connecting -> EndpointState.Connecting
-    StreamHandlerState.Started -> EndpointState.Started(null)
+    is StreamHandlerState.Stopped -> EndpointState.Stopped(
+        this.reason?.toEndpointError(),
+    )
+    is StreamHandlerState.Connecting -> EndpointState.Connecting
+    is StreamHandlerState.Started -> EndpointState.Started(null)
 }
 
 private const val TAG = "ObsStreamHandler"
