@@ -27,6 +27,7 @@ class FFmpegVideoStream {
 
     bool has_pixel_format() const { return m_pix_fmt != AV_PIX_FMT_NONE; }
     AVPixelFormat pixel_format() const { return m_pix_fmt; }
+    int plane_count() const { return m_pix_fmt_plane_count; }
 
     void start();
     void stop();
