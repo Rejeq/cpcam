@@ -51,7 +51,7 @@ class ObsEndpoint(
             conn is ConnectionState.Stopped &&
             conn.reason != null
         ) {
-            EndpointState.Started(conn.reason.toEndpointResult())
+            EndpointState.Started(conn.reason.toEndpointError())
         } else {
             stream.toEndpointState()
         }

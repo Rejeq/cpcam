@@ -10,7 +10,7 @@ import com.rejeq.cpcam.core.endpoint.di.WebsocketClient
 import com.rejeq.cpcam.core.endpoint.obs.ObsEndpoint
 import com.rejeq.cpcam.core.endpoint.obs.ObsStreamHandler
 import com.rejeq.cpcam.core.endpoint.obs.checkObsConnection
-import com.rejeq.cpcam.core.endpoint.obs.toEndpointResult
+import com.rejeq.cpcam.core.endpoint.obs.toEndpointError
 import com.rejeq.cpcam.core.endpoint.service.EndpointService
 import com.rejeq.cpcam.core.endpoint.service.startEndpointService
 import com.rejeq.cpcam.core.endpoint.service.stopEndpointService
@@ -44,8 +44,8 @@ class EndpointHandler @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val state = endpoint.flatMapLatest {
-        it?.state ?: flowOf(EndpointState.Stopped)
-    }.stateIn(scope, SharingStarted.Eagerly, EndpointState.Stopped)
+        it?.state ?: flowOf(DEFAULT_ENDPOINT_STATE)
+    }.stateIn(scope, SharingStarted.Eagerly, DEFAULT_ENDPOINT_STATE)
 
     init {
         endpointRepo.endpointConfig
@@ -78,15 +78,22 @@ class EndpointHandler @Inject constructor(
         }
     }
 
-    suspend fun checkConnection(config: EndpointConfig): EndpointResult =
-        when (config) {
+    suspend fun checkConnection(config: EndpointConfig): EndpointResult {
+        val error = when (config) {
             is ObsConfig -> {
-                checkObsConnection(wbClient, config).toEndpointResult()
+                checkObsConnection(wbClient, config)?.toEndpointError()
             }
         }
 
+        return if (error != null) {
+            EndpointResult.Error(error)
+        } else {
+            EndpointResult.Success
+        }
+    }
+
     private suspend fun setConfig(config: EndpointConfig) {
-        if (state.value != EndpointState.Stopped) {
+        if (state.value is EndpointState.Stopped) {
             // TODO:
             // hasPendingConfig = true
             endpoint.value?.disconnect()
@@ -103,5 +110,9 @@ class EndpointHandler @Inject constructor(
         )
     }
 }
+
+private val DEFAULT_ENDPOINT_STATE = EndpointState.Stopped(
+    EndpointErrorKind.EndpointNotConfigured,
+)
 
 private const val TAG = "EndpointHandler"

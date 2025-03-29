@@ -1,6 +1,6 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
-import com.rejeq.cpcam.core.endpoint.EndpointResult
+import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.ktobs.AuthError
 import com.rejeq.ktobs.ObsRequestException
 
@@ -19,8 +19,7 @@ sealed interface ObsErrorKind {
     class Unknown(val e: Exception) : ObsErrorKind
 }
 
-fun ObsErrorKind?.toEndpointResult() = when (this) {
-    null -> EndpointResult.Success
-    is ObsErrorKind.Unknown -> EndpointResult.UnknownError(this.e)
-    else -> EndpointResult.ObsError(this)
+fun ObsErrorKind.toEndpointError() = when (this) {
+    is ObsErrorKind.Unknown -> EndpointErrorKind.UnknownError(this.e)
+    else -> EndpointErrorKind.ObsError(this)
 }

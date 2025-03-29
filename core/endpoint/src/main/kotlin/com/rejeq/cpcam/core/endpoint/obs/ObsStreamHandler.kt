@@ -5,7 +5,6 @@ import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
-import com.rejeq.cpcam.core.endpoint.EndpointResult
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.stream.StreamHandler
 import com.rejeq.cpcam.core.stream.StreamResult
@@ -106,9 +105,9 @@ enum class StreamHandlerState {
 }
 
 fun StreamHandlerState.toEndpointState() = when (this) {
-    StreamHandlerState.Stopped -> EndpointState.Stopped
+    StreamHandlerState.Stopped -> EndpointState.Stopped(null)
     StreamHandlerState.Connecting -> EndpointState.Connecting
-    StreamHandlerState.Started -> EndpointState.Started(EndpointResult.Success)
+    StreamHandlerState.Started -> EndpointState.Started(null)
 }
 
 private const val TAG = "ObsStreamHandler"
