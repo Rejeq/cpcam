@@ -5,14 +5,15 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
-import com.rejeq.cpcam.feature.settings.item.DialogRow
-import com.rejeq.cpcam.feature.settings.item.ListItem
+import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
+import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 import kotlin.enums.enumEntries
 
 @Composable
@@ -104,20 +105,27 @@ inline fun <reified T : Enum<T>> EnumEntry(
     selected: T,
     crossinline onChange: (T) -> Unit,
 ) {
-    ListItem(
+    val showDialog = rememberSaveable { mutableStateOf(false) }
+
+    ListDialogItem(
         title = title,
         subtitle = subtitle,
         selected = selected.toString(),
-    ) { showDialog ->
+        isDialogShown = showDialog.value,
+        onDialogDismiss = { showDialog.value = false },
+        onItemClick = { showDialog.value = true },
+    ) {
         val entries = enumEntries<T>()
 
         entries.fastForEachIndexed { idx, entry ->
             item {
-                DialogRow(
+                DialogSelectableRow(
                     label = entry.toString(),
                     isSelected = (entries.indexOf(selected) == idx),
-                    showDialog = showDialog,
-                    onSelect = { onChange(entry) },
+                    onSelect = {
+                        onChange(entry)
+                        showDialog.value = false
+                    },
                 )
             }
         }

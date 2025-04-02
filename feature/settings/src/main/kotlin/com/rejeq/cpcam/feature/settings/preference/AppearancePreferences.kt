@@ -3,6 +3,8 @@ package com.rejeq.cpcam.feature.settings.preference
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -12,8 +14,8 @@ import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.ui.isFollowDarkModeSupported
 import com.rejeq.cpcam.core.ui.theme.isDynamicThemingSupported
 import com.rejeq.cpcam.feature.settings.R
-import com.rejeq.cpcam.feature.settings.item.DialogRow
-import com.rejeq.cpcam.feature.settings.item.ListItem
+import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
+import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 import com.rejeq.cpcam.feature.settings.item.SwitchItem
 import kotlinx.coroutines.flow.Flow
 
@@ -74,20 +76,26 @@ fun ThemeConfigPreference(
     )
 
     val selectedEntry = selected?.let { entries[it.ordinal] }
+    val showDialog = rememberSaveable { mutableStateOf(false) }
 
-    ListItem(
+    ListDialogItem(
         title = stringResource(R.string.pref_theme_title),
         subtitle = stringResource(R.string.pref_theme_desc),
         selected = selectedEntry,
+        isDialogShown = showDialog.value,
+        onDialogDismiss = { showDialog.value = false },
+        onItemClick = { showDialog.value = true },
         modifier = modifier,
-    ) { showDialog ->
+    ) {
         entries.fastForEachIndexed { idx, entry ->
             item {
-                DialogRow(
+                DialogSelectableRow(
                     label = entry,
                     isSelected = (entries.indexOf(selectedEntry) == idx),
-                    showDialog = showDialog,
-                    onSelect = { onChange(ThemeConfig.entries[idx]) },
+                    onSelect = {
+                        onChange(ThemeConfig.entries[idx])
+                        showDialog.value = false
+                    },
                 )
             }
         }

@@ -3,14 +3,16 @@ package com.rejeq.cpcam.feature.settings.preference
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.common.mapToImmutableList
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.feature.settings.R
-import com.rejeq.cpcam.feature.settings.item.DialogRow
-import com.rejeq.cpcam.feature.settings.item.ListItem
+import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
+import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 import com.rejeq.cpcam.feature.settings.item.TextItem
 import kotlinx.coroutines.flow.Flow
 
@@ -49,33 +51,42 @@ fun ResolutionPreference(
     onChange: (Resolution?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val showDialog = rememberSaveable { mutableStateOf(false) }
+
     val entries = available?.mapToImmutableList {
         val simplified = it.simplified()
         "$it (${simplified.width}/${simplified.height})"
     }
 
-    ListItem(
+    ListDialogItem(
         title = stringResource(R.string.pref_resolution_title),
         subtitle = stringResource(R.string.pref_resolution_desc),
         selected = selected?.toString(),
+        isDialogShown = showDialog.value,
+        onDialogDismiss = { showDialog.value = false },
+        onItemClick = { showDialog.value = true },
         modifier = modifier,
-    ) { showDialog ->
+    ) {
         item {
-            DialogRow(
+            DialogSelectableRow(
                 label = stringResource(R.string.pref_resolution_default),
                 isSelected = selected == null,
-                showDialog = showDialog,
-                onSelect = { onChange(null) },
+                onSelect = {
+                    onChange(null)
+                    showDialog.value = false
+                },
             )
         }
 
         entries?.fastForEachIndexed { idx, entry ->
             item {
-                DialogRow(
+                DialogSelectableRow(
                     label = entry,
                     isSelected = (available.indexOf(selected) == idx),
-                    showDialog = showDialog,
-                    onSelect = { onChange(available[idx]) },
+                    onSelect = {
+                        onChange(available[idx])
+                        showDialog.value = false
+                    },
                 )
             }
         }
