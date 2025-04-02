@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.feature.settings.preference
 
-import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -11,6 +10,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.common.mapFilteredToImmutableList
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.ui.isFollowDarkModeSupported
+import com.rejeq.cpcam.core.ui.theme.isDynamicThemingSupported
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.DialogRow
 import com.rejeq.cpcam.feature.settings.item.ListItem
@@ -35,7 +35,7 @@ fun appearancePreferences(state: AppearanceState): List<PreferenceContent> =
             )
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (isDynamicThemingSupported()) {
             add { modifier ->
                 UseDynamicColorPreference(
                     checked = state.useDynamicColor.collectAsState(null).value,
