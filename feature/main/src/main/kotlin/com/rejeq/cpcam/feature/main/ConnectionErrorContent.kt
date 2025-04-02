@@ -29,16 +29,12 @@ fun ConnectionErrorContent(
             Text(text = reason.desc)
         },
         confirmButton = {
-            TextButton(onClick = component.onFinished) {
+            TextButton(onClick = {
+                component.openEndpointSettings()
+                component.onFinished()
+            }) {
                 Text(
                     text = stringResource(R.string.connection_error_confirm),
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = component.onFinished) {
-                Text(
-                    text = stringResource(R.string.connection_error_cancel),
                 )
             }
         },

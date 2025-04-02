@@ -8,6 +8,7 @@ class ConnectionErrorComponent(
     componentContext: ComponentContext,
     val reason: EndpointErrorKind,
     val onFinished: () -> Unit,
+    val openEndpointSettings: () -> Unit,
 ) : ComponentContext by componentContext
 
 @Immutable

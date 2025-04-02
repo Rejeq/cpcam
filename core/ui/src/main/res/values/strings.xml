@@ -132,8 +132,7 @@
     <string name="pref_audio_encoder_title">Audio Encoder</string>
     <string name="pref_audio_encoder_desc">Choose the audio encoder settings</string>
 
-    <string name="connection_error_confirm">Confirm</string>
-    <string name="connection_error_cancel">Cancel</string>
+    <string name="connection_error_confirm">Open Endpoint Settings</string>
 
     <string name="endpoint_not_configured_title">Endpoint is not configured</string>
     <string name="endpoint_unknown_error_title">Unknown endpoint error occurred</string>

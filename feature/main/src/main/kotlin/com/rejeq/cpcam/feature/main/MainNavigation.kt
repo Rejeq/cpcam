@@ -11,7 +11,10 @@ import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.feature.main.info.InfoComponent
 import kotlinx.serialization.Serializable
 
-class MainNavigation(componentContext: ComponentContext) {
+class MainNavigation(
+    componentContext: ComponentContext,
+    private val openEndpointSettings: () -> Unit,
+) {
     private val dialogNavigation = SlotNavigation<DialogConfig>()
 
     val dialog: Value<ChildSlot<*, Dialog>> = componentContext.childSlot(
@@ -42,6 +45,7 @@ class MainNavigation(componentContext: ComponentContext) {
                         childComponentContext,
                         config.reason,
                         onFinished = dialogNavigation::dismiss,
+                        openEndpointSettings = openEndpointSettings,
                     ),
                 )
         }

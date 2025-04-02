@@ -65,6 +65,7 @@ class RootComponent @AssistedInject constructor(
         componentContext = context,
         mainContext = mainContext,
         onSettingsClick = { nav.pushNew(Config.Settings) },
+        openEndpointSettings = { nav.pushNew(Config.EndpointSettings) },
     )
 
     private fun settingsComponent(context: ComponentContext) =

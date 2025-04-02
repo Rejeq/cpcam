@@ -39,12 +39,16 @@ class MainComponent @AssistedInject constructor(
     cameraDataRepo: CameraDataRepository,
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
-    @Assisted val onSettingsClick: () -> Unit,
+    @Assisted("onSettingsClick") val onSettingsClick: () -> Unit,
+    @Assisted("openEndpointSettings") val openEndpointSettings: () -> Unit,
 ) : ChildComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
-    val nav = MainNavigation(componentContext = this)
+    val nav = MainNavigation(
+        componentContext = this,
+        openEndpointSettings = openEndpointSettings,
+    )
 
     val cam = CameraComponent(
         dndListener = dndListener,
@@ -118,7 +122,8 @@ class MainComponent @AssistedInject constructor(
         fun create(
             componentContext: ComponentContext,
             mainContext: CoroutineContext,
-            onSettingsClick: () -> Unit,
+            @Assisted("onSettingsClick") onSettingsClick: () -> Unit,
+            @Assisted("openEndpointSettings") openEndpointSettings: () -> Unit,
         ): MainComponent
     }
 }
