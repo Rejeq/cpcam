@@ -72,7 +72,7 @@ private fun DeviceOrientationListener(
     applicationContext: Context,
     onOrientationChange: (DeviceOrientation) -> Unit,
 ) {
-    DisposableEffect(Unit) {
+    DisposableEffect(onOrientationChange) {
         val orientationEventListener = object : OrientationEventListener(
             applicationContext,
         ) {

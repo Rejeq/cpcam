@@ -24,8 +24,8 @@ import android.view.SurfaceView
 import kotlin.math.roundToInt
 
 /**
- * A SurfaceView that automatically adjusts its size to maintain the aspect ratio
- * of the camera preview while performing center-crop transformation.
+ * A SurfaceView that automatically adjusts its size to maintain the aspect
+ * ratio of the camera preview while performing center-crop transformation.
  *
  * This view is specifically designed for camera preview display, ensuring that:
  * - The preview maintains the correct aspect ratio

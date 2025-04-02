@@ -13,6 +13,7 @@ android {
         minSdk = ProjectConfig.MIN_SDK
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        //noinspection ChromeOsAbiSupport
         ndk.abiFilters += ProjectConfig.SUPPORTED_ABI
     }
 

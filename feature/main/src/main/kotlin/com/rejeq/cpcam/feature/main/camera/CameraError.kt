@@ -85,7 +85,7 @@ private fun DndError(
     stopMonitoringDnd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    DisposableEffect(Unit) {
+    DisposableEffect(startMonitoringDnd, stopMonitoringDnd) {
         startMonitoringDnd()
 
         onDispose {
@@ -206,7 +206,7 @@ private fun CameraErrorCommon(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewCameraErrorCommon() {
+private fun PreviewCameraErrorCommon() {
     val desc =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do " +
             "eiusmod tempor incididunt ut labore et dolore magna aliqua. " +

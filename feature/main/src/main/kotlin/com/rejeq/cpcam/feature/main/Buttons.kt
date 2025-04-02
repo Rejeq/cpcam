@@ -62,17 +62,23 @@ fun StreamInfoButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 fun TorchButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     CpcamIconButton(onClick = onClick, modifier = modifier) {
         Icon(
             painter = painterResource(
-                if (isEnabled) R.drawable.ic_flash_on_24dp
-                else R.drawable.ic_flash_off_24dp
+                if (isEnabled) {
+                    R.drawable.ic_flash_on_24dp
+                } else {
+                    R.drawable.ic_flash_off_24dp
+                },
             ),
             contentDescription = stringResource(
-                if (isEnabled) R.string.btn_torch_on_desc
-                else R.string.btn_torch_off_desc
+                if (isEnabled) {
+                    R.string.btn_torch_on_desc
+                } else {
+                    R.string.btn_torch_off_desc
+                },
             ),
             modifier = Modifier.adaptiveRotation(),
         )

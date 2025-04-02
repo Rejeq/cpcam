@@ -62,7 +62,7 @@ fun CpcamTopBar(
 
 @Preview
 @Composable
-fun PreviewCpcamTopBar() {
+private fun PreviewCpcamTopBar() {
     CpcamTheme {
         CpcamTopBar(title = "Title", onBackClick = {}) {
 
@@ -75,7 +75,7 @@ fun PreviewCpcamTopBar() {
 
 @Preview
 @Composable
-fun PreviewCpcamTopBarLongTitle() {
+private fun PreviewCpcamTopBarLongTitle() {
     CpcamTheme {
         CpcamTopBar(
             title = "This is very very very very very long title",

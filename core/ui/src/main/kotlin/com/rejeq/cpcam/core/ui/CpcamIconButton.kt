@@ -45,7 +45,7 @@ fun CpcamIconButton(
 
 @Preview
 @Composable
-fun PreviewCpcamIconButton() {
+private fun PreviewCpcamIconButton() {
     CpcamTheme {
         CpcamIconButton(onClick = {}) {
             Icon(
