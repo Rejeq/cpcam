@@ -73,7 +73,7 @@ class EndpointHandler @Inject constructor(
     suspend fun disconnect(): EndpointState {
         val newState = endpoint.value?.disconnect()
 
-        if (newState !is EndpointState.Stopped &&
+        if (newState is EndpointState.Stopped &&
             EndpointService.isStarted != 0
         ) {
             stopEndpointService(context)
