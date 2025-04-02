@@ -29,6 +29,11 @@ fun StreamProtocolProto?.fromDataStore() = when (this) {
     }
 }
 
+fun StreamProtocol.toDataStore() = when (this) {
+    StreamProtocol.MPEGTS -> StreamProtocolProto.STREAM_PROTOCOL_MPEGTS
+    StreamProtocol.MJPEG -> StreamProtocolProto.STREAM_PROTOCOL_MJPEG
+}
+
 fun VideoCodecProto?.fromDataStore() = when (this) {
     null,
     VideoCodecProto.UNRECOGNIZED,
@@ -44,6 +49,11 @@ fun VideoCodecProto?.fromDataStore() = when (this) {
     VideoCodecProto.VIDEO_CODEC_MJPEG -> {
         VideoCodec.MJPEG
     }
+}
+
+fun VideoCodec.toDataStore() = when (this) {
+    VideoCodec.H264 -> VideoCodecProto.VIDEO_CODEC_H264
+    VideoCodec.MJPEG -> VideoCodecProto.VIDEO_CODEC_MJPEG
 }
 
 fun VideoConfigProto.fromDataStore(): VideoConfig {
@@ -71,6 +81,32 @@ fun VideoConfigProto.fromDataStore(): VideoConfig {
     )
 }
 
+fun VideoConfig.toDataStore(): VideoConfigProto {
+    val builder = VideoConfigProto.newBuilder().also {
+        resolution?.let { resolution ->
+            it.setResolution(resolution.toString())
+        }
+
+        pixFmt?.let { pixFmt ->
+            it.setPixFmt(pixFmt.toString())
+        }
+
+        codecName?.let { codecName ->
+            it.setCodec(codecName.toDataStore())
+        }
+
+        bitrate?.let { bitrate ->
+            it.setBitRate(bitrate)
+        }
+
+        framerate?.let { framerate ->
+            it.setFramerate(framerate)
+        }
+    }
+
+    return builder.build()
+}
+
 fun PixFmt.Companion.fromString(pixFmt: String): PixFmt? = try {
     PixFmt.valueOf(pixFmt)
 } catch (e: IllegalArgumentException) {
@@ -83,5 +119,15 @@ fun ObsStreamDataProto.fromDataStore() = ObsStreamData(
     host = this.streamHost,
     videoConfig = this.videoConfig.fromDataStore(),
 )
+
+fun ObsStreamData.toDataStore(): ObsStreamDataProto {
+    val builder = ObsStreamDataProto.newBuilder().also {
+        it.streamHost = this.host
+        it.streamProtocol = this.protocol.toDataStore()
+        it.videoConfig = this.videoConfig.toDataStore()
+    }
+
+    return builder.build()
+}
 
 private const val TAG = "StreamDataMapper"

@@ -7,7 +7,10 @@ import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.data.model.EndpointConfig
 import com.rejeq.cpcam.core.data.model.ObsConfig
+import com.rejeq.cpcam.core.data.model.ObsStreamData
+import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.repository.EndpointRepository
+import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointResult
 import dagger.assisted.Assisted
@@ -27,6 +30,7 @@ import kotlinx.coroutines.launch
 @OptIn(FlowPreview::class)
 class EndpointComponent @AssistedInject constructor(
     val endpointRepo: EndpointRepository,
+    val streamRepo: StreamRepository,
     val endpointHandler: EndpointHandler,
     @ApplicationScope private val externalScope: CoroutineScope,
 
@@ -41,6 +45,14 @@ class EndpointComponent @AssistedInject constructor(
         MutableStateFlow<EndpointFormState>(EndpointFormState.Loading)
     val endpointForm = _endpointForm.asStateFlow()
 
+    private val _videoConfig =
+        MutableStateFlow<VideoConfigState>(VideoConfigState.Loading)
+    val videoConfig = _videoConfig.asStateFlow()
+
+    private val _streamData =
+        MutableStateFlow<StreamDataState>(StreamDataState.Loading)
+    val streamData = _streamData.asStateFlow()
+
     private var checkEndpointJob: Job? = null
     private val _connectionState = MutableStateFlow<EndpointConnectionState>(
         EndpointConnectionState.NotStarted,
@@ -50,6 +62,11 @@ class EndpointComponent @AssistedInject constructor(
     init {
         endpointRepo.endpointConfig.onEach {
             _endpointForm.value = EndpointFormState.Success(it)
+        }.launchIn(scope)
+
+        streamRepo.obsData.onEach {
+            _videoConfig.value = VideoConfigState.Success(it.videoConfig)
+            _streamData.value = StreamDataState.Success(it)
         }.launchIn(scope)
     }
 
@@ -72,6 +89,22 @@ class EndpointComponent @AssistedInject constructor(
                     ),
                 )
             }
+        }
+    }
+
+    fun updateStreamData(data: ObsStreamData) {
+        _streamData.value = StreamDataState.Success(data)
+
+        externalScope.launch {
+            streamRepo.setObsData(data)
+        }
+    }
+
+    fun updateVideoConfig(data: VideoConfig) {
+        _videoConfig.value = VideoConfigState.Success(data)
+
+        externalScope.launch {
+            streamRepo.setObsVideoConfig(data)
         }
     }
 
@@ -117,6 +150,18 @@ sealed interface EndpointFormState {
     object Loading : EndpointFormState
 
     data class Success(val data: EndpointConfig) : EndpointFormState
+}
+
+sealed interface VideoConfigState {
+    object Loading : VideoConfigState
+
+    data class Success(val data: VideoConfig) : VideoConfigState
+}
+
+sealed interface StreamDataState {
+    object Loading : StreamDataState
+
+    data class Success(val data: ObsStreamData) : StreamDataState
 }
 
 enum class EndpointConnectionState {

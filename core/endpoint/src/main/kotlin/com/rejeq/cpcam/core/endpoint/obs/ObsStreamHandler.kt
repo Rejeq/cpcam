@@ -37,7 +37,7 @@ class ObsStreamHandler @AssistedInject constructor(
         .onEach(action = ::updateStreamHandler)
         .stateIn(
             scope,
-            SharingStarted.WhileSubscribed(5_000),
+            SharingStarted.Eagerly,
             null,
         )
 
