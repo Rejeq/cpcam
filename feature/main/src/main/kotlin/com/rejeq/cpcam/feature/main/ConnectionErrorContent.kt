@@ -10,26 +10,23 @@ import androidx.compose.ui.res.stringResource
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.obs.ObsErrorKind
 import com.rejeq.cpcam.core.endpoint.obs.StreamErrorKind
+import com.rejeq.ktobs.AuthError
 
 @Composable
 fun ConnectionErrorContent(
     component: ConnectionErrorComponent,
     modifier: Modifier = Modifier,
 ) {
-    val reason = component.reason
+    val reason = component.reason.toConnectionError()
 
     AlertDialog(
         modifier = modifier,
         onDismissRequest = component.onFinished,
         title = {
-            Text(
-                text = stringResource(
-                    reason.toTitleStringResourceId(),
-                ),
-            )
+            Text(text = reason.title)
         },
         text = {
-            Text(text = reason.getDescriptionText())
+            Text(text = reason.desc)
         },
         confirmButton = {
             TextButton(onClick = component.onFinished) {
@@ -50,58 +47,85 @@ fun ConnectionErrorContent(
 
 @Composable
 @ReadOnlyComposable
-fun EndpointErrorKind.getDescriptionText(): String {
-    val id = this.toDescriptionStringResourceId()
-
-    return when (this) {
-        is EndpointErrorKind.UnknownError -> stringResource(
-            id,
+fun EndpointErrorKind.toConnectionError(): ConnectionError = when (this) {
+    is EndpointErrorKind.EndpointNotConfigured -> ConnectionError(
+        title = stringResource(R.string.endpoint_not_configured_title),
+        desc = stringResource(R.string.endpoint_not_configured_desc),
+    )
+    is EndpointErrorKind.ObsError -> this.kind.toConnectionError()
+    is EndpointErrorKind.StreamError -> this.kind.toConnectionError()
+    is EndpointErrorKind.UnknownError -> ConnectionError(
+        title = stringResource(R.string.endpoint_unknown_error_title),
+        desc = stringResource(
+            R.string.endpoint_unknown_error_desc,
             this.e.toString(),
-        )
-        else -> stringResource(id)
-    }
+        ),
+    )
 }
 
-fun EndpointErrorKind.toTitleStringResourceId() = when (this) {
-    is EndpointErrorKind.EndpointNotConfigured -> R.string.endpoint_not_configured_title
-    is EndpointErrorKind.ObsError -> this.kind.toTitleStringResourceId()
-    is EndpointErrorKind.StreamError -> this.kind.toTitleStringResourceId()
-    is EndpointErrorKind.UnknownError -> R.string.endpoint_unknown_error_title
+@Composable
+@ReadOnlyComposable
+fun ObsErrorKind.toConnectionError(): ConnectionError = when (this) {
+    is ObsErrorKind.AuthFailed -> this.kind.toConnectionError()
+    is ObsErrorKind.ConnectionRefused -> ConnectionError(
+        title = stringResource(R.string.obs_error_connection_refused_title),
+        desc = stringResource(R.string.obs_error_connection_refused_desc),
+    )
+    is ObsErrorKind.ConnectionTimeout -> ConnectionError(
+        title = stringResource(R.string.obs_error_connection_timeout_title),
+        desc = stringResource(R.string.obs_error_connection_timeout_desc),
+    )
+    is ObsErrorKind.NotHaveData -> ConnectionError(
+        title = stringResource(R.string.obs_error_no_data_title),
+        desc = stringResource(R.string.obs_error_no_data_desc),
+    )
+    is ObsErrorKind.RequestFailed -> ConnectionError(
+        title = stringResource(R.string.obs_error_request_failed_title),
+        desc = stringResource(R.string.obs_error_request_failed_desc),
+    )
+    is ObsErrorKind.Unknown -> ConnectionError(
+        title = stringResource(R.string.obs_error_unknown_title),
+        desc = stringResource(
+            R.string.obs_error_unknown_desc,
+            this.e.toString(),
+        ),
+    )
+    is ObsErrorKind.UnknownHost -> ConnectionError(
+        title = stringResource(R.string.obs_error_unknown_title),
+        desc = stringResource(R.string.obs_error_unknown_desc),
+    )
+    is ObsErrorKind.UnknownInput -> ConnectionError(
+        title = stringResource(R.string.obs_error_unknown_input_title),
+        desc = stringResource(R.string.obs_error_unknown_input_desc),
+    )
 }
 
-fun ObsErrorKind.toTitleStringResourceId() = when (this) {
-    is ObsErrorKind.AuthFailed -> R.string.obs_error_auth_failed_title
-    is ObsErrorKind.ConnectionRefused -> R.string.obs_error_connection_refused_title
-    is ObsErrorKind.ConnectionTimeout -> R.string.obs_error_connection_timeout_title
-    is ObsErrorKind.NotHaveData -> R.string.obs_error_no_data_title
-    is ObsErrorKind.RequestFailed -> R.string.obs_error_request_failed_title
-    is ObsErrorKind.Unknown -> R.string.obs_error_unknown_title
-    is ObsErrorKind.UnknownHost -> R.string.obs_error_unknown_host_title
-    is ObsErrorKind.UnknownInput -> R.string.obs_error_unknown_input_title
+@Composable
+@ReadOnlyComposable
+fun StreamErrorKind.toConnectionError(): ConnectionError = when (this) {
+    StreamErrorKind.NoStreamData -> ConnectionError(
+        title = stringResource(R.string.stream_error_no_data_title),
+        desc = stringResource(R.string.stream_error_no_data_desc),
+    )
 }
 
-fun StreamErrorKind.toTitleStringResourceId() = when (this) {
-    StreamErrorKind.NoStreamData -> R.string.stream_error_no_data_title
-}
-
-fun EndpointErrorKind.toDescriptionStringResourceId() = when (this) {
-    is EndpointErrorKind.EndpointNotConfigured -> R.string.endpoint_not_configured_desc
-    is EndpointErrorKind.ObsError -> this.kind.toDescriptionStringResourceId()
-    is EndpointErrorKind.StreamError -> this.kind.toDescriptionStringResourceId()
-    is EndpointErrorKind.UnknownError -> R.string.endpoint_unknown_error_desc
-}
-
-fun ObsErrorKind.toDescriptionStringResourceId() = when (this) {
-    is ObsErrorKind.AuthFailed -> R.string.obs_error_auth_failed_desc
-    is ObsErrorKind.ConnectionRefused -> R.string.obs_error_connection_refused_desc
-    is ObsErrorKind.ConnectionTimeout -> R.string.obs_error_connection_timeout_desc
-    is ObsErrorKind.NotHaveData -> R.string.obs_error_no_data_desc
-    is ObsErrorKind.RequestFailed -> R.string.obs_error_request_failed_desc
-    is ObsErrorKind.Unknown -> R.string.obs_error_unknown_desc
-    is ObsErrorKind.UnknownHost -> R.string.obs_error_unknown_host_desc
-    is ObsErrorKind.UnknownInput -> R.string.obs_error_unknown_input_desc
-}
-
-fun StreamErrorKind.toDescriptionStringResourceId() = when (this) {
-    StreamErrorKind.NoStreamData -> R.string.stream_error_no_data_desc
+@Composable
+@ReadOnlyComposable
+fun AuthError.toConnectionError() = when (this) {
+    is AuthError.InvalidPassword -> ConnectionError(
+        title = stringResource(R.string.auth_error_invalid_password_title),
+        desc = stringResource(R.string.auth_error_invalid_password_desc),
+    )
+    is AuthError.InvalidRpc -> ConnectionError(
+        title = stringResource(R.string.auth_error_invalid_rpc_title),
+        desc = stringResource(R.string.auth_error_invalid_rpc_desc),
+    )
+    is AuthError.PasswordRequired -> ConnectionError(
+        title = stringResource(R.string.auth_error_password_required_title),
+        desc = stringResource(R.string.auth_error_password_required_desc),
+    )
+    is AuthError.Unexpected -> ConnectionError(
+        title = stringResource(R.string.auth_error_unexpected_title),
+        desc = stringResource(R.string.auth_error_unexpected_desc),
+    )
 }

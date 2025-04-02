@@ -157,9 +157,19 @@
     <string name="obs_error_connection_timeout_desc">Connection to OBS server timed out. Check if the server is reachable and the network connection is stable.</string>
     <string name="obs_error_no_data_desc">No data was received from the OBS server. Verify that OBS is properly configured and streaming is set up correctly.</string>
     <string name="obs_error_request_failed_desc">The request to OBS server failed. Check if OBS is running properly and try reconnecting.</string>
-    <string name="obs_error_unknown_desc">An unexpected error occurred while communicating with OBS. Try restarting both OBS and the app.</string>
+    <string name="obs_error_unknown_desc">An unexpected error occurred while communicating with OBS. Try restarting both OBS and the app.\n%1$s</string>
     <string name="obs_error_unknown_host_desc">Could not find the OBS server. Verify the hostname/IP address is correct and the server is reachable.</string>
     <string name="obs_error_unknown_input_desc">The input configuration is invalid. Please check your OBS scene and source settings.</string>
 
     <string name="stream_error_no_data_desc">Stream configuration is missing or incomplete. Please configure the stream settings before connecting.</string>
+
+    <string name="auth_error_invalid_password_title">Invalid Password</string>
+    <string name="auth_error_invalid_rpc_title">Invalid RPC Request</string>
+    <string name="auth_error_password_required_title">Password Required</string>
+    <string name="auth_error_unexpected_title">Unexpected Authentication Error</string>
+
+    <string name="auth_error_invalid_password_desc">The provided password is incorrect. Please verify your password and try again.</string>
+    <string name="auth_error_invalid_rpc_desc">The RPC request format is invalid. This may indicate a compatibility issue. Please check if your app version is compatible with the server.</string>
+    <string name="auth_error_password_required_desc">A password is required to connect to this server. Please provide a password in the connection settings.</string>
+    <string name="auth_error_unexpected_desc">An unexpected authentication error occurred. Please try reconnecting or check your connection settings.:\n%1$s</string>
 </resources>
