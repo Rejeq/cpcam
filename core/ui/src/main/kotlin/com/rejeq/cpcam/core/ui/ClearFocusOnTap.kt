@@ -42,7 +42,7 @@ private class ClearFocusOnTapNode :
     private var wasMoved = false
 
     override fun onPointerEvent(
-        event: PointerEvent,
+        pointerEvent: PointerEvent,
         pass: PointerEventPass,
         bounds: IntSize,
     ) {
@@ -50,12 +50,12 @@ private class ClearFocusOnTapNode :
             return
         }
 
-        when (event.type) {
+        when (pointerEvent.type) {
             PointerEventType.Move -> {
                 wasMoved = true
             }
             PointerEventType.Release -> {
-                val change = event.changes.first()
+                val change = pointerEvent.changes.first()
 
                 if (!wasMoved && !change.isConsumed) {
                     val focusManager = currentValueOf(LocalFocusManager)
