@@ -99,7 +99,9 @@ fun makeCameraPreferences(
         availableResolution = component.availableResolution,
         selectedResolution = component.selectedResolution,
         onResolutionChange = { component.setCameraResolution(it) },
-        onFramerateClick = { Log.i("LOGITS", "Clicked") },
+        availableFramerates = component.availableFramerates,
+        selectedFramerate = component.selectedFramerate,
+        onFramerateChange = { component.setCameraFramerate(it) },
     )
 
     return cameraPreferences(state)

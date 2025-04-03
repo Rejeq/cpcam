@@ -9,11 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.common.mapToImmutableList
+import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
-import com.rejeq.cpcam.feature.settings.item.TextItem
 import kotlinx.coroutines.flow.Flow
 
 @Stable
@@ -21,7 +21,9 @@ data class CameraState(
     val availableResolution: Flow<List<Resolution>>,
     val selectedResolution: Flow<Resolution?>,
     val onResolutionChange: (Resolution?) -> Unit,
-    val onFramerateClick: () -> Unit,
+    val availableFramerates: Flow<List<Framerate>>,
+    val selectedFramerate: Flow<Framerate?>,
+    val onFramerateChange: (Framerate?) -> Unit,
 )
 
 fun cameraPreferences(state: CameraState): List<PreferenceContent> = listOf(
@@ -31,14 +33,13 @@ fun cameraPreferences(state: CameraState): List<PreferenceContent> = listOf(
             selected = state.selectedResolution.collectAsState(null).value,
             onChange = state.onResolutionChange,
             modifier = modifier,
-
         )
     },
     { modifier ->
-        TextItem(
-            title = "Framerate",
-            subtitle = "Choose the framerate for the camera feed",
-            onClick = state.onFramerateClick,
+        FrameratePreference(
+            available = state.availableFramerates.collectAsState(null).value,
+            selected = state.selectedFramerate.collectAsState(null).value,
+            onChange = state.onFramerateChange,
             modifier = modifier,
         )
     },
@@ -91,4 +92,57 @@ fun ResolutionPreference(
             }
         }
     }
+}
+
+@Composable
+fun FrameratePreference(
+    available: List<Framerate>?,
+    selected: Framerate?,
+    onChange: (Framerate?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val showDialog = rememberSaveable { mutableStateOf(false) }
+
+    val entries = available?.mapToImmutableList { framerate ->
+        framerate.toDisplayedString()
+    }
+
+    ListDialogItem(
+        title = stringResource(R.string.pref_framerate_title),
+        subtitle = stringResource(R.string.pref_framerate_desc),
+        selected = selected?.toDisplayedString(),
+        isDialogShown = showDialog.value,
+        onDialogDismiss = { showDialog.value = false },
+        onItemClick = { showDialog.value = true },
+        modifier = modifier,
+    ) {
+        item {
+            DialogSelectableRow(
+                label = stringResource(R.string.pref_framerate_default),
+                isSelected = selected == null,
+                onSelect = {
+                    onChange(null)
+                    showDialog.value = false
+                },
+            )
+        }
+
+        entries?.fastForEachIndexed { idx, framerate ->
+            item {
+                DialogSelectableRow(
+                    label = framerate.toString(),
+                    isSelected = available.indexOf(selected) == idx,
+                    onSelect = {
+                        onChange(available[idx])
+                        showDialog.value = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+fun Framerate.toDisplayedString(): String = when {
+    min == max -> "$max fps"
+    else -> "$min-$max fps"
 }

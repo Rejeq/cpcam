@@ -98,7 +98,7 @@ class ObsStreamHandler @AssistedInject constructor(
         this.setVideoRelayConfig(
             VideoRelayConfig(
                 resolution = data.resolution,
-                framerate = null,
+                framerate = data.framerate,
             ),
         )
     }

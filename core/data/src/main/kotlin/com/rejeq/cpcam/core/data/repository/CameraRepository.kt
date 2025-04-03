@@ -1,6 +1,7 @@
 package com.rejeq.cpcam.core.data.repository
 
 import com.rejeq.cpcam.core.data.mapper.fromDataStore
+import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.source.DataStoreSource
 import com.rejeq.cpcam.data.datastore.CameraPreferenceProto
@@ -66,4 +67,21 @@ class CameraRepository @Inject constructor(
     fun getFramerate(camera: String) = source.store.map {
         it.cameraPreferencesMap[camera]?.fromDataStore()?.framerate
     }.distinctUntilChanged()
+
+    /**
+     * Updates framerate preference for a specific camera.
+     *
+     * @param camera Camera identifier
+     * @param framerate New framerate to set, or null to clear
+     * @return Result of the preference update
+     */
+    suspend fun setFramerate(camera: String, framerate: Framerate?) =
+        source.tryEdit {
+            val builder = this.cameraPreferences[camera]?.toBuilder()
+                ?: CameraPreferenceProto.newBuilder()
+
+            builder.setFramerate(framerate.toString())
+
+            cameraPreferences[camera] = builder.build()
+        }
 }

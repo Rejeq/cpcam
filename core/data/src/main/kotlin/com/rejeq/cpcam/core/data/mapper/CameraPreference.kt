@@ -1,8 +1,8 @@
 package com.rejeq.cpcam.core.data.mapper
 
 import android.util.Log
-import android.util.Range
 import com.rejeq.cpcam.core.data.model.CameraPreference
+import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.data.datastore.CameraPreferenceProto
 
@@ -22,21 +22,21 @@ fun CameraPreferenceProto.fromDataStore() = this.let {
         null
     }
 
-    val framerate = if (it.hasFramerate()) it.framerate else null
+    val framerate = if (it.hasFramerate()) {
+        val out = Framerate.fromString(it.framerate)
+        if (out == null) {
+            Log.w(TAG, "Unable to parse resolution '${it.resolution}'")
+        }
+
+        out
+    } else {
+        null
+    }
 
     CameraPreference(
         resolution = size,
-        framerate = framerate?.parseToRange(),
+        framerate = framerate,
     )
-}
-
-fun String.parseToRange(): Range<Int>? {
-    val regex = """\s*(\d+)\s*,\s*(\d+)\s*""".toRegex()
-    val matchResult = regex.matchEntire(this)
-
-    return matchResult?.destructured?.let { (start, end) ->
-        Range(start.toInt(), end.toInt())
-    }
 }
 
 fun CameraPreference.toDataStore() = CameraPreferenceProto.newBuilder().let {

@@ -12,8 +12,10 @@ import androidx.lifecycle.asFlow
 import com.rejeq.cpcam.core.camera.CameraController
 import com.rejeq.cpcam.core.camera.di.CameraManagerService
 import com.rejeq.cpcam.core.camera.query.queryMaxRecordSize
+import com.rejeq.cpcam.core.camera.query.querySupportedFramerates
 import com.rejeq.cpcam.core.camera.query.querySupportedSizes
 import com.rejeq.cpcam.core.camera.source.CameraSource
+import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -154,6 +156,45 @@ class CameraDataRepository @Inject constructor(
         }
 
         return querySupportedSizes(char, format).filter { it < max }
+    }
+
+    /**
+     * Returns a Flow emitting a list of supported framerate ranges.
+     *
+     * This function retrieves the supported framerates from the underlying
+     * camera source and emits them as a Flow. The Flow will emit a new list
+     * whenever the camera source changes.
+     *
+     * @return A Flow emitting a list of [Framerate] objects representing the
+     *        supported framerate ranges.
+     *        If no framerates are supported, the Flow will emit an empty list.
+     *        The flow will emit a new value every time the camera changes.
+     */
+    fun getSupportedFramerates(): Flow<List<Framerate>> = source.camera.map {
+        getCurrentSupportedFramerates()
+    }
+
+    /**
+     * Retrieves a list of supported framerate ranges from the camera source.
+     *
+     * @return A list of [Framerate] objects representing the supported
+     *         framerate ranges.
+     *         If the camera is not available or its information cannot be
+     *         accessed, an empty list is returned.
+     *
+     * @see querySupportedFramerates
+     */
+    fun getCurrentSupportedFramerates(): List<Framerate> {
+        val char = getCameraCharacteristics(source)
+        if (char == null) {
+            Log.e(
+                TAG,
+                "Unable to query supported framerates: Unknown characteristics",
+            )
+            return emptyList()
+        }
+
+        return querySupportedFramerates(char)
     }
 
     @SuppressLint("RestrictedApi")

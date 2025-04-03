@@ -105,6 +105,10 @@
     <string name="pref_resolution_no_entries">There is no available resolution</string>
     <string name="pref_resolution_default">Default</string>
 
+    <string name="pref_framerate_title">Framerate</string>
+    <string name="pref_framerate_desc">Choose the framerate for the camera feed</string>
+    <string name="pref_framerate_default">Default</string>
+
     <string name="pref_use_dynamic_color_title">Use Dynamic Color</string>
     <string name="pref_use_dynamic_color_desc">Use theme with dynamic color</string>
 

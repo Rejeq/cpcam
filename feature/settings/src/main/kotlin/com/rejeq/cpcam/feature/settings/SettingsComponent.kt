@@ -6,6 +6,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
+import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
@@ -47,6 +48,15 @@ class SettingsComponent @AssistedInject constructor(
         ImageFormat.YUV_420_888,
     )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val selectedFramerate = cameraDataRepo.cameraId
+        .filterNotNull()
+        .flatMapLatest {
+            cameraRepo.getFramerate(it)
+        }
+
+    val availableFramerates = cameraDataRepo.getSupportedFramerates()
+
     fun setThemeConfig(themeConfig: ThemeConfig) = externalScope.launch {
         appearanceRepo.setThemeConfig(themeConfig)
     }
@@ -63,6 +73,16 @@ class SettingsComponent @AssistedInject constructor(
         }
 
         cameraRepo.setResolution(camId, resolution)
+    }
+
+    fun setCameraFramerate(framerate: Framerate?) = externalScope.launch {
+        val camId = cameraDataRepo.currentCameraId
+        if (camId == null) {
+            Log.e(TAG, "Unable to set camera resolution: Camera id is null")
+            return@launch
+        }
+
+        cameraRepo.setFramerate(camId, framerate)
     }
 
     @AssistedFactory
