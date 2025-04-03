@@ -218,7 +218,7 @@ class CameraDataRepository @Inject constructor(
     private fun getCameraCharacteristics(
         source: CameraSource,
     ): CameraCharacteristics? {
-        val info = source.cameraInfo
+        val info = source.camera.value?.cameraInfo
         return when (info) {
             is CameraInfoInternal -> {
                 info.cameraCharacteristics as? CameraCharacteristics
