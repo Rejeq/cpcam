@@ -57,12 +57,8 @@ class CameraController @Inject constructor(
         linear: Boolean = true,
     ): CameraControllerError {
         val camera = source.camera.value
-        if (camera == null) {
-            return CameraControllerError.CameraNotStarted
-        }
-
-        val zoomState = camera.cameraInfo.zoomState.value
-        if (zoomState == null) {
+        val zoomState = camera?.cameraInfo?.zoomState?.value
+        if (camera == null || zoomState == null) {
             return CameraControllerError.CameraNotStarted
         }
 
@@ -86,7 +82,6 @@ class CameraController @Inject constructor(
         }
 
         val control = camera.cameraControl
-
         return tryZoomCall {
             control.setLinearZoom(zoom).await()
         }
@@ -95,12 +90,8 @@ class CameraController @Inject constructor(
     @SuppressLint("RestrictedApi")
     suspend fun setZoom(zoom: Float): CameraControllerError {
         val camera = source.camera.value
-        if (camera == null) {
-            return CameraControllerError.CameraNotStarted
-        }
-
-        val zoomState = camera.cameraInfo.zoomState.value
-        if (zoomState == null) {
+        val zoomState = camera?.cameraInfo?.zoomState?.value
+        if (camera == null || zoomState == null) {
             return CameraControllerError.CameraNotStarted
         }
 
@@ -128,17 +119,9 @@ class CameraController @Inject constructor(
             return CameraControllerError.CameraNotStarted
         }
 
-        try {
+        return tryTorchCall {
             control.enableTorch(state).await()
-        } catch (e: CameraControl.OperationCanceledException) {
-            Log.w(TAG, "Torch operation was canceled", e)
-            return CameraControllerError.TorchCancelled
-        } catch (e: IllegalStateException) {
-            Log.w(TAG, "Torch operation got illegal state", e)
-            return CameraControllerError.TorchIllegalState
         }
-
-        return CameraControllerError.Success
     }
 
     fun setFocusPoint(state: FocusPointState): CameraControllerError {
@@ -189,6 +172,20 @@ private inline fun tryZoomCall(block: () -> Unit): CameraControllerError {
 
         Log.w(TAG, "Failed to set zoom", e)
         return CameraControllerError.ZoomCancelled
+    }
+
+    return CameraControllerError.Success
+}
+
+private inline fun tryTorchCall(block: () -> Unit): CameraControllerError {
+    try {
+        block()
+    } catch (e: CameraControl.OperationCanceledException) {
+        Log.w(TAG, "Torch operation was canceled", e)
+        return CameraControllerError.TorchCancelled
+    } catch (e: IllegalStateException) {
+        Log.w(TAG, "Torch operation got illegal state", e)
+        return CameraControllerError.TorchIllegalState
     }
 
     return CameraControllerError.Success
