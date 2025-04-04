@@ -51,7 +51,7 @@ fun CpcamTopBar(
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 val painter = painterResource(R.drawable.ic_arrow_back_24dp)
-                val desc = stringResource(R.string.btn_back_screen_desc)
+                val desc = stringResource(R.string.back_btn_desc)
 
                 Icon(painter, desc)
             }
@@ -65,7 +65,6 @@ fun CpcamTopBar(
 private fun PreviewCpcamTopBar() {
     CpcamTheme {
         CpcamTopBar(title = "Title", onBackClick = {}) {
-
             Button(onClick = {}) {
                 Text("Action 2")
             }

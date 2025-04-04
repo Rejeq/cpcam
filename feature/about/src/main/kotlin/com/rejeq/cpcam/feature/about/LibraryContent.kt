@@ -21,6 +21,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
+import com.rejeq.cpcam.core.ui.R as CoreR
 
 @Composable
 fun LibraryContent(component: LibraryComponent, modifier: Modifier = Modifier) {
@@ -88,8 +89,8 @@ fun Actions(
             onClick = { onWebsiteClick(website) },
             modifier = modifier,
         ) {
-            val painter = painterResource(R.drawable.ic_open_in_new_24dp)
-            val desc = stringResource(R.string.btn_open_library_url_desc)
+            val painter = painterResource(CoreR.drawable.ic_open_in_new_24dp)
+            val desc = stringResource(R.string.open_library_url_btn_desc)
 
             Icon(painter, desc)
         }
@@ -116,8 +117,8 @@ fun LicenseHeader(
 
         if (url != null) {
             IconButton(onClick = { onUrlClick(url) }) {
-                val painter = painterResource(R.drawable.ic_public_24dp)
-                val desc = stringResource(R.string.btn_open_license_url_desc)
+                val painter = painterResource(CoreR.drawable.ic_public_24dp)
+                val desc = stringResource(R.string.open_license_url_btn_desc)
 
                 Icon(painter, desc)
             }

@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.rejeq.cpcam.core.ui.R as CoreR
 import com.rejeq.cpcam.feature.main.R
 
 @Composable
@@ -70,7 +71,7 @@ fun StreamInfo(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_sensors_24dp),
+                    painter = painterResource(CoreR.drawable.ic_sensors_24dp),
                     contentDescription =
                     stringResource(R.string.stream_info_desc),
                 )

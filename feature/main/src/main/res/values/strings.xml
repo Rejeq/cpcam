@@ -1,0 +1,15 @@
+<resources>
+    <string name="stream">Stream</string>
+    <string name="endpoint_started">Started</string>
+    <string name="endpoint_stopped">Stopped</string>
+    <string name="endpoint_connecting">Connecting</string>
+
+    <string name="settings_btn_desc">Open app settings</string>
+    <string name="help_btn_desc">Open help screen</string>
+    <string name="flip_camera_btn_desc">Switch camera</string>
+    <string name="stream_info_btn_desc">Open stream info dialog</string>
+    <string name="torch_on_btn_desc">Turn off torch</string>
+    <string name="torch_off_btn_desc">Turn on torch</string>
+
+    <string name="stream_info_desc">Stream Info</string>
+</resources>

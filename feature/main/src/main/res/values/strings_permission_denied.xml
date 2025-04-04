@@ -1,0 +1,14 @@
+<resources>
+    <string name="permission_required_title">Permission Required</string>
+
+    <string name="permission_required_open_settings">Open Settings</string>
+    <string name="permission_required_cancel">Cancel</string>
+
+    <string name="permission_required_unknown_desc">
+        Permission has been permanently denied. Please enable it in settings.
+    </string>
+
+    <string name="permission_required_camera_desc">
+        Camera permission has been permanently denied. Please enable it in settings.
+    </string>
+</resources>

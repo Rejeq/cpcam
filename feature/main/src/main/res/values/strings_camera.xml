@@ -1,0 +1,46 @@
+<resources>
+    <string name="cam_permission_grant_title">Grant Camera Permission</string>
+    <string name="cam_permission_grant_desc">
+        Allow this app to access your camera to enable video streaming.
+    </string>
+    <string name="cam_permission_grant_btn">Grant</string>
+
+    <string name="cam_error_dnd_enabled_title">Do Not Disturb mode enabled</string>
+    <string name="cam_error_dnd_enabled_desc">
+        The camera can\'t launch while DND mode is enabled.
+    </string>
+
+    <string name="cam_error_disconnected_title">Camera Closed Unexpectedly</string>
+    <string name="cam_error_disconnected_desc">
+        The camera has been disconnected, likely due to another app taking
+        control. Close other camera-related apps and restart to continue.
+    </string>
+
+    <string name="cam_error_not_enough_memory_title">Out Of Memory</string>
+    <string name="cam_error_not_enough_memory_desc">
+        Camera failed to start due to insufficient memory.
+        Free up some memory by closing background apps.
+    </string>
+
+    <string name="cam_error_service_title">Camera Service Failure</string>
+    <string name="cam_error_service_desc">
+        The camera service encountered a critical problem. Restart your device
+        to attempt recovery, or close and reopen the app.
+    </string>
+
+    <string name="cam_error_in_use_title">Camera Busy</string>
+    <string name="cam_error_in_use_desc">
+        The camera is in use by another application.
+        Close any apps that may be using the camera and try again.
+    </string>
+
+    <string name="cam_error_disabled_title">Camera Disabled</string>
+    <string name="cam_error_disabled_desc">
+        The camera has been disabled by device policy and cannot be accessed.
+    </string>
+
+    <string name="cam_error_unknown_title">Unknown Camera Error</string>
+    <string name="cam_error_unknown_desc">
+        An unexpected camera error occurred. Please restart the app.
+    </string>
+</resources>

@@ -7,6 +7,7 @@ import androidx.core.app.NotificationCompat
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.endpoint.R
+import com.rejeq.cpcam.core.ui.R as CoreR
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -56,8 +57,8 @@ fun buildInfoNotification(
         STREAM_SERVICE_CHANNEL,
     )
 
-    builder.setSmallIcon(R.drawable.ic_sensors_24dp)
-    builder.setContentTitle(res.getString(R.string.app_name))
+    builder.setSmallIcon(CoreR.drawable.ic_sensors_24dp)
+    builder.setContentTitle(res.getString(CoreR.string.app_name))
     builder.setOngoing(true)
     builder.setShowWhen(false)
 
@@ -72,7 +73,7 @@ fun buildInfoNotification(
     val text = res.getString(R.string.notification_stream_state, endpointState)
     builder.setContentText(text)
 
-    val closeIcon = R.drawable.ic_close_24dp
+    val closeIcon = CoreR.drawable.ic_close_24dp
     val closeText = res.getString(R.string.notification_action_close)
     builder.addAction(closeIcon, closeText, closeIntent)
 

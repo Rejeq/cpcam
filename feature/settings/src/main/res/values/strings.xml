@@ -1,0 +1,59 @@
+<resources>
+    <string name="settings_screen_title">Settings</string>
+    <string name="settings_video_codec_screen_title">Video Codec</string>
+
+    <string name="unknown_list_preference_entry">Unknown</string>
+    <string name="unknown_switch_preference">Unknown</string>
+
+    <string name="about_app_version">App version: %s</string>
+    <string name="open_source_licenses">Open source licenses</string>
+
+    <string name="pref_group_stream">Stream</string>
+    <string name="pref_group_camera">Camera</string>
+    <string name="pref_group_audio">Microphone</string>
+    <string name="pref_group_screen">Screen</string>
+    <string name="pref_group_appearance">Appearance</string>
+
+    <string name="pref_theme_title">Theme</string>
+    <string name="pref_theme_desc">Set the app theme</string>
+    <string name="pref_theme_follow_system">Follow System</string>
+    <string name="pref_theme_light">Light</string>
+    <string name="pref_theme_dark">Dark</string>
+    <string name="pref_theme_unknown">Unknown</string>
+
+    <string name="pref_resolution_title">Resolution</string>
+    <string name="pref_resolution_desc">Choose the resolution for the camera feed.</string>
+    <string name="pref_resolution_no_entries">There is no available resolution</string>
+    <string name="pref_resolution_default">Default</string>
+
+    <string name="pref_framerate_title">Framerate</string>
+    <string name="pref_framerate_desc">Choose the framerate for the camera feed</string>
+    <string name="pref_framerate_default">Default</string>
+
+    <string name="pref_use_dynamic_color_title">Use Dynamic Color</string>
+    <string name="pref_use_dynamic_color_desc">Use theme with dynamic color</string>
+
+    <string name="pref_keep_screen_awake_title">Keep Screen Awake</string>
+    <string name="pref_keep_screen_awake_desc">Control whether the screen should stay awake or allow it to dim based on inactivity.</string>
+
+    <string name="pref_dim_screen_title">Dim Screen</string>
+    <string name="pref_dim_screen_desc">Set the duration after which the screen dims to conserve power.</string>
+
+    <string name="pref_stream_service_type">Type</string>
+    <string name="pref_stream_service_url">Url</string>
+    <string name="pref_stream_service_port">Port</string>
+    <string name="pref_stream_service_password">Password</string>
+    <string name="pref_stream_service_check_connection">Try connect</string>
+
+    <string name="pref_stream_service_title">Service</string>
+    <string name="pref_stream_service_desc">Choose way how the app connect to the remote endpoint.</string>
+
+    <string name="pref_stream_protocol_title">Protocol</string>
+    <string name="pref_stream_protocol_desc">Choose the streaming protocol</string>
+
+    <string name="pref_video_encoder_title">Video Encoder</string>
+    <string name="pref_video_encoder_desc">Choose the video encoder settings</string>
+
+    <string name="pref_audio_encoder_title">Audio Encoder</string>
+    <string name="pref_audio_encoder_desc">Choose the audio encoder settings</string>
+</resources>

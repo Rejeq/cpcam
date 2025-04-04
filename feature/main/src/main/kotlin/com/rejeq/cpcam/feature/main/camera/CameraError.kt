@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.camera.CameraError
+import com.rejeq.cpcam.core.ui.R as CoreR
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.main.R
 
@@ -68,7 +69,7 @@ private fun PermissionDeniedError(
     icon = {
         Icon(
             modifier = Modifier.requiredSize(48.dp),
-            painter = painterResource(R.drawable.ic_no_photography_24dp),
+            painter = painterResource(CoreR.drawable.ic_no_photography_24dp),
             contentDescription = null,
         )
     },
@@ -101,7 +102,7 @@ private fun DndError(
             Icon(
                 modifier = Modifier.requiredSize(48.dp),
                 painter = painterResource(
-                    R.drawable.ic_do_not_disturb_off_24dp,
+                    CoreR.drawable.ic_do_not_disturb_off_24dp,
                 ),
                 contentDescription = null,
             )
@@ -117,7 +118,7 @@ private fun ServiceError(modifier: Modifier = Modifier) = CameraErrorCommon(
     icon = {
         Icon(
             modifier = Modifier.requiredSize(48.dp),
-            painter = painterResource(R.drawable.ic_error_24dp),
+            painter = painterResource(CoreR.drawable.ic_error_24dp),
             contentDescription = null,
         )
     },
@@ -131,7 +132,7 @@ private fun InUseError(modifier: Modifier = Modifier) = CameraErrorCommon(
     icon = {
         Icon(
             modifier = Modifier.requiredSize(48.dp),
-            painter = painterResource(R.drawable.ic_block_24dp),
+            painter = painterResource(CoreR.drawable.ic_block_24dp),
             contentDescription = null,
         )
     },
@@ -145,7 +146,7 @@ private fun DisabledError(modifier: Modifier = Modifier) = CameraErrorCommon(
     icon = {
         Icon(
             modifier = Modifier.requiredSize(48.dp),
-            painter = painterResource(R.drawable.ic_block_24dp),
+            painter = painterResource(CoreR.drawable.ic_block_24dp),
             contentDescription = null,
         )
     },
@@ -159,7 +160,7 @@ private fun UnknownError(modifier: Modifier = Modifier) = CameraErrorCommon(
     icon = {
         Icon(
             modifier = Modifier.requiredSize(48.dp),
-            painter = painterResource(R.drawable.ic_error_24dp),
+            painter = painterResource(CoreR.drawable.ic_error_24dp),
             contentDescription = null,
         )
     },
