@@ -14,6 +14,14 @@ android {
         versionCode = 1
         versionName = "0.1"
     }
+
+    buildTypes {
+        debug {
+            packaging {
+                jniLibs.keepDebugSymbols += listOf("**/*.so")
+            }
+        }
+    }
 }
 
 dependencies {
