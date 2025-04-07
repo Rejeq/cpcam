@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.rejeq.cpcam.core.device.dimScreen
+import com.rejeq.cpcam.core.device.keepScreenAwake
+import com.rejeq.cpcam.core.device.restoreScreenBrightness
 import com.rejeq.cpcam.core.ui.DeviceOrientation
 import com.rejeq.cpcam.core.ui.Edge
 import com.rejeq.cpcam.core.ui.MorphButtonState
@@ -34,8 +37,35 @@ import com.rejeq.cpcam.feature.main.info.InfoContent
 
 @Composable
 fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
+    val window = LocalActivity.current?.window
+    val keepScreenAwake = component.keepScreenAwake.collectAsState(false).value
+    val dimScreenDelay = component.dimScreenDelay.collectAsState(null).value
+
+    if (window != null) {
+        DisposableEffect(keepScreenAwake) {
+            keepScreenAwake(window, keepScreenAwake)
+
+            onDispose {
+                keepScreenAwake(window, false)
+                restoreScreenBrightness(window)
+            }
+        }
+    }
+
     MainScreenLayout(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize()
+            .detectUserActivity(
+                enabled = keepScreenAwake == true && dimScreenDelay != null,
+                inactivityDelay = dimScreenDelay ?: 0L,
+            ) { isActive ->
+                if (window != null) {
+                    if (isActive) {
+                        restoreScreenBrightness(window)
+                    } else {
+                        dimScreen(window)
+                    }
+                }
+            },
         background = {
             CameraContent(component.cam)
         },

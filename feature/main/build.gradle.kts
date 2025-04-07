@@ -14,6 +14,7 @@ dependencies {
     implementation(projects.core.endpoint)
     implementation(projects.core.ui)
     implementation(projects.core.common)
+    implementation(projects.core.device)
 
     implementation(libs.kotlinx.coroutines)
 

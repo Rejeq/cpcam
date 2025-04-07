@@ -77,7 +77,7 @@ message AppPreferences {
     string last_opened_camera = 5;
 
     bool keep_screen_awake = 6;
-    int32 dim_screen_time = 7;
+    int64 dim_screen_delay = 7;
     ThemeConfigProto theme_config = 8;
     bool use_dynamic_color = 9;
 

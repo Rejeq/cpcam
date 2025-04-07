@@ -46,7 +46,7 @@ fun SettingsContent(
     val audioPreferences = remember { makeAudioPreferences() }
 
     val screenTitle = stringResource(R.string.pref_group_screen)
-    val screenPreferences = remember { makeScreenPreferences() }
+    val screenPreferences = remember { makeScreenPreferences(component) }
 
     val appearanceTitle = stringResource(R.string.pref_group_appearance)
     val appearancePreferences =
@@ -117,10 +117,14 @@ fun makeAudioPreferences(): List<PreferenceContent> {
     return audioPreferences(state)
 }
 
-fun makeScreenPreferences(): List<PreferenceContent> {
+fun makeScreenPreferences(
+    component: SettingsComponent,
+): List<PreferenceContent> {
     val state = ScreenState(
-        onKeepScreenAwakeClick = { Log.i("LOGITS", "Clicked") },
-        onDimScreenClick = { Log.i("LOGITS", "Clicked") },
+        keepScreenAwake = component.keepScreenAwake,
+        onKeepScreenAwakeChange = component::setKeepScreenAwake,
+        dimScreenDelay = component.dimScreenDelay,
+        onDimScreenChange = component::setDimScreenDelay,
     )
 
     return screenPreferences(state)

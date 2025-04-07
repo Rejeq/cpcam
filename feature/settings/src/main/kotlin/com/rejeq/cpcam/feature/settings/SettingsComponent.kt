@@ -11,6 +11,7 @@ import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.data.repository.CameraRepository
+import com.rejeq.cpcam.core.data.repository.ScreenRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -24,6 +25,7 @@ class SettingsComponent @AssistedInject constructor(
     private val appearanceRepo: AppearanceRepository,
     private val cameraRepo: CameraRepository,
     private val cameraDataRepo: CameraDataRepository,
+    private val screenRepo: ScreenRepository,
     @ApplicationScope private val externalScope: CoroutineScope,
 
     @Assisted componentContext: ComponentContext,
@@ -57,6 +59,9 @@ class SettingsComponent @AssistedInject constructor(
 
     val availableFramerates = cameraDataRepo.getSupportedFramerates()
 
+    val keepScreenAwake = screenRepo.keepScreenAwake
+    val dimScreenDelay = screenRepo.dimScreenDelay
+
     fun setThemeConfig(themeConfig: ThemeConfig) = externalScope.launch {
         appearanceRepo.setThemeConfig(themeConfig)
     }
@@ -83,6 +88,18 @@ class SettingsComponent @AssistedInject constructor(
         }
 
         cameraRepo.setFramerate(camId, framerate)
+    }
+
+    fun setKeepScreenAwake(enabled: Boolean) {
+        externalScope.launch {
+            screenRepo.setKeepScreenAwake(enabled)
+        }
+    }
+
+    fun setDimScreenDelay(timeMs: Long) {
+        externalScope.launch {
+            screenRepo.setDimScreenDelay(timeMs)
+        }
     }
 
     @AssistedFactory

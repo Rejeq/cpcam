@@ -11,6 +11,7 @@ import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.DndListener
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
+import com.rejeq.cpcam.core.data.repository.ScreenRepository
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.MorphButtonState
@@ -37,6 +38,7 @@ class MainComponent @AssistedInject constructor(
     cameraTarget: PreviewCameraTarget,
     endpointHandler: EndpointHandler,
     cameraDataRepo: CameraDataRepository,
+    screenRepo: ScreenRepository,
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
     @Assisted("onSettingsClick") val onSettingsClick: () -> Unit,
@@ -74,6 +76,9 @@ class MainComponent @AssistedInject constructor(
     val showInfoButton = endpointHandler.state.map {
         it is EndpointState.Started
     }
+
+    val keepScreenAwake = screenRepo.keepScreenAwake
+    val dimScreenDelay = screenRepo.dimScreenDelay
 
     init {
         endpoint.state
