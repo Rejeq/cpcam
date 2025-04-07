@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.core.common
+package com.rejeq.cpcam.core.device
 
 import android.app.NotificationManager
 import android.content.BroadcastReceiver

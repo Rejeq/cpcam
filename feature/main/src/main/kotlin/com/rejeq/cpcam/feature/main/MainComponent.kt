@@ -9,9 +9,9 @@ import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.common.ChildComponent
-import com.rejeq.cpcam.core.common.DndListener
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.data.repository.ScreenRepository
+import com.rejeq.cpcam.core.device.DndListener
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.MorphButtonState

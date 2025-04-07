@@ -10,9 +10,9 @@ import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.camera.target.CameraTarget
-import com.rejeq.cpcam.core.common.DndListener
-import com.rejeq.cpcam.core.common.DndState
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
+import com.rejeq.cpcam.core.device.DndListener
+import com.rejeq.cpcam.core.device.DndState
 import com.rejeq.cpcam.core.ui.PermissionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
