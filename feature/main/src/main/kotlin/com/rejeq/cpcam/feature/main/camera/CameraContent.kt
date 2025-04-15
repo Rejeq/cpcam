@@ -62,7 +62,7 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
                 request = request.value,
                 modifier = modifier.pointerInput(Unit) {
                     detectTransformGestures { _, _, zoom, _ ->
-                        if (zoom != 0.0f) {
+                        if (zoom != 1.0f) {
                             component.shiftZoom(-(1.0f - zoom))
                         }
                     }
