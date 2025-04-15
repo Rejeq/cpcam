@@ -33,6 +33,7 @@ include(":app")
 include(":benchmarks:macro")
 include(":benchmarks:micro")
 
+include(":core:audio")
 include(":core:camera")
 include(":core:common")
 include(":core:data")
