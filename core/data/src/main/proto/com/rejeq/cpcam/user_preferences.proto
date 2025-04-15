@@ -11,6 +11,15 @@ enum VideoCodecProto {
     // NEXT AVAILABLE ID: 3
 }
 
+enum AudioCodecProto {
+    AUDIO_CODEC_UNSPECIFIED = 0;
+    AUDIO_CODEC_AAC = 1;
+    AUDIO_CODEC_OPUS = 2;
+    AUDIO_CODEC_MP3 = 3;
+
+    // NEXT AVAILABLE ID: 4
+}
+
 enum EndpointTypeProto {
     ENDPOINT_TYPE_UNSPECIFIED = 0;
     ENDPOINT_TYPE_OBS = 1;
@@ -52,7 +61,26 @@ message VideoConfigProto {
     // NEXT AVAILABLE ID: 6
 }
 
+message AudioConfigProto {
+    optional AudioCodecProto codec = 1;
+    optional int32 bit_rate = 2;
+    optional string sample_format = 3;
+    optional int32 sample_rate = 4;
+    optional int32 channel_count = 5;
+
+    // NEXT AVAILABLE ID: 6
+}
+
 message ObsStreamDataProto {
+    StreamProtocolProto stream_protocol = 1;
+    string stream_host = 2;
+    VideoConfigProto video_config = 3;
+    AudioConfigProto audio_config = 4;
+
+    // NEXT AVAILABLE ID: 5
+}
+
+message CustomEndpointProto {
     StreamProtocolProto stream_protocol = 1;
     string stream_host = 2;
     VideoConfigProto video_config = 3;

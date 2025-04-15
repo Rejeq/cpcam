@@ -2,6 +2,7 @@ package com.rejeq.cpcam.core.data.repository
 
 import com.rejeq.cpcam.core.data.mapper.fromDataStore
 import com.rejeq.cpcam.core.data.mapper.toDataStore
+import com.rejeq.cpcam.core.data.model.AudioConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.source.DataStoreSource
@@ -35,6 +36,19 @@ class StreamRepository @Inject constructor(
             ?: ObsStreamDataProto.newBuilder()
 
         builder.videoConfig = config.toDataStore()
+        endBuilder.streamData = builder.build()
+
+        this.obsEndpoint = endBuilder.build()
+    }
+
+    suspend fun setObsAudioConfig(config: AudioConfig) = source.tryEdit {
+        val endBuilder = this.obsEndpoint.toBuilder()
+            ?: ObsEndpointProto.newBuilder()
+
+        val builder = this.obsEndpoint.streamData?.toBuilder()
+            ?: ObsStreamDataProto.newBuilder()
+
+        builder.audioConfig = config.toDataStore()
         endBuilder.streamData = builder.build()
 
         this.obsEndpoint = endBuilder.build()
