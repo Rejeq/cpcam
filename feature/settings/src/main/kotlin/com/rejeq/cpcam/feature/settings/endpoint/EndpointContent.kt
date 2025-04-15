@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.rejeq.cpcam.core.data.model.AudioConfig
 import com.rejeq.cpcam.core.data.model.EndpointConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.VideoConfig
@@ -44,6 +45,8 @@ fun EndpointContent(
             onEndpointChange = component::updateEndpoint,
             videoConfigState = component.videoConfig.collectAsState().value,
             onVideoConfigChange = component::updateVideoConfig,
+            audioConfigState = component.audioConfig.collectAsState().value,
+            onAudioConfigChange = component::updateAudioConfig,
             streamDataState = component.streamData.collectAsState().value,
             onStreamDataChange = component::updateStreamData,
             connectionState = component.connectionState.collectAsState().value,
@@ -80,6 +83,8 @@ private fun ColumnScope.EndpointSettingsContent(
     onEndpointChange: (EndpointConfig) -> Unit,
     videoConfigState: VideoConfigState,
     onVideoConfigChange: (VideoConfig) -> Unit,
+    audioConfigState: AudioConfigState,
+    onAudioConfigChange: (AudioConfig) -> Unit,
     streamDataState: StreamDataState,
     onStreamDataChange: (ObsStreamData) -> Unit,
     connectionState: EndpointConnectionState,
@@ -115,6 +120,11 @@ private fun ColumnScope.EndpointSettingsContent(
     VideoConfigForm(
         state = videoConfigState,
         onChange = onVideoConfigChange,
+    )
+
+    AudioConfigForm(
+        state = audioConfigState,
+        onChange = onAudioConfigChange,
     )
 
     StreamDataForm(

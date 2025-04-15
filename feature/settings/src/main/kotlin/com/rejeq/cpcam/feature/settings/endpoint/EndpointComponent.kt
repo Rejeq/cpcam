@@ -5,6 +5,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
+import com.rejeq.cpcam.core.data.model.AudioConfig
 import com.rejeq.cpcam.core.data.model.EndpointConfig
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
@@ -49,6 +50,10 @@ class EndpointComponent @AssistedInject constructor(
         MutableStateFlow<VideoConfigState>(VideoConfigState.Loading)
     val videoConfig = _videoConfig.asStateFlow()
 
+    private val _audioConfig =
+        MutableStateFlow<AudioConfigState>(AudioConfigState.Loading)
+    val audioConfig = _audioConfig.asStateFlow()
+
     private val _streamData =
         MutableStateFlow<StreamDataState>(StreamDataState.Loading)
     val streamData = _streamData.asStateFlow()
@@ -66,6 +71,7 @@ class EndpointComponent @AssistedInject constructor(
 
         streamRepo.obsData.onEach {
             _videoConfig.value = VideoConfigState.Success(it.videoConfig)
+            _audioConfig.value = AudioConfigState.Success(it.audioConfig)
             _streamData.value = StreamDataState.Success(it)
         }.launchIn(scope)
     }
@@ -105,6 +111,14 @@ class EndpointComponent @AssistedInject constructor(
 
         externalScope.launch {
             streamRepo.setObsVideoConfig(data)
+        }
+    }
+
+    fun updateAudioConfig(data: AudioConfig) {
+        _audioConfig.value = AudioConfigState.Success(data)
+
+        externalScope.launch {
+            streamRepo.setObsAudioConfig(data)
         }
     }
 
@@ -156,6 +170,12 @@ sealed interface VideoConfigState {
     object Loading : VideoConfigState
 
     data class Success(val data: VideoConfig) : VideoConfigState
+}
+
+sealed interface AudioConfigState {
+    object Loading : AudioConfigState
+
+    data class Success(val data: AudioConfig) : AudioConfigState
 }
 
 sealed interface StreamDataState {

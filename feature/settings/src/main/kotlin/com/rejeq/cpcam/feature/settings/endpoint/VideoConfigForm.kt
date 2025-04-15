@@ -41,14 +41,14 @@ fun ColumnScope.VideoConfigForm(
     EnumEntry<PixFmt>(
         title = "Pixel format",
         subtitle = "",
-        selected = state.pixFmt ?: PixFmt.RGBA,
+        selected = state.pixFmt,
         onChange = { onChange(state.copy(pixFmt = it)) },
     )
 
     EnumEntry<VideoCodec>(
-        title = "Pixel format",
+        title = "Video codec",
         subtitle = "",
-        selected = state.codecName ?: VideoCodec.H264,
+        selected = state.codecName,
         onChange = { onChange(state.copy(codecName = it)) },
     )
 
@@ -102,7 +102,7 @@ fun ColumnScope.VideoConfigForm(
 inline fun <reified T : Enum<T>> EnumEntry(
     title: String,
     subtitle: String,
-    selected: T,
+    selected: T?,
     crossinline onChange: (T) -> Unit,
 ) {
     val showDialog = rememberSaveable { mutableStateOf(false) }
@@ -110,7 +110,7 @@ inline fun <reified T : Enum<T>> EnumEntry(
     ListDialogItem(
         title = title,
         subtitle = subtitle,
-        selected = selected.toString(),
+        selected = selected?.toString() ?: "None",
         isDialogShown = showDialog.value,
         onDialogDismiss = { showDialog.value = false },
         onItemClick = { showDialog.value = true },
