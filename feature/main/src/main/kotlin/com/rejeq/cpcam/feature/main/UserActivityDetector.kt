@@ -3,11 +3,12 @@ package com.rejeq.cpcam.feature.main
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.PointerInputModifierNode
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.IntSize
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -30,11 +31,13 @@ fun Modifier.detectUserActivity(
     enabled: Boolean,
     inactivityDelay: Long,
     pollTime: Long = DEFAULT_POLL_TIME,
+    lifecycle: Lifecycle,
     onActivityChange: (isActive: Boolean) -> Unit,
 ): Modifier = this then UserActivityDetectorElement(
     enabled = enabled,
     inactivityDelay = inactivityDelay,
     pollTime = pollTime,
+    lifecycle = lifecycle,
     onActivityChange = onActivityChange,
 )
 
@@ -42,17 +45,25 @@ private data class UserActivityDetectorElement(
     private val enabled: Boolean,
     private val inactivityDelay: Long,
     private val pollTime: Long,
+    private val lifecycle: Lifecycle,
     private val onActivityChange: (isActive: Boolean) -> Unit,
 ) : ModifierNodeElement<UserActivityDetectorNode>() {
     override fun create(): UserActivityDetectorNode = UserActivityDetectorNode(
         enabled = enabled,
         inactivityDelay = inactivityDelay,
         pollTime = pollTime,
+        lifecycle = lifecycle,
         onActivityChange = onActivityChange,
     )
 
     override fun update(node: UserActivityDetectorNode) {
-        node.update(enabled, inactivityDelay, pollTime, onActivityChange)
+        node.update(
+            enabled,
+            inactivityDelay,
+            pollTime,
+            lifecycle,
+            onActivityChange,
+        )
     }
 
     override fun InspectorInfo.inspectableProperties() {
@@ -60,6 +71,7 @@ private data class UserActivityDetectorElement(
         properties["enabled"] = enabled
         properties["inactivityDelay"] = inactivityDelay
         properties["pollTime"] = pollTime
+        properties["lifecycle"] = lifecycle
     }
 }
 
@@ -67,12 +79,21 @@ private class UserActivityDetectorNode(
     private var enabled: Boolean,
     private var inactivityDelay: Long,
     private var pollTime: Long,
+    private var lifecycle: Lifecycle,
     private var onActivityChange: (isActive: Boolean) -> Unit,
 ) : Modifier.Node(),
     PointerInputModifierNode {
     private var lastInteractionTime = System.currentTimeMillis()
     private var isActive = true
     private var activityCheckJob: Job? = null
+
+    private val observer = LifecycleEventObserver { _, event ->
+        when (event) {
+            Lifecycle.Event.ON_START -> newInteraction()
+            Lifecycle.Event.ON_STOP -> newInteraction()
+            else -> Unit
+        }
+    }
 
     override fun onAttach() {
         super.onAttach()
@@ -83,7 +104,7 @@ private class UserActivityDetectorNode(
 
     override fun onDetach() {
         super.onDetach()
-        activityCheckJob?.cancel()
+        stopActivityCheck()
     }
 
     override fun onPointerEvent(
@@ -94,7 +115,7 @@ private class UserActivityDetectorNode(
         if (!enabled) return
 
         if (pass == PointerEventPass.Main) {
-            lastInteractionTime = System.currentTimeMillis()
+            newInteraction()
             if (!isActive) {
                 isActive = true
                 onActivityChange(true)
@@ -104,8 +125,16 @@ private class UserActivityDetectorNode(
 
     override fun onCancelPointerInput() {}
 
+    private fun newInteraction() {
+        lastInteractionTime = System.currentTimeMillis()
+    }
+
     private fun startActivityCheck() {
+        lifecycle.addObserver(observer)
+
         activityCheckJob = coroutineScope.launch {
+            newInteraction()
+
             while (true) {
                 delay(pollTime)
                 if (!enabled) continue
@@ -119,14 +148,21 @@ private class UserActivityDetectorNode(
         }
     }
 
+    private fun stopActivityCheck() {
+        lifecycle.removeObserver(observer)
+        activityCheckJob?.cancel()
+    }
+
     fun update(
         newEnabled: Boolean,
         newInactivityDelay: Long,
         newPollTime: Long,
+        newLifecycle: Lifecycle,
         newOnActivityChange: (isActive: Boolean) -> Unit,
     ) {
         val wasEnabled = enabled
         enabled = newEnabled
+
         inactivityDelay = newInactivityDelay
         pollTime = newPollTime
         onActivityChange = newOnActivityChange
@@ -136,6 +172,12 @@ private class UserActivityDetectorNode(
             if (newEnabled) {
                 startActivityCheck()
             }
+        }
+
+        if (newEnabled && lifecycle !== newLifecycle) {
+            lifecycle.removeObserver(observer)
+            this.lifecycle = newLifecycle
+            lifecycle.addObserver(observer)
         }
     }
 }

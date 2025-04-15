@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.rejeq.cpcam.core.device.dimScreen
 import com.rejeq.cpcam.core.device.keepScreenAwake
@@ -38,6 +39,7 @@ import com.rejeq.cpcam.feature.main.info.InfoContent
 @Composable
 fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
     val window = LocalActivity.current?.window
+    val lifecycle = LocalLifecycleOwner.current
     val keepScreenAwake = component.keepScreenAwake.collectAsState(false).value
     val dimScreenDelay = component.dimScreenDelay.collectAsState(null).value
 
@@ -57,6 +59,7 @@ fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
             .detectUserActivity(
                 enabled = keepScreenAwake == true && dimScreenDelay != null,
                 inactivityDelay = dimScreenDelay ?: 0L,
+                lifecycle = lifecycle.lifecycle,
             ) { isActive ->
                 if (window != null) {
                     if (isActive) {
