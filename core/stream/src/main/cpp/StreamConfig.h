@@ -5,8 +5,8 @@
 
 #include <jni.h>
 
+#include "Format.h"
 #include "JniUtils.h"
-#include "PixFmt.h"
 
 struct VideoConfig {
    public:
@@ -19,4 +19,16 @@ struct VideoConfig {
     int framerate;
     int width;
     int height;
+};
+
+struct AudioConfig {
+public:
+    // obj must be AudioConfig class
+    static AudioConfig build(JNIEnv *env, jobject obj);
+
+    std::string codec_name;
+    SampleFormat format;
+    int64_t bitrate;
+    int sample_rate;
+    int channel_count;
 };

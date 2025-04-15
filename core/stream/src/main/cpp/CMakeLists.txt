@@ -31,18 +31,21 @@ add_library(cpcam_jni SHARED
     JniUtils.cpp
     JniUtils.h
     Log.h
-    PixFmt.h
-    VideoConfig.cpp
-    VideoConfig.h
+    Format.h
+    StreamConfig.cpp
+    StreamConfig.h
 
     ./output/FFmpegOutput.cpp
     ./output/FFmpegOutput.h
     ./output/FFmpegOutput_jni.cpp
 
+    ./stream/FFmpegAudioStream.cpp
+    ./stream/FFmpegAudioStream.h
+    ./stream/FFmpegAudioStream_jni.cpp
     ./stream/FFmpegVideoStream.cpp
     ./stream/FFmpegVideoStream.h
     ./stream/FFmpegVideoStream_jni.cpp
-    ./stream/FrameData.h
+    ./stream/StreamData.h
 )
 
 target_include_directories(cpcam_jni PRIVATE .)
@@ -65,4 +68,5 @@ target_link_libraries(cpcam_jni PUBLIC
     FFmpeg::libavformat
     FFmpeg::libavutil
     FFmpeg::libswscale
+    FFmpeg::libswresample
 )

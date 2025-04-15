@@ -1,4 +1,4 @@
-#include "VideoConfig.h"
+#include "StreamConfig.h"
 
 #include "JniUtils.h"
 
@@ -41,5 +41,42 @@ VideoConfig VideoConfig::build(JNIEnv *env, jobject obj) {
         .framerate = framerate,
         .width = width,
         .height = height,
+    };
+}
+
+// obj must be SampleFormat class
+SampleFormat to_sample_format(JNIEnv *env, jobject obj) {
+    jclass clazz = env->GetObjectClass(obj);
+    jmethodID sampleFormat_id = env->GetMethodID(clazz, "ordinal", "()I");
+    int ordinal = env->CallIntMethod(obj, sampleFormat_id);
+    return (SampleFormat)ordinal;
+}
+
+AudioConfig AudioConfig::build(JNIEnv *env, jobject obj) {
+    jclass clazz = env->GetObjectClass(obj);
+
+    jfieldID codecName_field =
+            env->GetFieldID(clazz, "codecName", "Ljava/lang/String;");
+    jobject codecName_str = env->GetObjectField(obj, codecName_field);
+
+    jfieldID format_field = env->GetFieldID(
+            clazz, "format", "Lcom/rejeq/cpcam/core/stream/jni/FFmpegSampleFormat;");
+    jobject format_obj = env->GetObjectField(obj, format_field);
+
+    jfieldID bitrate_field = env->GetFieldID(clazz, "bitrate", "J");
+    jlong bitrate = env->GetLongField(obj, bitrate_field);
+
+    jfieldID sampleRate_field = env->GetFieldID(clazz, "sampleRate", "I");
+    jint sampleRate = env->GetIntField(obj, sampleRate_field);
+
+    jfieldID channelCount_field = env->GetFieldID(clazz, "channelCount", "I");
+    jint channelCount = env->GetIntField(obj, channelCount_field);
+
+    return AudioConfig{
+            .codec_name = to_string(env, (jstring)codecName_str),
+            .format = to_sample_format(env, format_obj),
+            .bitrate = bitrate,
+            .sample_rate = sampleRate,
+            .channel_count = channelCount,
     };
 }

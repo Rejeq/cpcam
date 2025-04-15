@@ -1,7 +1,7 @@
 #include "FFmpegOutput.h"
 
 #include "../JniUtils.h"
-#include "../VideoConfig.h"
+#include "../StreamConfig.h"
 
 extern "C" {
 
@@ -49,4 +49,13 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegOutputJni_makeVideoStream(
     auto *stream = ((FFmpegOutput *)output)->make_video_stream(config);
     return (jlong)stream;
 }
+
+JNIEXPORT jlong JNICALL
+Java_com_rejeq_cpcam_core_stream_jni_FFmpegOutputJni_makeAudioStream(
+        JNIEnv *env, jobject /* obj */, jlong output, jobject rawConfig) {
+    AudioConfig config = AudioConfig::build(env, rawConfig);
+    auto *stream = ((FFmpegOutput *)output)->make_audio_stream(config);
+    return (jlong)stream;
+}
+
 }

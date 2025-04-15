@@ -66,6 +66,8 @@ set(CONFIGURE_COMMAND ${FFMPEG_SOURCE_DIR}/src/ffmpeg/configure
     --enable-mediacodec
 
     --enable-encoder=mjpeg
+    --enable-encoder=aac
+    --enable-encoder=opus
 
     --enable-muxer=mpegts
     --enable-muxer=mjpeg

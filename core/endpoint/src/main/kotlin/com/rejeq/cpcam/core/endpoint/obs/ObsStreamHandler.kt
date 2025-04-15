@@ -1,15 +1,19 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
+import com.rejeq.cpcam.core.data.model.AudioConfig
+import com.rejeq.cpcam.core.data.model.AudioRelayConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointState
+import com.rejeq.cpcam.core.stream.AudioStreamConfig
 import com.rejeq.cpcam.core.stream.StreamHandler
 import com.rejeq.cpcam.core.stream.StreamResult
 import com.rejeq.cpcam.core.stream.VideoStreamConfig
+import com.rejeq.cpcam.core.stream.target.AudioTarget
 import com.rejeq.cpcam.core.stream.target.CameraVideoTarget
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 class ObsStreamHandler @AssistedInject constructor(
     streamRepo: StreamRepository,
     private val videoTarget: CameraVideoTarget,
+    private val audioTarget: AudioTarget,
     // FIXME: Scope leak, cancel when object to be destroyed
     @Assisted scope: CoroutineScope,
 ) {
@@ -89,8 +94,13 @@ class ObsStreamHandler @AssistedInject constructor(
                 target = videoTarget,
                 data = data.videoConfig,
             ),
+            audioStreamConfig = AudioStreamConfig(
+                target = audioTarget,
+                data = data.audioConfig,
+            ),
         ).also {
             it.updateStreamVideoRelay(data.videoConfig)
+            it.updateStreamAudioRelay(data.audioConfig)
         }
     }
 
@@ -99,6 +109,15 @@ class ObsStreamHandler @AssistedInject constructor(
             VideoRelayConfig(
                 resolution = data.resolution,
                 framerate = data.framerate,
+            ),
+        )
+    }
+
+    private fun StreamHandler.updateStreamAudioRelay(data: AudioConfig) {
+        this.setAudioRelayConfig(
+            AudioRelayConfig(
+                sampleRate = data.sampleRate,
+
             ),
         )
     }

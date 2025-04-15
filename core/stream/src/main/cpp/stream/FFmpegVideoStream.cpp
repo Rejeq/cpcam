@@ -158,7 +158,7 @@ void FFmpegVideoStream::as_av_frame(const FrameData &data, AVFrame *out) {
     for (int i = 0; i < m_pix_fmt_plane_count; i++) {
         // all planes for current pix_fmt must be valid
         assert(data.buff[i] != nullptr);
-        assert(data.buff_stride[i] > 0);
+        // assert(data.buff_stride[i] > 0);
 
         out->data[i] = data.buff[i];
         out->linesize[i] = data.buff_stride[i];

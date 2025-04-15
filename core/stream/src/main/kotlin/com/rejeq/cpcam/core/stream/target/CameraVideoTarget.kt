@@ -19,6 +19,7 @@ class CameraVideoTarget @Inject constructor(
     private var relay: VideoRelay? = null
 
     init {
+        // FIXME: Scope leak, cancel on stop() and launch on start()
         target.surfaceRequest.onEach {
             when (it) {
                 is SurfaceRequestState.Available -> {

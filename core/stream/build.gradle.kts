@@ -24,9 +24,10 @@ android {
 }
 
 dependencies {
-    implementation(projects.core.data)
+    implementation(projects.core.audio)
     implementation(projects.core.camera)
     implementation(projects.core.common)
+    implementation(projects.core.data)
 
     implementation(libs.androidx.core.ktx)
 

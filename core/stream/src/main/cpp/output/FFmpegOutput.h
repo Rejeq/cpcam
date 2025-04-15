@@ -6,7 +6,8 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "../VideoConfig.h"
+#include "StreamConfig.h"
+#include "stream/FFmpegAudioStream.h"
 #include "stream/FFmpegVideoStream.h"
 
 // TODO: Better error handling
@@ -23,6 +24,7 @@ class FFmpegOutput {
     bool close();
 
     FFmpegVideoStream *make_video_stream(const VideoConfig &config);
+    FFmpegAudioStream *make_audio_stream(const AudioConfig &config);
 
    private:
     // TODO: AVFormatContext has url field, consider using it

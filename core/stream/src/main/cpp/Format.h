@@ -8,3 +8,9 @@ enum class PixFmt {
     RGBA,
     RGB24,
 };
+
+enum class SampleFormat {
+    PCM_S16LE,
+    PCM_S32LE,
+    PCM_F32LE,
+};

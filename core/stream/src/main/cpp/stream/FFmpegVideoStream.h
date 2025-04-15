@@ -9,7 +9,7 @@ extern "C" {
 #include "libavutil/frame.h"
 }
 
-#include "FrameData.h"
+#include "StreamData.h"
 
 class FFmpegVideoStream {
    public:

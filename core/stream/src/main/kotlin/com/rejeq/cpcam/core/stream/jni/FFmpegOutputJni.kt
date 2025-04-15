@@ -16,6 +16,9 @@ internal class FFmpegOutputJni(protocol: String, host: String) {
     fun makeVideoStream(config: FFmpegVideoConfig) =
         FFmpegVideoStreamJni(makeVideoStream(handle, config))
 
+    fun makeAudioStream(config: FFmpegAudioConfig) =
+        FFmpegAudioStreamJni(makeAudioStream(handle, config))
+
     private external fun create(host: String, protocol: String): Long
     external fun destroy(handle: Long)
 
@@ -25,5 +28,10 @@ internal class FFmpegOutputJni(protocol: String, host: String) {
     private external fun makeVideoStream(
         handle: Long,
         config: FFmpegVideoConfig,
+    ): Long
+
+    private external fun makeAudioStream(
+        handle: Long,
+        config: FFmpegAudioConfig,
     ): Long
 }

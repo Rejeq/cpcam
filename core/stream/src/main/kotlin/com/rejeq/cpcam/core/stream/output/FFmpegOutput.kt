@@ -1,9 +1,11 @@
 package com.rejeq.cpcam.core.stream.output
 
 import android.util.Log
+import com.rejeq.cpcam.core.data.model.AudioConfig
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.stream.StreamResult
+import com.rejeq.cpcam.core.stream.jni.FFmpegAudioStreamJni
 import com.rejeq.cpcam.core.stream.jni.FFmpegOutputJni
 import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
 import com.rejeq.cpcam.core.stream.jni.toFFmpegConfig
@@ -21,6 +23,16 @@ internal class FFmpegOutput(val protocol: StreamProtocol, host: String) {
         }
 
         return detail?.makeVideoStream(config)
+    }
+
+    fun makeAudioStream(config: AudioConfig): FFmpegAudioStreamJni? {
+        val config = config.toFFmpegConfig()
+        if (config == null) {
+            Log.e(TAG, "Unable create encoder: Invalid audio config")
+            return null
+        }
+
+        return detail?.makeAudioStream(config)
     }
 
     fun open(): StreamResult<Unit> {

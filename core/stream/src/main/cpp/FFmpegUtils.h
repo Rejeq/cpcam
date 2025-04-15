@@ -11,7 +11,7 @@ extern "C" {
 #include <libavutil/timestamp.h>
 }
 
-#include "PixFmt.h"
+#include "Format.h"
 
 // Returns std::array since it uses stack allocation without copying
 std::array<char, AV_ERROR_MAX_STRING_SIZE> av_err_to_string(int err);
@@ -22,6 +22,8 @@ std::array<char, AV_TS_MAX_STRING_SIZE> av_ts_to_string(int64_t err);
 // Returns std::array since it uses stack allocation without copying
 std::array<char, AV_TS_MAX_STRING_SIZE> av_ts_to_time_string(
     int64_t ts, AVRational *time_base);
+
+//#define LOG_PACKET_INFO(octx, pkt) ((void)0)
 
 #define LOG_PACKET_INFO(octx, pkt)                                            \
     do {                                                                      \
@@ -45,5 +47,6 @@ std::array<char, AV_TS_MAX_STRING_SIZE> av_ts_to_time_string(
     } while (0)
 
 AVPixelFormat to_av_pix_fmt(PixFmt pix_fmt);
+AVSampleFormat to_av_sample_fmt(SampleFormat sample_format);
 
 AVFrame *make_av_frame(int width, int height, int pix_fmt);

@@ -40,6 +40,16 @@ AVPixelFormat to_av_pix_fmt(PixFmt pix_fmt) {
     assert(false && "Unknown pixel format");
 }
 
+AVSampleFormat to_av_sample_fmt(SampleFormat sample_format) {
+    switch (sample_format) {
+        case SampleFormat::PCM_S16LE: return AV_SAMPLE_FMT_S16;
+        case SampleFormat::PCM_S32LE: return AV_SAMPLE_FMT_S32;
+        case SampleFormat::PCM_F32LE: return AV_SAMPLE_FMT_FLT;
+    }
+
+    assert(false && "Unknown pixel format");
+}
+
 AVFrame *make_av_frame(int width, int height, int pix_fmt) {
     AVFrame *frame = av_frame_alloc();
     if (!frame) {

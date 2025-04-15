@@ -4,6 +4,7 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/channel_layout.h>
 }
 
 #include "../FFmpegUtils.h"
@@ -150,4 +151,74 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
     }
 
     return stream;
+}
+
+FFmpegAudioStream *FFmpegOutput::make_audio_stream(const AudioConfig &config) {
+    assert((int)m_octx->nb_streams < m_octx->max_streams);
+    AVStream *st = avformat_new_stream(m_octx, nullptr);
+    if (!st) {
+        LOG_ERROR("Could not allocate stream\n");
+        return nullptr;
+    }
+
+//    st->id = st->index;
+
+    const char *codec_name = config.codec_name.c_str();
+    const AVCodec *codec = avcodec_find_encoder_by_name(codec_name);
+    if (!codec) {
+        LOG_ERROR("Unable to find '%s' encoder", codec_name);
+        return nullptr;
+    }
+
+    AVCodecContext *cctx = avcodec_alloc_context3(codec);
+    if (!cctx) {
+        LOG_ERROR("Unable to allocate codec context\n");
+        return nullptr;
+    }
+
+    AVChannelLayout tmp = AV_CHANNEL_LAYOUT_MONO;
+    av_channel_layout_copy(&cctx->ch_layout, &tmp);
+    cctx->bit_rate = config.bitrate;
+    cctx->codec_id = codec->id;
+    cctx->sample_fmt = AV_SAMPLE_FMT_FLT;
+    cctx->sample_rate = config.sample_rate;
+
+//    st->time_base = {1, 1'000'000'000};
+//    cctx->time_base = {1, 1'000'000'000};
+
+    st->time_base = {1, config.sample_rate};
+    cctx->time_base = st->time_base;
+
+    if (m_octx->oformat->flags & AVFMT_GLOBALHEADER) {
+        cctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    }
+
+    AVDictionary *options = nullptr;
+     av_dict_set(&options, "strict", "-2", 0);
+    // av_dict_set(&options, "compression_level", "10", 0);
+
+    int res = avcodec_open2(cctx, codec, &options);
+    if (res < 0) {
+        LOG_ERROR("Unable to open audio codec: %s",
+                  av_err_to_string(res).data());
+        avcodec_free_context(&cctx);
+        return nullptr;
+    }
+
+    res = avcodec_parameters_from_context(st->codecpar, cctx);
+    if (res < 0) {
+        LOG_ERROR("Could not copy the stream parameters");
+        avcodec_free_context(&cctx);
+        return nullptr;
+    }
+
+    auto *stream = FFmpegAudioStream::build(m_octx, cctx);
+    if (!stream) {
+        LOG_ERROR("Unable to allocate audio stream");
+        avcodec_free_context(&cctx);
+        return nullptr;
+    }
+
+    return stream;
+
 }
