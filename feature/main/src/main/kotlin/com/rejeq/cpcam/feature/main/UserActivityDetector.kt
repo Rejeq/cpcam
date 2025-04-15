@@ -93,7 +93,7 @@ private class UserActivityDetectorNode(
     ) {
         if (!enabled) return
 
-        if (pointerEvent.type == PointerEventType.Press) {
+        if (pass == PointerEventPass.Main) {
             lastInteractionTime = System.currentTimeMillis()
             if (!isActive) {
                 isActive = true
