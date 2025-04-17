@@ -11,9 +11,6 @@ import com.rejeq.cpcam.core.endpoint.obs.ObsEndpoint
 import com.rejeq.cpcam.core.endpoint.obs.ObsStreamHandler
 import com.rejeq.cpcam.core.endpoint.obs.checkObsConnection
 import com.rejeq.cpcam.core.endpoint.obs.toEndpointError
-import com.rejeq.cpcam.core.endpoint.service.EndpointService
-import com.rejeq.cpcam.core.endpoint.service.startEndpointService
-import com.rejeq.cpcam.core.endpoint.service.stopEndpointService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.client.HttpClient
 import javax.inject.Inject
@@ -60,25 +57,11 @@ class EndpointHandler @Inject constructor(
             return DEFAULT_ENDPOINT_STATE
         }
 
-        startEndpointService(context)
-        val newState = endpoint.connect()
-
-        if (newState !is EndpointState.Started) {
-            stopEndpointService(context)
-        }
-
-        return newState
+        return endpoint.connect()
     }
 
     suspend fun disconnect(): EndpointState {
         val newState = endpoint.value?.disconnect()
-
-        if (newState is EndpointState.Stopped &&
-            EndpointService.isStarted != 0
-        ) {
-            stopEndpointService(context)
-        }
-
         return newState ?: DEFAULT_ENDPOINT_STATE
     }
 

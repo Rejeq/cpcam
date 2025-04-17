@@ -100,9 +100,9 @@ fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
                 showStreamButton = showStreamButton.value,
                 onStreamClick = {
                     when (streamState.animTarget) {
-                        MorphIconTarget.Stopped -> component.connect()
+                        MorphIconTarget.Stopped -> component.onStartEndpoint()
                         MorphIconTarget.Loading -> {}
-                        MorphIconTarget.Started -> component.disconnect()
+                        MorphIconTarget.Started -> component.onStopEndpoint()
                     }
                 },
                 showSwitchCameraButton = showSwitchCameraButton.value,
@@ -119,9 +119,6 @@ fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
 
             is MainNavigation.Dialog.PermanentNotification ->
                 PermissionDeniedContent(it.component)
-
-            is MainNavigation.Dialog.ConnectionError ->
-                ConnectionErrorContent(it.component)
         }
     }
 }

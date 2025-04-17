@@ -10,7 +10,7 @@
 
     <application>
         <service
-            android:name=".service.EndpointService"
+            android:name=".EndpointService"
             android:foregroundServiceType="camera"
             android:configChanges="locale"
             android:exported="false" />

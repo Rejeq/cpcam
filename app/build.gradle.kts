@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.feature.main)
     implementation(projects.feature.settings)
     implementation(projects.feature.about)
+    implementation(projects.feature.service)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
@@ -43,6 +44,7 @@ dependencies {
 
     implementation(libs.decompose.core)
     implementation(libs.decompose.compose)
+    implementation(libs.essenty.lifecycle.coroutines)
 
     implementation(libs.camerax.compose)
 

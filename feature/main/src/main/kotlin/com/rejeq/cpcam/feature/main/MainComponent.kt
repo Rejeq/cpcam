@@ -42,14 +42,14 @@ class MainComponent @AssistedInject constructor(
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
     @Assisted("onSettingsClick") val onSettingsClick: () -> Unit,
-    @Assisted("openEndpointSettings") val openEndpointSettings: () -> Unit,
+    @Assisted("onStartEndpoint") val onStartEndpoint: () -> Unit,
+    @Assisted("onStopEndpoint") val onStopEndpoint: () -> Unit,
 ) : ChildComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
     val nav = MainNavigation(
         componentContext = this,
-        openEndpointSettings = openEndpointSettings,
     )
 
     val cam = CameraComponent(
@@ -92,30 +92,6 @@ class MainComponent @AssistedInject constructor(
             .launchIn(scope)
     }
 
-    fun connect() {
-        scope.launch {
-            Log.i(TAG, "Connecting")
-
-            val newState = endpoint.connect()
-            if (newState is EndpointState.Stopped) {
-                val reason = newState.reason
-                if (reason != null) {
-                    nav.showConnectionError(reason)
-                } else {
-                    Log.w(TAG, "Unable to connect to endpoint: Without reason")
-                }
-            }
-        }
-    }
-
-    fun disconnect() {
-        scope.launch {
-            Log.i(TAG, "Disconnecting")
-
-            endpoint.disconnect()
-        }
-    }
-
     override fun readyToShow(): Boolean {
         val state = cam.state.value
 
@@ -128,9 +104,8 @@ class MainComponent @AssistedInject constructor(
             componentContext: ComponentContext,
             mainContext: CoroutineContext,
             @Assisted("onSettingsClick") onSettingsClick: () -> Unit,
-            @Assisted("openEndpointSettings") openEndpointSettings: () -> Unit,
+            @Assisted("onStartEndpoint") onStartEndpoint: () -> Unit,
+            @Assisted("onStopEndpoint") onStopEndpoint: () -> Unit,
         ): MainComponent
     }
 }
-
-private const val TAG = "MainScreenComponent"

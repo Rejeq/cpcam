@@ -7,14 +7,10 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
-import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.feature.main.info.InfoComponent
 import kotlinx.serialization.Serializable
 
-class MainNavigation(
-    componentContext: ComponentContext,
-    private val openEndpointSettings: () -> Unit,
-) {
+class MainNavigation(componentContext: ComponentContext) {
     private val dialogNavigation = SlotNavigation<DialogConfig>()
 
     val dialog: Value<ChildSlot<*, Dialog>> = componentContext.childSlot(
@@ -38,16 +34,6 @@ class MainNavigation(
                         onFinished = dialogNavigation::dismiss,
                     ),
                 )
-
-            is DialogConfig.ConnectionError ->
-                Dialog.ConnectionError(
-                    ConnectionErrorComponent(
-                        childComponentContext,
-                        config.reason,
-                        onFinished = dialogNavigation::dismiss,
-                        openEndpointSettings = openEndpointSettings,
-                    ),
-                )
         }
     }
 
@@ -61,12 +47,6 @@ class MainNavigation(
         )
     }
 
-    fun showConnectionError(reason: EndpointErrorKind) {
-        dialogNavigation.activate(
-            DialogConfig.ConnectionError(reason),
-        )
-    }
-
     @Serializable
     private sealed interface DialogConfig {
         @Serializable
@@ -74,9 +54,6 @@ class MainNavigation(
 
         @Serializable
         data class PermissionDenied(val permissions: String) : DialogConfig
-
-        @Serializable
-        data class ConnectionError(val reason: EndpointErrorKind) : DialogConfig
     }
 
     sealed interface Dialog {
@@ -85,8 +62,5 @@ class MainNavigation(
         data class PermanentNotification(
             val component: PermissionDeniedComponent,
         ) : Dialog
-
-        data class ConnectionError(val component: ConnectionErrorComponent) :
-            Dialog
     }
 }

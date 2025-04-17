@@ -8,12 +8,9 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.common)
     implementation(projects.core.data)
     implementation(projects.core.stream)
-    implementation(projects.core.common)
-    // TODO: Remove this dependency, it is required for notification,
-    //  to get resources
-    implementation(projects.core.ui)
 
     implementation(libs.androidx.core.ktx)
 

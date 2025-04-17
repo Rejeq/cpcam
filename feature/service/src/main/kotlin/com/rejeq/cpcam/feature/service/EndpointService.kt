@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.core.endpoint.service
+package com.rejeq.cpcam.feature.service
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -148,7 +148,6 @@ class EndpointService : Service() {
     private fun startEndpoint(): Int {
         acquireWakeLock()
         acquireWifiLock()
-        isStarted += 1
 
         return START_STICKY
     }
@@ -159,7 +158,6 @@ class EndpointService : Service() {
      * @return Service start mode (START_NOT_STICKY)
      */
     private fun stopEndpoint(): Int {
-        isStarted -= 1
         stopSelf()
         return START_NOT_STICKY
     }
@@ -238,12 +236,10 @@ class EndpointService : Service() {
             }
         }
     }
+
     companion object {
         const val ACTION_START_ENDPOINT = "StartEndpoint"
         const val ACTION_STOP_ENDPOINT = "StopEndpoint"
-
-        var isStarted: Int = 0
-            private set
     }
 }
 
@@ -252,7 +248,7 @@ class EndpointService : Service() {
  *
  * @param context Application context
  */
-internal fun startEndpointService(context: Context) {
+fun startEndpointService(context: Context) {
     val intent =
         Intent(context, EndpointService::class.java)
             .setAction(EndpointService.ACTION_START_ENDPOINT)
@@ -265,7 +261,7 @@ internal fun startEndpointService(context: Context) {
  *
  * @param context Application context
  */
-internal fun stopEndpointService(context: Context) {
+fun stopEndpointService(context: Context) {
     val intent =
         Intent(context, EndpointService::class.java)
             .setAction(EndpointService.ACTION_STOP_ENDPOINT)

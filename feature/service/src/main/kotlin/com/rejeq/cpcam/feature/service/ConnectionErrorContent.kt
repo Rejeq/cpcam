@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.main
+package com.rejeq.cpcam.feature.service
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text

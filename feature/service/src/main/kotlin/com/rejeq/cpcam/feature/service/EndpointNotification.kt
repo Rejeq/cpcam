@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.core.endpoint.service
+package com.rejeq.cpcam.feature.service
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -6,7 +6,6 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
-import com.rejeq.cpcam.core.endpoint.R
 import com.rejeq.cpcam.core.ui.R as CoreR
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview

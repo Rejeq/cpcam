@@ -9,9 +9,11 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.rejeq.cpcam.feature.about.LibrariesContent
 import com.rejeq.cpcam.feature.about.LibraryContent
 import com.rejeq.cpcam.feature.main.MainContent
+import com.rejeq.cpcam.feature.service.ConnectionErrorContent
 import com.rejeq.cpcam.feature.settings.SettingsContent
 import com.rejeq.cpcam.feature.settings.endpoint.EndpointContent
 
@@ -48,6 +50,14 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
                 is RootComponent.Child.Library -> LibraryContent(
                     component = child.component,
                 )
+            }
+        }
+
+        val dialog = component.dialog.subscribeAsState().value
+        dialog.child?.instance?.let {
+            when (it) {
+                is RootComponent.DialogChild.ConnectionError ->
+                    ConnectionErrorContent(it.component)
             }
         }
     }
