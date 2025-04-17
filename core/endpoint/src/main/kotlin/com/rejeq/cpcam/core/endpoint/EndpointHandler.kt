@@ -80,7 +80,7 @@ class EndpointHandler @Inject constructor(
     }
 
     private suspend fun setConfig(config: EndpointConfig) {
-        if (state.value is EndpointState.Stopped) {
+        if (state.value !is EndpointState.Stopped) {
             // TODO:
             // hasPendingConfig = true
             endpoint.value?.disconnect()
