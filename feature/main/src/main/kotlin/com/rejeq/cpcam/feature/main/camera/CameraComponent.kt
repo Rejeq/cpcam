@@ -9,26 +9,29 @@ import com.rejeq.cpcam.core.camera.CameraController
 import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
-import com.rejeq.cpcam.core.camera.target.CameraTarget
+import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.device.DndListener
 import com.rejeq.cpcam.core.device.DndState
 import com.rejeq.cpcam.core.ui.PermissionState
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class CameraComponent(
+class CameraComponent @AssistedInject constructor(
     private val dndListener: DndListener,
-    private val scope: CoroutineScope,
     private val appearanceRepo: AppearanceRepository,
     private val controller: CameraController,
-    val target: CameraTarget,
-    val onShowPermissionDenied: (String) -> Unit,
-    componentContext: ComponentContext,
+    val target: PreviewCameraTarget,
     cameraDataRepo: CameraDataRepository,
+    @Assisted val onShowPermissionDenied: (String) -> Unit,
+    @Assisted private val scope: CoroutineScope,
+    @Assisted componentContext: ComponentContext,
 ) : ComponentContext by componentContext {
     init {
         lifecycle.doOnDestroy {
@@ -119,6 +122,15 @@ class CameraComponent(
 
     fun stopMonitoringDnd() {
         dndListener.stop()
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            scope: CoroutineScope,
+            componentContext: ComponentContext,
+            onShowPermissionDenied: (String) -> Unit,
+        ): CameraComponent
     }
 }
 

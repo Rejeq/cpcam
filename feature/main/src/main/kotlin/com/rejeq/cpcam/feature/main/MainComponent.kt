@@ -1,17 +1,11 @@
 package com.rejeq.cpcam.feature.main
 
-import android.util.Log
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
-import com.rejeq.cpcam.core.camera.CameraController
 import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.camera.CameraType
-import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
-import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.common.ChildComponent
-import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.data.repository.ScreenRepository
-import com.rejeq.cpcam.core.device.DndListener
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.MorphButtonState
@@ -27,17 +21,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainComponent @AssistedInject constructor(
-    private val endpoint: EndpointHandler,
-    appearanceRepo: AppearanceRepository,
-    cameraController: CameraController,
-    dndListener: DndListener,
-    cameraTarget: PreviewCameraTarget,
+    endpoint: EndpointHandler,
+    cameraFactory: CameraComponent.Factory,
     endpointHandler: EndpointHandler,
-    cameraDataRepo: CameraDataRepository,
     screenRepo: ScreenRepository,
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
@@ -52,15 +41,10 @@ class MainComponent @AssistedInject constructor(
         componentContext = this,
     )
 
-    val cam = CameraComponent(
-        dndListener = dndListener,
+    val cam = cameraFactory.create(
         scope = scope,
-        appearanceRepo = appearanceRepo,
-        controller = cameraController,
-        target = cameraTarget,
-        onShowPermissionDenied = { nav.showPermissionDenied(it) },
         componentContext = this,
-        cameraDataRepo = cameraDataRepo,
+        onShowPermissionDenied = { nav.showPermissionDenied(it) },
     )
 
     val streamButtonState = MorphButtonState(MorphIconTarget.Stopped)
