@@ -42,15 +42,15 @@ class EndpointComponent @AssistedInject constructor(
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
     private val _endpointForm =
-        MutableStateFlow<EndpointFormState>(EndpointFormState.Loading)
+        MutableStateFlow<FormState<EndpointConfig>>(FormState.Loading)
     val endpointForm = _endpointForm.asStateFlow()
 
     private val _videoConfig =
-        MutableStateFlow<VideoConfigState>(VideoConfigState.Loading)
+        MutableStateFlow<FormState<VideoConfig>>(FormState.Loading)
     val videoConfig = _videoConfig.asStateFlow()
 
     private val _streamData =
-        MutableStateFlow<StreamDataState>(StreamDataState.Loading)
+        MutableStateFlow<FormState<ObsStreamData>>(FormState.Loading)
     val streamData = _streamData.asStateFlow()
 
     private var checkEndpointJob: Job? = null
@@ -61,25 +61,19 @@ class EndpointComponent @AssistedInject constructor(
 
     init {
         endpointRepo.endpointConfig.onEach {
-            _endpointForm.value = EndpointFormState.Success(it)
+            _endpointForm.value = FormState.Success(it)
         }.launchIn(scope)
 
         streamRepo.obsData.onEach {
-            _videoConfig.value = VideoConfigState.Success(it.videoConfig)
-            _streamData.value = StreamDataState.Success(it)
+            _videoConfig.value = FormState.Success(it.videoConfig)
+            _streamData.value = FormState.Success(it)
         }.launchIn(scope)
     }
 
     fun updateEndpoint(data: EndpointConfig) {
-        _endpointForm.value = EndpointFormState.Success(data)
+        _endpointForm.value = FormState.Success(data)
 
         externalScope.launch {
-//            val port = state.port
-//            if (port == null) {
-//                _connectionState.value = EndpointConnectionState.Failed
-//                return@launch
-//            }
-
             when (data) {
                 is ObsConfig -> endpointRepo.setObsData(
                     ObsConfig(
@@ -93,7 +87,7 @@ class EndpointComponent @AssistedInject constructor(
     }
 
     fun updateStreamData(data: ObsStreamData) {
-        _streamData.value = StreamDataState.Success(data)
+        _streamData.value = FormState.Success(data)
 
         externalScope.launch {
             streamRepo.setObsData(data)
@@ -101,7 +95,7 @@ class EndpointComponent @AssistedInject constructor(
     }
 
     fun updateVideoConfig(data: VideoConfig) {
-        _videoConfig.value = VideoConfigState.Success(data)
+        _videoConfig.value = FormState.Success(data)
 
         externalScope.launch {
             streamRepo.setObsVideoConfig(data)
@@ -113,7 +107,7 @@ class EndpointComponent @AssistedInject constructor(
         checkEndpointJob?.cancel()
 
         when (val state = endpointForm.value) {
-            is EndpointFormState.Success -> {
+            is FormState.Success -> {
                 checkEndpointJob = scope.launch {
                     val hasConnection = endpointHandler.checkConnection(
                         state.data,
@@ -129,7 +123,7 @@ class EndpointComponent @AssistedInject constructor(
                     }
                 }
             }
-            is EndpointFormState.Loading -> {
+            is FormState.Loading -> {
                 Log.i(TAG, "Unable check connection: Endpoint not configured")
                 _connectionState.value = EndpointConnectionState.Failed
             }
@@ -144,24 +138,6 @@ class EndpointComponent @AssistedInject constructor(
             onFinished: () -> Unit,
         ): EndpointComponent
     }
-}
-
-sealed interface EndpointFormState {
-    object Loading : EndpointFormState
-
-    data class Success(val data: EndpointConfig) : EndpointFormState
-}
-
-sealed interface VideoConfigState {
-    object Loading : VideoConfigState
-
-    data class Success(val data: VideoConfig) : VideoConfigState
-}
-
-sealed interface StreamDataState {
-    object Loading : StreamDataState
-
-    data class Success(val data: ObsStreamData) : StreamDataState
 }
 
 enum class EndpointConnectionState {

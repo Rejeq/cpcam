@@ -1,101 +1,131 @@
 package com.rejeq.cpcam.feature.settings.endpoint
 
 import android.util.Log
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
+import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 import kotlin.enums.enumEntries
 
 @Composable
-fun ColumnScope.VideoConfigForm(
-    state: VideoConfigState,
+fun VideoConfigForm(
+    state: FormState<VideoConfig>,
     onChange: (VideoConfig) -> Unit,
     modifier: Modifier = Modifier,
-): Unit = when (state) {
-    is VideoConfigState.Loading -> { }
-    is VideoConfigState.Success -> {
+) {
+    var isExpanded = rememberSaveable { mutableStateOf(false) }
+
+    Form(
+        state = state,
+        title = stringResource(R.string.endpoint_video_config_form_title),
+        modifier = modifier,
+        expandable = true,
+        isExpanded = isExpanded.value,
+        onHeaderClick = { isExpanded.value = !isExpanded.value },
+    ) { config ->
         VideoConfigForm(
-            state.data,
+            state = config,
             onChange = onChange,
-            modifier = modifier,
         )
     }
 }
 
 @Composable
-fun ColumnScope.VideoConfigForm(
-    state: VideoConfig,
-    onChange: (VideoConfig) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    EnumEntry<PixFmt>(
-        title = "Pixel format",
-        subtitle = "",
-        selected = state.pixFmt ?: PixFmt.RGBA,
-        onChange = { onChange(state.copy(pixFmt = it)) },
-    )
+fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        EnumEntry<PixFmt>(
+            title = "Pixel format",
+            subtitle = "",
+            selected = state.pixFmt ?: PixFmt.RGBA,
+            onChange = { onChange(state.copy(pixFmt = it)) },
+        )
 
-    EnumEntry<VideoCodec>(
-        title = "Pixel format",
-        subtitle = "",
-        selected = state.codecName ?: VideoCodec.H264,
-        onChange = { onChange(state.copy(codecName = it)) },
-    )
+        EnumEntry<VideoCodec>(
+            title = "Video codec",
+            subtitle = "",
+            selected = state.codecName ?: VideoCodec.H264,
+            onChange = { onChange(state.copy(codecName = it)) },
+        )
 
-    Input(
-        label = "Bitrate",
-        value = state.bitrate?.toString() ?: "",
-        onValueChange = {
-            val bitrate = it.toIntOrNull()
-            if (bitrate != null) {
-                onChange(state.copy(bitrate = bitrate))
-            } else {
-                // TODO: Highlight error
-                Log.i("LOGITS", "Unable to convert bitrate to int: '$it'")
-            }
-        },
-    )
+        Input(
+            label = "Bitrate",
+            value = state.bitrate?.toString() ?: "",
+            onValueChange = {
+                if (it.isEmpty()) {
+                    onChange(state.copy(bitrate = null))
+                } else {
+                    val bitrate = it.toIntOrNull()
+                    if (bitrate != null) {
+                        onChange(state.copy(bitrate = bitrate))
+                    } else {
+                        // TODO: Highlight error
+                        Log.i(
+                            "LOGITS",
+                            "Unable to convert bitrate to int: '$it'",
+                        )
+                    }
+                }
+            },
+        )
 
-    Input(
-        label = "Framerate",
-        value = state.framerate?.toString() ?: "",
-        onValueChange = {
-            val framerate = it.toIntOrNull()
-            if (framerate != null) {
-                onChange(state.copy(framerate = framerate))
-            } else {
-                // TODO: Highlight error
-                Log.i("LOGITS", "Unable to convert framerate to int: '$it'")
-            }
-        },
-    )
+        Input(
+            label = "Framerate",
+            value = state.framerate?.toString() ?: "",
+            onValueChange = {
+                if (it.isEmpty()) {
+                    onChange(state.copy(framerate = null))
+                } else {
+                    val framerate = it.toIntOrNull()
+                    if (framerate != null) {
+                        onChange(state.copy(framerate = framerate))
+                    } else {
+                        // TODO: Highlight error
+                        Log.i(
+                            "LOGITS",
+                            "Unable to convert framerate to int: '$it'",
+                        )
+                    }
+                }
+            },
+        )
 
-    val res = remember { mutableStateOf(state.resolution?.toString() ?: "") }
+        val res =
+            remember { mutableStateOf(state.resolution?.toString() ?: "") }
 
-    Input(
-        label = "Resolution",
-        value = res.value,
-        onValueChange = {
-            res.value = it
-            val res = Resolution.fromString(it)
-            if (res != null) {
-                onChange(state.copy(resolution = res))
-            } else {
-                // TODO: Highlight error
-                Log.i("LOGITS", "Unable to convert resolution: '$it'")
-            }
-        },
-    )
+        Input(
+            label = "Resolution",
+            value = res.value,
+            onValueChange = {
+                res.value = it
+                if (it.isEmpty()) {
+                    onChange(state.copy(resolution = null))
+                } else {
+                    val resolution = Resolution.fromString(it)
+                    if (resolution != null) {
+                        onChange(state.copy(resolution = resolution))
+                    } else {
+                        // TODO: Highlight error
+                        Log.i("LOGITS", "Unable to convert resolution: '$it'")
+                    }
+                }
+            },
+        )
+    }
 }
 
 @Composable
