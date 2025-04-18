@@ -1,0 +1,20 @@
+<resources>
+    <string name="endpoint_expand_btn_desc">Expand</string>
+    <string name="endpoint_collapse_btn_desc">Collapse</string>
+
+    <string name="endpoint_form_title">Endpoint Config</string>
+    <string name="endpoint_stream_data_form_title">Stream Config</string>
+
+    <string name="endpoint_video_config_form_title">Video Config</string>
+    <string name="endpoint_stream_data_host_input_label">Host</string>
+    <string name="endpoint_stream_data_protocol_title">Stream protocol</string>
+
+    <string name="endpoint_service_type">Type</string>
+    <string name="endpoint_service_url">Url</string>
+    <string name="endpoint_service_port">Port</string>
+    <string name="endpoint_service_password">Password</string>
+    <string name="endpoint_service_check_connection">Check connection</string>
+
+    <string name="endpoint_password_visible_desc">Hide password</string>
+    <string name="endpoint_password_hidden_desc">Show password</string>
+</resources>

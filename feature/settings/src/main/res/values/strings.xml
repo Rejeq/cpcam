@@ -39,12 +39,6 @@
     <string name="pref_dim_screen_title">Dim Screen</string>
     <string name="pref_dim_screen_desc">Set the duration after which the screen dims to conserve power.</string>
 
-    <string name="pref_stream_service_type">Type</string>
-    <string name="pref_stream_service_url">Url</string>
-    <string name="pref_stream_service_port">Port</string>
-    <string name="pref_stream_service_password">Password</string>
-    <string name="pref_stream_service_check_connection">Try connect</string>
-
     <string name="pref_stream_service_title">Service</string>
     <string name="pref_stream_service_desc">Choose way how the app connect to the remote endpoint.</string>
 </resources>
