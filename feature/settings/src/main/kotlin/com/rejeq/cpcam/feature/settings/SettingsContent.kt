@@ -84,9 +84,6 @@ fun makeStreamPreferences(
 ): List<PreferenceContent> {
     val state = StreamState(
         onEndpointClick = onEndpointClick,
-        onProtocolClick = { Log.i("LOGITS", "Clicked") },
-        onVideoEncoderClick = { Log.i("LOGITS", "Clicked") },
-        onAudioEncoderClick = { Log.i("LOGITS", "Clicked") },
     )
 
     return streamPreferences(state)

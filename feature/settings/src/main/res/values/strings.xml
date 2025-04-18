@@ -47,13 +47,4 @@
 
     <string name="pref_stream_service_title">Service</string>
     <string name="pref_stream_service_desc">Choose way how the app connect to the remote endpoint.</string>
-
-    <string name="pref_stream_protocol_title">Protocol</string>
-    <string name="pref_stream_protocol_desc">Choose the streaming protocol</string>
-
-    <string name="pref_video_encoder_title">Video Encoder</string>
-    <string name="pref_video_encoder_desc">Choose the video encoder settings</string>
-
-    <string name="pref_audio_encoder_title">Audio Encoder</string>
-    <string name="pref_audio_encoder_desc">Choose the audio encoder settings</string>
 </resources>
