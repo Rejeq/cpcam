@@ -104,20 +104,3 @@ fun ColumnScope.ObsEndpointForm(
     )
 }
 
-@Composable
-fun Input(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-) = TextField(
-    value = value,
-    keyboardActions = keyboardActions,
-    keyboardOptions = keyboardOptions,
-    onValueChange = onValueChange,
-    label = { Text(text = label) },
-    singleLine = true,
-    modifier = modifier,
-)
