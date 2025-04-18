@@ -28,6 +28,8 @@ fun Input(
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) = TextField(
@@ -37,6 +39,8 @@ fun Input(
     onValueChange = onValueChange,
     label = { Text(text = label) },
     singleLine = true,
+    trailingIcon = trailingIcon,
+    visualTransformation = visualTransformation,
     // NOTE: Setting fixed height, since TextField changes self height when it
     // become focused and does not contain any value,
     // it also can be fixed with placeholder text
@@ -54,13 +58,12 @@ fun PasswordInput(
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
-    TextField(
+    Input(
         value = value,
         keyboardActions = keyboardActions,
         keyboardOptions = keyboardOptions,
         onValueChange = onValueChange,
-        label = { Text(text = label) },
-        singleLine = true,
+        label = label,
         modifier = modifier,
         visualTransformation = if (!passwordVisible) {
             PasswordVisualTransformation()
