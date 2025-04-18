@@ -79,19 +79,13 @@ fun ObsEndpointForm(
             ),
         )
 
-        Input(
-            value = state.port.toString(),
-            onValueChange = {
-                val port = it.toIntOrNull()
-                if (port != null) {
-                    onChange(state.copy(port = port))
-                } else {
-                    // TODO: Highlight error
-                    Log.i("LOGITS", "Unable to convert port to int: '$it'")
-                }
-            },
+        IntegerInput(
             label = stringResource(R.string.endpoint_service_port),
-            modifier = Modifier.fillMaxWidth().focusRequester(portFocus),
+            value = state.port,
+            onChange = { onChange(state.copy(port = it ?: 0)) },
+            onInvalid = {
+                Log.i("LOGITS", "Unable to convert port to int: '$it'")
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Next,

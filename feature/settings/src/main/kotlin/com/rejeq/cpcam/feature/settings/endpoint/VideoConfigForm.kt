@@ -62,45 +62,21 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
             onChange = { onChange(state.copy(codecName = it)) },
         )
 
-        Input(
+        IntegerInput(
             label = "Bitrate",
-            value = state.bitrate?.toString() ?: "",
-            onValueChange = {
-                if (it.isEmpty()) {
-                    onChange(state.copy(bitrate = null))
-                } else {
-                    val bitrate = it.toIntOrNull()
-                    if (bitrate != null) {
-                        onChange(state.copy(bitrate = bitrate))
-                    } else {
-                        // TODO: Highlight error
-                        Log.i(
-                            "LOGITS",
-                            "Unable to convert bitrate to int: '$it'",
-                        )
-                    }
-                }
+            value = state.bitrate,
+            onChange = { onChange(state.copy(bitrate = it)) },
+            onInvalid = {
+                Log.i("LOGITS", "Unable to convert bitrate to int: '$'")
             },
         )
 
-        Input(
+        IntegerInput(
             label = "Framerate",
-            value = state.framerate?.toString() ?: "",
-            onValueChange = {
-                if (it.isEmpty()) {
-                    onChange(state.copy(framerate = null))
-                } else {
-                    val framerate = it.toIntOrNull()
-                    if (framerate != null) {
-                        onChange(state.copy(framerate = framerate))
-                    } else {
-                        // TODO: Highlight error
-                        Log.i(
-                            "LOGITS",
-                            "Unable to convert framerate to int: '$it'",
-                        )
-                    }
-                }
+            value = state.framerate,
+            onChange = { onChange(state.copy(framerate = it)) },
+            onInvalid = {
+                Log.i("LOGITS", "Unable to convert framerate to int: '$it'")
             },
         )
 
