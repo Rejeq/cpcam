@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.core.endpoint
 
+import com.rejeq.cpcam.core.data.model.EndpointConfig
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -17,6 +18,8 @@ sealed interface EndpointState {
 }
 
 interface Endpoint {
+    val config: EndpointConfig
+
     /**
      * Current state of the endpoint.
      */

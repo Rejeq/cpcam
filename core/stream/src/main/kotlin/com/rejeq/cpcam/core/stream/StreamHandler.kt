@@ -13,7 +13,7 @@ import com.rejeq.cpcam.core.stream.target.VideoTarget
 class StreamHandler(
     val protocol: StreamProtocol,
     val host: String,
-    private val videoStreamConfig: VideoStreamConfig?,
+    val videoStreamConfig: VideoStreamConfig?,
 ) {
     private var oldVideoRelayConfig: VideoRelayConfig? = null
     private var output = FFmpegOutput(protocol, host)

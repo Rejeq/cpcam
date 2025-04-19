@@ -11,21 +11,14 @@ import com.rejeq.cpcam.core.stream.StreamHandler
 import com.rejeq.cpcam.core.stream.StreamResult
 import com.rejeq.cpcam.core.stream.VideoStreamConfig
 import com.rejeq.cpcam.core.stream.target.CameraVideoTarget
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import kotlinx.coroutines.CoroutineScope
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 
-class ObsStreamHandler @AssistedInject constructor(
-    streamRepo: StreamRepository,
+class ObsStreamHandler @Inject constructor(
+    private val streamRepo: StreamRepository,
     private val videoTarget: CameraVideoTarget,
-    // FIXME: Scope leak, cancel when object to be destroyed
-    @Assisted scope: CoroutineScope,
 ) {
     private val _state =
         MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped())
@@ -33,16 +26,10 @@ class ObsStreamHandler @AssistedInject constructor(
 
     private var streamHandler: StreamHandler? = null
 
-    val streamData = streamRepo.obsData
-        .onEach(action = ::updateStreamHandler)
-        .stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            null,
-        )
+    suspend fun start(): StreamHandlerState {
+        _state.value = StreamHandlerState.Connecting
 
-    fun start(): StreamHandlerState {
-        val handler = streamHandler
+        val handler = retrieveLatestStreamHandler()
         if (handler == null) {
             Log.w(TAG, "Unable to start stream handler: No stream data")
 
@@ -52,11 +39,9 @@ class ObsStreamHandler @AssistedInject constructor(
             return _state.value
         }
 
-        _state.value = StreamHandlerState.Connecting
         val res = handler.start()
-
         _state.value = when (res) {
-            StreamResult.Failed -> StreamHandlerState.Stopped(null)
+            is StreamResult.Failed -> StreamHandlerState.Stopped(null)
             is StreamResult.Success -> StreamHandlerState.Started
         }
 
@@ -70,28 +55,35 @@ class ObsStreamHandler @AssistedInject constructor(
         return _state.value
     }
 
-    private fun updateStreamHandler(data: ObsStreamData) {
-        Log.i(TAG, "Updating stream handler to: $data")
+    private suspend fun retrieveLatestStreamHandler(): StreamHandler? {
+        val data = streamRepo.obsData.first()
+        val handler = streamHandler
 
-        val oldHandler = streamHandler
-        if (oldHandler != null &&
-            oldHandler.protocol == data.protocol &&
-            oldHandler.host == data.host
-        ) {
-            oldHandler.updateStreamVideoRelay(data.videoConfig)
-            return
+        return when {
+            handler == null -> {
+                makeStreamHandler(data).also {
+                    streamHandler = it
+                }
+            }
+            handler.obsData == data -> {
+                stop()
+                makeStreamHandler(data).also {
+                    streamHandler = it
+                }
+            }
+            else -> streamHandler
         }
+    }
 
-        streamHandler = StreamHandler(
-            data.protocol,
-            data.host,
-            videoStreamConfig = VideoStreamConfig(
-                target = videoTarget,
-                data = data.videoConfig,
-            ),
-        ).also {
-            it.updateStreamVideoRelay(data.videoConfig)
-        }
+    private fun makeStreamHandler(data: ObsStreamData) = StreamHandler(
+        data.protocol,
+        data.host,
+        videoStreamConfig = VideoStreamConfig(
+            target = videoTarget,
+            data = data.videoConfig,
+        ),
+    ).also {
+        it.updateStreamVideoRelay(data.videoConfig)
     }
 
     private fun StreamHandler.updateStreamVideoRelay(data: VideoConfig) {
@@ -102,11 +94,14 @@ class ObsStreamHandler @AssistedInject constructor(
             ),
         )
     }
+}
 
-    @AssistedFactory
-    interface Factory {
-        fun create(scope: CoroutineScope): ObsStreamHandler
-    }
+val StreamHandler.obsData: ObsStreamData? get() {
+    return ObsStreamData(
+        protocol = this.protocol,
+        host = this.host,
+        videoConfig = this.videoStreamConfig?.data ?: return null,
+    )
 }
 
 enum class StreamErrorKind {

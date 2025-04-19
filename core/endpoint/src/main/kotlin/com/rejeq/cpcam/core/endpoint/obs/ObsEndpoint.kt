@@ -1,18 +1,28 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
+import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsConfig
+import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.Endpoint
 import com.rejeq.cpcam.core.endpoint.EndpointState
+import com.rejeq.cpcam.core.endpoint.di.WebsocketClient
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 
-class ObsEndpoint(
-    val config: ObsConfig,
+class ObsEndpoint @AssistedInject constructor(
+    private val streamRepo: StreamRepository,
     private val streamHandler: ObsStreamHandler,
-    wbClient: HttpClient,
+    @WebsocketClient wbClientLazy: Lazy<HttpClient>,
+    @Assisted override val config: ObsConfig,
 ) : Endpoint {
+    private val wbClient by wbClientLazy
+
     private val connHandler = ObsConnectionHandler(config, wbClient)
 
     override val state = combine(
@@ -23,7 +33,7 @@ class ObsEndpoint(
 
     override suspend fun connect(): EndpointState = coroutineScope {
         val connJob = async {
-            connHandler.start(streamHandler.streamData.value)
+            connHandler.start(streamRepo.obsData.first())
         }
 
         val streamJob = async {
@@ -47,6 +57,8 @@ class ObsEndpoint(
         conn: ConnectionState,
         stream: StreamHandlerState,
     ): EndpointState {
+        Log.d(TAG, "getState: conn=$conn, stream=$stream")
+
         val newState = if (stream == StreamHandlerState.Started &&
             conn is ConnectionState.Stopped &&
             conn.reason != null
@@ -57,6 +69,11 @@ class ObsEndpoint(
         }
 
         return newState
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(config: ObsConfig): ObsEndpoint
     }
 }
 
