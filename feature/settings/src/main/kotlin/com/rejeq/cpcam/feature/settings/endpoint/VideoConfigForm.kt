@@ -51,14 +51,14 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
         EnumEntry<PixFmt>(
             title = "Pixel format",
             subtitle = "",
-            selected = state.pixFmt ?: PixFmt.RGBA,
+            selected = state.pixFmt,
             onChange = { onChange(state.copy(pixFmt = it)) },
         )
 
         EnumEntry<VideoCodec>(
             title = "Video codec",
             subtitle = "",
-            selected = state.codecName ?: VideoCodec.H264,
+            selected = state.codecName,
             onChange = { onChange(state.copy(codecName = it)) },
         )
 
@@ -108,7 +108,7 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
 inline fun <reified T : Enum<T>> EnumEntry(
     title: String,
     subtitle: String,
-    selected: T,
+    selected: T?,
     crossinline onChange: (T) -> Unit,
 ) {
     val showDialog = rememberSaveable { mutableStateOf(false) }
@@ -116,7 +116,7 @@ inline fun <reified T : Enum<T>> EnumEntry(
     ListDialogItem(
         title = title,
         subtitle = subtitle,
-        selected = selected.toString(),
+        selected = selected?.toString() ?: "",
         isDialogShown = showDialog.value,
         onDialogDismiss = { showDialog.value = false },
         onItemClick = { showDialog.value = true },
