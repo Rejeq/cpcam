@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface ConnectionState {
-    object Started : ConnectionState
-    object Connecting : ConnectionState
-    class Stopped(val reason: ObsErrorKind?) : ConnectionState
+    data object Started : ConnectionState
+    data object Connecting : ConnectionState
+    data class Stopped(val reason: ObsErrorKind?) : ConnectionState
 }
 
 class ObsConnectionHandler(

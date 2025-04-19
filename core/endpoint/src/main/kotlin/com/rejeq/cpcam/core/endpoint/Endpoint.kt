@@ -7,13 +7,13 @@ import kotlinx.coroutines.flow.Flow
  */
 sealed interface EndpointState {
     /** Endpoint is not active */
-    class Stopped(val reason: EndpointErrorKind? = null) : EndpointState
+    data class Stopped(val reason: EndpointErrorKind? = null) : EndpointState
 
     /** Endpoint is establishing connection */
-    object Connecting : EndpointState
+    data object Connecting : EndpointState
 
     /** Endpoint is active and transmitting */
-    class Started(val warning: EndpointErrorKind? = null) : EndpointState
+    data class Started(val warning: EndpointErrorKind? = null) : EndpointState
 }
 
 interface Endpoint {

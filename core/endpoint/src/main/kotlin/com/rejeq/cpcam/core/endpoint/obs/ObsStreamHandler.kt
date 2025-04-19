@@ -116,9 +116,9 @@ enum class StreamErrorKind {
 fun StreamErrorKind.toEndpointError() = EndpointErrorKind.StreamError(this)
 
 sealed interface StreamHandlerState {
-    class Stopped(val reason: StreamErrorKind? = null) : StreamHandlerState
-    object Connecting : StreamHandlerState
-    object Started : StreamHandlerState
+    data class Stopped(val reason: StreamErrorKind? = null) : StreamHandlerState
+    data object Connecting : StreamHandlerState
+    data object Started : StreamHandlerState
 }
 
 fun StreamHandlerState.toEndpointState() = when (this) {
