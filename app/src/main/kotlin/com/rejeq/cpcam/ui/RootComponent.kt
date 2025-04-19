@@ -154,6 +154,7 @@ class RootComponent @AssistedInject constructor(
 
                 val reason = newState.reason
                 if (reason != null) {
+                    Log.w(TAG, "Unable to connect to endpoint: $reason")
                     showConnectionError(reason)
                 } else {
                     Log.w(TAG, "Unable to connect to endpoint: Without reason")
