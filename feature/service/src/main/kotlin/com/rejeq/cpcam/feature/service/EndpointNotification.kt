@@ -7,11 +7,8 @@ import androidx.core.app.NotificationCompat
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.R as CoreR
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapConcat
 
 /**
  * Provides notification functionality for streaming service status updates.
@@ -26,12 +23,9 @@ import kotlinx.coroutines.flow.flatMapConcat
  * Sets up a flow that watches for changes in the stream state. This enables
  * real-time notification updates reflecting the current streaming status.
  */
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@OptIn(FlowPreview::class)
 val EndpointHandler.infoNotificationData
-    get() = this.endpoint
-        .debounce(NOTIFICATION_DEBOUNCE_DELAY)
-        .filterNotNull()
-        .flatMapConcat { it.state }
+    get() = this.state.debounce(NOTIFICATION_DEBOUNCE_DELAY)
 
 /**
  * Builds a notification displaying the current stream status.
@@ -40,12 +34,13 @@ val EndpointHandler.infoNotificationData
  * providing users with visibility into the streaming state and basic
  * control.
  *
+ * @param state Current endpoint state
  * @param context Application context for resource access
  * @param closeIntent PendingIntent to handle the close action
  * @return Configured [Notification] instance
  */
 fun buildInfoNotification(
-    endpoint: EndpointHandler,
+    state: EndpointState,
     context: Context,
     closeIntent: PendingIntent,
 ): Notification {
@@ -61,7 +56,6 @@ fun buildInfoNotification(
     builder.setOngoing(true)
     builder.setShowWhen(false)
 
-    val state = endpoint.state.value
     val endpointState = when (state) {
         is EndpointState.Started -> res.getString(R.string.endpoint_started)
         is EndpointState.Connecting ->

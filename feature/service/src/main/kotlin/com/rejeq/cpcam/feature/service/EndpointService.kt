@@ -21,13 +21,15 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.rejeq.cpcam.core.common.hasPermission
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
+import com.rejeq.cpcam.core.endpoint.EndpointState
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -48,14 +50,17 @@ class EndpointService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
 
+    // endpoint created in onCreate(), so using lazy here
+    private val endpointState by lazy {
+        endpoint.infoNotificationData.onEach {
+            updateNotification()
+        }.stateIn(scope, SharingStarted.Eagerly, EndpointState.Stopped())
+    }
+
     override fun onCreate() {
         super.onCreate()
 
         this.createServiceNotificationChannel()
-
-        endpoint.infoNotificationData.onEach {
-            updateNotification()
-        }.launchIn(scope)
     }
 
     override fun onStartCommand(
@@ -165,7 +170,6 @@ class EndpointService : Service() {
     /**
      * Updates old notification with new data
      */
-    @SuppressLint("MissingPermission")
     private fun updateNotification() {
         val manager = NotificationManagerCompat.from(this@EndpointService)
 
@@ -190,7 +194,8 @@ class EndpointService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
-        return buildInfoNotification(endpoint, this, onClose)
+        val state = endpointState.value
+        return buildInfoNotification(state, this, onClose)
     }
 
     @SuppressLint("WakelockTimeout")
