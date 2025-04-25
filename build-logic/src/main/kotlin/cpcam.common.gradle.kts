@@ -1,20 +1,8 @@
 plugins {
     id("cpcam.detekt")
 
-    id("com.mikepenz.aboutlibraries.plugin")
-
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
-}
-
-aboutLibraries {
-    offlineMode = false
-
-    collect {
-        configPath = file("${rootProject.projectDir}/config")
-        fetchRemoteLicense = false
-        fetchRemoteFunding = false
-    }
 }
 
 pluginManager.withPlugin("com.android.base") {

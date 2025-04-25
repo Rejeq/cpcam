@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.benchmark).apply(false)
 
     alias(libs.plugins.protobuf).apply(false)
+    alias(libs.plugins.about.libraries).apply(false)
 
     id("cpcam.gradle.versions")
 }

@@ -40,7 +40,6 @@ essenty = "2.5.0"
 
 [libraries]
 about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
-about-libraries-gradlePlugin = { module = "com.mikepenz.aboutlibraries.plugin:com.mikepenz.aboutlibraries.plugin.gradle.plugin", version.ref = "aboutLibraries" }
 
 android-application-gradlePlugin = { module = "com.android.application:com.android.application.gradle.plugin", version.ref = "agp" }
 android-library-gradlePlugin = { module = "com.android.library:com.android.library.gradle.plugin", version.ref = "agp" }
@@ -124,3 +123,4 @@ benchmark = { id = "androidx.benchmark", version.ref = "benchmark" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
+about-libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }

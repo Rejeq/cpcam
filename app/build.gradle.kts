@@ -6,6 +6,7 @@ plugins {
     id("kotlin-parcelize")
     alias(libs.plugins.android.application)
     alias(libs.plugins.baselineprofile)
+    alias(libs.plugins.about.libraries)
 }
 
 android {
@@ -21,6 +22,12 @@ android {
                 jniLibs.keepDebugSymbols += listOf("**/*.so")
             }
         }
+    }
+}
+
+aboutLibraries {
+    collect {
+        configPath = file("${rootProject.projectDir}/config")
     }
 }
 

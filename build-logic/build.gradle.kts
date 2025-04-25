@@ -22,6 +22,5 @@ dependencies {
     implementation(libs.android.test.gradlePlugin)
     implementation(libs.compose.compiler.gradlePlugin)
 
-    implementation(libs.about.libraries.gradlePlugin)
     implementation(libs.detekt.gradlePlugin)
 }
