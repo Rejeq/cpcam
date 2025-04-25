@@ -65,7 +65,7 @@ class ObsStreamHandler @Inject constructor(
                     streamHandler = it
                 }
             }
-            handler.obsData == data -> {
+            handler.obsData != data -> {
                 stop()
                 makeStreamHandler(data).also {
                     streamHandler = it
