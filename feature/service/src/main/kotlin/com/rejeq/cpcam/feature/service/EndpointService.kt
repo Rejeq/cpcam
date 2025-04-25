@@ -53,7 +53,7 @@ class EndpointService : Service() {
     // endpoint created in onCreate(), so using lazy here
     private val endpointState by lazy {
         endpoint.infoNotificationData.onEach {
-            updateNotification()
+            updateNotification(it)
         }.stateIn(scope, SharingStarted.Eagerly, EndpointState.Stopped())
     }
 
@@ -114,7 +114,7 @@ class EndpointService : Service() {
         }
 
         Log.d(TAG, "Language changed: $locale")
-        updateNotification()
+        updateNotification(endpointState.value)
     }
 
     /**
@@ -138,7 +138,7 @@ class EndpointService : Service() {
         ServiceCompat.startForeground(
             this,
             STREAM_SERVICE_ID,
-            buildNotification(),
+            buildNotification(endpointState.value),
             foregroundType,
         )
 
@@ -170,11 +170,14 @@ class EndpointService : Service() {
     /**
      * Updates old notification with new data
      */
-    private fun updateNotification() {
+    private fun updateNotification(state: EndpointState) {
         val manager = NotificationManagerCompat.from(this@EndpointService)
 
         if (this.hasPermission(Manifest.permission.POST_NOTIFICATIONS)) {
-            manager.notify(STREAM_SERVICE_ID, buildNotification())
+            manager.notify(
+                STREAM_SERVICE_ID,
+                buildNotification(state),
+            )
         }
     }
 
@@ -183,7 +186,7 @@ class EndpointService : Service() {
      *
      * @return Configured notification for the foreground service
      */
-    private fun buildNotification(): Notification {
+    private fun buildNotification(state: EndpointState): Notification {
         val closeIntent = Intent(this, EndpointService::class.java)
             .setAction(ACTION_STOP_ENDPOINT)
 
@@ -194,7 +197,6 @@ class EndpointService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val state = endpointState.value
         return buildInfoNotification(state, this, onClose)
     }
 
