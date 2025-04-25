@@ -1,7 +1,7 @@
 package com.rejeq.cpcam.core.stream
 
-sealed interface StreamResult<out T> {
-    class Success<out T>(val value: T) : StreamResult<T>
-
-    object Failed : StreamResult<Nothing>
+sealed interface StreamErrorKind {
+    data object NoVideoConfig : StreamErrorKind
+    data object InvalidVideoStream : StreamErrorKind
+    data class FFmpegError(val kind: StreamError) : StreamErrorKind
 }

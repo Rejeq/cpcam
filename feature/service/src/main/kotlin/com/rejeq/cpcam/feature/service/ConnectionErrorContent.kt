@@ -9,7 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.obs.ObsErrorKind
-import com.rejeq.cpcam.core.endpoint.obs.StreamErrorKind
+import com.rejeq.cpcam.core.endpoint.obs.ObsStreamErrorKind
+import com.rejeq.cpcam.core.stream.StreamErrorKind
 import com.rejeq.ktobs.AuthError
 
 @Composable
@@ -98,10 +99,34 @@ fun ObsErrorKind.toConnectionError(): ConnectionError = when (this) {
 
 @Composable
 @ReadOnlyComposable
-fun StreamErrorKind.toConnectionError(): ConnectionError = when (this) {
-    StreamErrorKind.NoStreamData -> ConnectionError(
+fun ObsStreamErrorKind.toConnectionError(): ConnectionError = when (this) {
+    ObsStreamErrorKind.NoStreamData -> ConnectionError(
         title = stringResource(R.string.stream_error_no_data_title),
         desc = stringResource(R.string.stream_error_no_data_desc),
+    )
+
+    is ObsStreamErrorKind.StreamError -> this.kind.toConnectiongError()
+}
+
+@Composable
+@ReadOnlyComposable
+fun StreamErrorKind.toConnectiongError(): ConnectionError = when (this) {
+    is StreamErrorKind.NoVideoConfig -> ConnectionError(
+        title = stringResource(R.string.stream_error_no_video_config_title),
+        desc = stringResource(R.string.stream_error_no_video_config_desc),
+    )
+    is StreamErrorKind.InvalidVideoStream -> ConnectionError(
+        title = stringResource(
+            R.string.stream_error_invalid_video_stream_title,
+        ),
+        desc = stringResource(R.string.stream_error_invalid_video_stream_desc),
+    )
+    is StreamErrorKind.FFmpegError -> ConnectionError(
+        title = stringResource(R.string.stream_error_ffmpeg_title),
+        desc = stringResource(
+            R.string.stream_error_ffmpeg_desc,
+            this.kind.toString(),
+        ),
     )
 }
 

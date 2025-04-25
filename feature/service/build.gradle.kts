@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.data)
     implementation(projects.core.endpoint)
+    implementation(projects.core.stream)
     implementation(projects.core.ui)
 
     implementation(libs.decompose.core)

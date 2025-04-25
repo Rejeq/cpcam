@@ -30,22 +30,19 @@ class StreamHandler(
         }
     }
 
-    // TODO: Wrap Boolean to custom result sealed class
-    // Returns true on failure
-    // Returns false on success
-    fun setVideoRelayConfig(config: VideoRelayConfig): Boolean =
+    fun setVideoRelayConfig(config: VideoRelayConfig): StreamErrorKind? =
         synchronized(this) {
             if (videoStreamConfig == null) {
                 Log.w(
                     TAG,
                     "Unable to set VideoConfig: Does not has videoStreamConfig",
                 )
-                return true
+                return StreamErrorKind.NoVideoConfig
             }
 
             if (config == oldVideoRelayConfig) {
                 Log.w(TAG, "Unable to set VideoConfig: Has same config")
-                return true
+                return null
             }
 
             if (videoStream == null) {
@@ -53,19 +50,17 @@ class StreamHandler(
                     TAG,
                     "Unable to set VideoConfig: Does not has video stream",
                 )
-                return true
-            }
-
-            val res = config.resolution
-            if (res == null) {
-                Log.e(TAG, "Unable to set VideoConfig: Missing resolution")
-                return true
+                return StreamErrorKind.InvalidVideoStream
             }
 
             val target = videoStreamConfig.target
-            val relay = FFmpegVideoRelay(videoStream!!, res.width, res.height)
+            val res = config.resolution
+            if (res != null) {
+                val relay =
+                    FFmpegVideoRelay(videoStream!!, res.width, res.height)
 
-            target.setRelay(relay)
+                target.setRelay(relay)
+            }
 
             val framerate = config.framerate
             if (framerate != null) {
@@ -73,21 +68,26 @@ class StreamHandler(
             }
 
             oldVideoRelayConfig = config
-            return false
+            return null
         }
 
-    fun start(): StreamResult<Unit> = synchronized(this) {
-        output.open()
-        videoStreamConfig?.target?.start()
+    fun start(): StreamErrorKind? = synchronized(this) {
+        output.open()?.let { errorKind ->
+            return errorKind
+        }
 
-        return StreamResult.Success(Unit)
+        videoStreamConfig?.target?.start()
+        return null
     }
 
-    fun stop(): StreamResult<Unit> = synchronized(this) {
+    fun stop(): StreamErrorKind? = synchronized(this) {
         videoStreamConfig?.target?.stop()
-        output.close()
 
-        return StreamResult.Success(Unit)
+        output.close()?.let { errorKind ->
+            return errorKind
+        }
+
+        return null
     }
 }
 

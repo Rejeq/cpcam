@@ -29,6 +29,15 @@
 
     <string name="stream_error_no_data_desc">Stream configuration is missing or incomplete. Please configure the stream settings before connecting.</string>
 
+    <string name="stream_error_no_video_config_title">Video Configuration Missing</string>
+    <string name="stream_error_no_video_config_desc">The video configuration is not properly set up. Please check your video settings and ensure all required parameters are configured.</string>
+
+    <string name="stream_error_invalid_video_stream_title">Invalid Video Stream</string>
+    <string name="stream_error_invalid_video_stream_desc">The video stream is not valid or cannot be initialized. Please verify your video source and stream settings.</string>
+
+    <string name="stream_error_ffmpeg_title">FFmpeg Error</string>
+    <string name="stream_error_ffmpeg_desc">An error occurred while processing the video stream:\n%1$s\nPlease check your video settings and try again.</string>
+
     <string name="auth_error_invalid_password_title">Invalid Password</string>
     <string name="auth_error_invalid_rpc_title">Invalid RPC Request</string>
     <string name="auth_error_password_required_title">Password Required</string>

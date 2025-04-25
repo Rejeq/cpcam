@@ -28,18 +28,18 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegOutputJni_destroy(JNIEnv * /* env */,
     delete (FFmpegOutput *)output;
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT jint JNICALL
 Java_com_rejeq_cpcam_core_stream_jni_FFmpegOutputJni_open(JNIEnv * /* env */,
                                                           jobject /* obj */,
                                                           jlong output) {
-    return ((FFmpegOutput *)output)->open();
+    return (int)((FFmpegOutput *)output)->open();
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT jint JNICALL
 Java_com_rejeq_cpcam_core_stream_jni_FFmpegOutputJni_close(JNIEnv * /* env */,
                                                            jobject /* obj */,
                                                            jlong output) {
-    return ((FFmpegOutput *)output)->close();
+    return (int)((FFmpegOutput *)output)->close();
 }
 
 JNIEXPORT jlong JNICALL

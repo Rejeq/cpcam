@@ -6,7 +6,8 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "../VideoConfig.h"
+#include "StreamError.h"
+#include "VideoConfig.h"
 #include "stream/FFmpegVideoStream.h"
 
 // TODO: Better error handling
@@ -19,8 +20,8 @@ class FFmpegOutput {
     static FFmpegOutput *build(std::string url,
                                const std::string *protocol = nullptr);
 
-    bool open();
-    bool close();
+    StreamError open();
+    StreamError close();
 
     FFmpegVideoStream *make_video_stream(const VideoConfig &config);
 

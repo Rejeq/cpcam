@@ -7,8 +7,8 @@ import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointState
+import com.rejeq.cpcam.core.stream.StreamErrorKind
 import com.rejeq.cpcam.core.stream.StreamHandler
-import com.rejeq.cpcam.core.stream.StreamResult
 import com.rejeq.cpcam.core.stream.VideoStreamConfig
 import com.rejeq.cpcam.core.stream.target.CameraVideoTarget
 import javax.inject.Inject
@@ -34,15 +34,15 @@ class ObsStreamHandler @Inject constructor(
             Log.w(TAG, "Unable to start stream handler: No stream data")
 
             _state.value = StreamHandlerState.Stopped(
-                StreamErrorKind.NoStreamData,
+                ObsStreamErrorKind.NoStreamData,
             )
             return _state.value
         }
 
         val res = handler.start()
         _state.value = when (res) {
-            is StreamResult.Failed -> StreamHandlerState.Stopped(null)
-            is StreamResult.Success -> StreamHandlerState.Started
+            null -> StreamHandlerState.Started
+            else -> StreamHandlerState.Stopped(res.toObsStreamError())
         }
 
         return _state.value
@@ -104,14 +104,18 @@ val StreamHandler.obsData: ObsStreamData? get() {
     )
 }
 
-enum class StreamErrorKind {
-    NoStreamData,
+sealed interface ObsStreamErrorKind {
+    data object NoStreamData : ObsStreamErrorKind
+    data class StreamError(val kind: StreamErrorKind) : ObsStreamErrorKind
 }
 
-fun StreamErrorKind.toEndpointError() = EndpointErrorKind.StreamError(this)
+fun StreamErrorKind.toObsStreamError() = ObsStreamErrorKind.StreamError(this)
+
+fun ObsStreamErrorKind.toEndpointError() = EndpointErrorKind.StreamError(this)
 
 sealed interface StreamHandlerState {
-    data class Stopped(val reason: StreamErrorKind? = null) : StreamHandlerState
+    data class Stopped(val reason: ObsStreamErrorKind? = null) :
+        StreamHandlerState
     data object Connecting : StreamHandlerState
     data object Started : StreamHandlerState
 }

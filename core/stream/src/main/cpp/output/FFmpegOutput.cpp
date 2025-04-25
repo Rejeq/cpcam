@@ -34,12 +34,12 @@ FFmpegOutput *FFmpegOutput::build(std::string url,
     return output;
 }
 
-bool FFmpegOutput::open() {
+StreamError FFmpegOutput::open() {
     LOG_INFO("Opening");
 
     if (m_is_open) {
         LOG_WARN("Unable to open FFmpegOutput: Already opened");
-        return true;
+        return StreamError::InvalidState;
     }
 
     const char *url = m_url.c_str();
@@ -55,24 +55,24 @@ bool FFmpegOutput::open() {
         if (res < 0) {
             LOG_ERROR("Unable to open '%s' url: %s\n", url,
                       av_err_to_string(res).data());
-            return true;
+            return StreamError::FFmpegWriteFailed;
         }
     }
 
     res = avformat_write_header(m_octx, nullptr);
     if (res < 0) {
         LOG_ERROR("Unable to write header: %s", av_err_to_string(res).data());
-        return true;
+        return StreamError::FFmpegWriteFailed;
     }
 
     m_is_open = true;
-    return false;
+    return StreamError::Success;
 }
 
-bool FFmpegOutput::close() {
+StreamError FFmpegOutput::close() {
     if (!m_is_open) {
         LOG_WARN("Unable to close: Not opened");
-        return true;
+        return StreamError::InvalidState;
     }
 
     const AVOutputFormat *fmt = m_octx->oformat;
@@ -88,7 +88,7 @@ bool FFmpegOutput::close() {
     }
 
     m_is_open = false;
-    return false;
+    return StreamError::Success;
 }
 
 FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
@@ -97,7 +97,7 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
     assert((int)m_octx->nb_streams < m_octx->max_streams);
     AVStream *st = avformat_new_stream(m_octx, nullptr);
     if (!st) {
-        LOG_ERROR("Could not allocate stream\n");
+        LOG_ERROR("Could not create new stream\n");
         return nullptr;
     }
 
@@ -144,7 +144,8 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
 
     res = avcodec_parameters_from_context(st->codecpar, cctx);
     if (res < 0) {
-        LOG_ERROR("Could not copy the stream parameters");
+        LOG_ERROR("Could not copy the stream parameters: %s",
+                  av_err_to_string(res).data());
         avcodec_free_context(&cctx);
         return nullptr;
     }

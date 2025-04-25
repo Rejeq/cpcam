@@ -3,7 +3,8 @@ package com.rejeq.cpcam.core.stream.output
 import android.util.Log
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.model.VideoConfig
-import com.rejeq.cpcam.core.stream.StreamResult
+import com.rejeq.cpcam.core.stream.StreamError
+import com.rejeq.cpcam.core.stream.StreamErrorKind
 import com.rejeq.cpcam.core.stream.jni.FFmpegOutputJni
 import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
 import com.rejeq.cpcam.core.stream.jni.toFFmpegConfig
@@ -23,18 +24,24 @@ internal class FFmpegOutput(val protocol: StreamProtocol, host: String) {
         return detail?.makeVideoStream(config)
     }
 
-    fun open(): StreamResult<Unit> {
-        detail?.open()
+    fun open(): StreamErrorKind? {
+        val detail = detail
+        if (detail == null) {
+            Log.e(TAG, "Unable to open: Invalid state")
+            return StreamError.InvalidState.toStreamError()
+        }
 
-        // TODO: Proper error handling
-        return StreamResult.Success(Unit)
+        return detail.open()?.toStreamError()
     }
 
-    fun close(): StreamResult<Unit> {
-        detail?.close()
+    fun close(): StreamErrorKind? {
+        val detail = detail
+        if (detail == null) {
+            Log.e(TAG, "Unable to close: Invalid state")
+            return StreamError.InvalidState.toStreamError()
+        }
 
-        // TODO: Proper error handling
-        return StreamResult.Success(Unit)
+        return detail.close()?.toStreamError()
     }
 
     fun destroy() {
