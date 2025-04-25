@@ -8,7 +8,13 @@ plugins {
 }
 
 aboutLibraries {
-    configPath = "config"
+    offlineMode = false
+
+    collect {
+        configPath = file("${rootProject.projectDir}/config")
+        fetchRemoteLicense = false
+        fetchRemoteFunding = false
+    }
 }
 
 pluginManager.withPlugin("com.android.base") {

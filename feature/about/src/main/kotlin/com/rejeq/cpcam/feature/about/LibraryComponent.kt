@@ -2,7 +2,7 @@ package com.rejeq.cpcam.feature.about
 
 import com.arkivanov.decompose.ComponentContext
 import com.mikepenz.aboutlibraries.entity.License
-import com.mikepenz.aboutlibraries.ui.compose.m3.util.htmlReadyLicenseContent
+import com.mikepenz.aboutlibraries.ui.compose.util.htmlReadyLicenseContent
 import com.rejeq.cpcam.core.common.ChildComponent
 import kotlinx.serialization.Serializable
 
