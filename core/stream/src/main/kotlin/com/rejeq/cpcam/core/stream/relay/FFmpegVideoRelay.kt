@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
+import java.nio.ByteBuffer
 
 internal class FFmpegVideoRelay(
     private val stream: FFmpegVideoStreamJni,
@@ -23,6 +24,11 @@ internal class FFmpegVideoRelay(
         maxImages,
     )
 
+    // NOTE: The length of arrays must be synced with jni FrameData
+    private val buffers = arrayOfNulls<ByteBuffer>(4)
+    private val strides = IntArray(4)
+    private val pixelStrides = IntArray(4)
+
     override val surface: Surface get() = imageReader.surface
 
     init {
@@ -31,19 +37,24 @@ internal class FFmpegVideoRelay(
         imageReader.setOnImageAvailableListener({ reader ->
             val image = reader.acquireLatestImage()
             image?.let { frame ->
-                image.format
-                val buffers = image.planes.map { it.buffer }
-                val strides = image.planes.map { it.rowStride }
-                val pixelStrides = image.planes.map { it.pixelStride }
+                val planes = image.planes
+                val len = planes.size
+
+                for (i in planes.indices) {
+                    buffers[i] = planes[i].buffer
+                    strides[i] = planes[i].rowStride
+                    pixelStrides[i] = planes[i].pixelStride
+                }
 
                 stream.send(
                     image.timestamp,
                     image.width,
                     image.height,
                     image.format,
-                    buffers.toTypedArray(),
-                    strides.toIntArray(),
-                    pixelStrides.toIntArray(),
+                    len,
+                    buffers,
+                    strides,
+                    pixelStrides,
                 )
 
                 frame.close()

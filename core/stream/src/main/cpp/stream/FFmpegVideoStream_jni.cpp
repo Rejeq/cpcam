@@ -87,8 +87,8 @@ extern "C" {
 JNIEXPORT void JNICALL
 Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_send(
     JNIEnv *env, jobject /* obj */, jlong rawStream, jlong ts, jint width,
-    jint height, jint format, jobjectArray buffers, jintArray strides,
-    jintArray pixelStrides) {
+    jint height, jint format, jint planeCount, jobjectArray buffers,
+    jintArray strides, jintArray pixelStrides) {
     auto *stream = reinterpret_cast<FFmpegVideoStream *>(rawStream);
     if (!stream) {
         LOG_ERROR("Invalid stream pointer");
@@ -103,8 +103,7 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_send(
         .buff_stride = {},
     };
 
-    int plane_count = (format == AIMAGE_FORMAT_YUV_420_888) ? 3 : -1;
-    if (setupFrameData(data, env, buffers, strides, plane_count)) {
+    if (setupFrameData(data, env, buffers, strides, planeCount)) {
         return;
     }
 

@@ -14,10 +14,21 @@ internal class FFmpegVideoStreamJni(val handle: Long) {
         width: Int,
         height: Int,
         format: Int,
-        buffers: Array<ByteBuffer>,
+        planeCount: Int,
+        buffers: Array<ByteBuffer?>,
         strides: IntArray,
         pixelStrides: IntArray,
-    ) = send(handle, ts, width, height, format, buffers, strides, pixelStrides)
+    ) = send(
+        handle,
+        ts,
+        width,
+        height,
+        format,
+        planeCount,
+        buffers,
+        strides,
+        pixelStrides,
+    )
 
     fun setResolution(width: Int, height: Int) =
         setResolution(handle, width, height)
@@ -32,7 +43,8 @@ internal class FFmpegVideoStreamJni(val handle: Long) {
         width: Int,
         height: Int,
         format: Int,
-        buffers: Array<ByteBuffer>,
+        planeCount: Int,
+        buffers: Array<ByteBuffer?>,
         strides: IntArray,
         pixelStrides: IntArray,
     )
