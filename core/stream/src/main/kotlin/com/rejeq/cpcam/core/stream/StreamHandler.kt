@@ -3,12 +3,9 @@ package com.rejeq.cpcam.core.stream
 import android.util.Log
 import android.util.Range
 import com.rejeq.cpcam.core.data.model.StreamProtocol
-import com.rejeq.cpcam.core.data.model.VideoConfig
-import com.rejeq.cpcam.core.data.model.VideoRelayConfig
 import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
 import com.rejeq.cpcam.core.stream.output.FFmpegOutput
 import com.rejeq.cpcam.core.stream.relay.FFmpegVideoRelay
-import com.rejeq.cpcam.core.stream.target.VideoTarget
 
 class StreamHandler(
     val protocol: StreamProtocol,
@@ -89,8 +86,10 @@ class StreamHandler(
 
         return null
     }
-}
 
-class VideoStreamConfig(val target: VideoTarget, val data: VideoConfig)
+    fun destroy() = synchronized(this) {
+        output.destroy()
+    }
+}
 
 private const val TAG = "StreamHandler"

@@ -2,14 +2,13 @@ package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsStreamData
-import com.rejeq.cpcam.core.data.model.VideoConfig
-import com.rejeq.cpcam.core.data.model.VideoRelayConfig
-import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointState
-import com.rejeq.cpcam.core.stream.StreamErrorKind
+import com.rejeq.cpcam.core.stream.StreamConfig
 import com.rejeq.cpcam.core.stream.StreamHandler
+import com.rejeq.cpcam.core.stream.StreamHolder
 import com.rejeq.cpcam.core.stream.VideoStreamConfig
 import com.rejeq.cpcam.core.stream.target.CameraVideoTarget
+import com.rejeq.cpcam.core.stream.target.VideoTarget
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,16 +16,16 @@ import kotlinx.coroutines.flow.asStateFlow
 class ObsStreamHandler @Inject constructor(
     private val videoTarget: CameraVideoTarget,
 ) {
+    private val streamHolder = StreamHolder()
+
     private val _state =
         MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped())
     val state = _state.asStateFlow()
 
-    private var streamHandler: StreamHandler? = null
-
     fun start(streamData: ObsStreamData?): StreamHandlerState {
         _state.value = StreamHandlerState.Connecting
 
-        val handler = retrieveLatestStreamHandler(streamData)
+        val handler = getConfiguredStreamHandler(streamData)
         if (handler == null) {
             Log.w(TAG, "Unable to start stream handler: No stream data")
 
@@ -46,66 +45,36 @@ class ObsStreamHandler @Inject constructor(
     }
 
     fun stop(): StreamHandlerState {
-        streamHandler?.stop()
+        streamHolder.current?.stop()
         _state.value = StreamHandlerState.Stopped()
 
         return _state.value
     }
 
-    private fun retrieveLatestStreamHandler(
+    private fun getConfiguredStreamHandler(
         data: ObsStreamData?,
     ): StreamHandler? {
         if (data == null) {
             return null
         }
 
-        val handler = streamHandler
-
-        return when {
-            handler == null -> {
-                makeStreamHandler(data).also {
-                    streamHandler = it
-                }
-            }
-            handler.obsData != data -> {
-                stop()
-                makeStreamHandler(data).also {
-                    streamHandler = it
-                }
-            }
-            else -> streamHandler
-        }
-    }
-
-    private fun makeStreamHandler(data: ObsStreamData) = StreamHandler(
-        data.protocol,
-        data.host,
-        videoStreamConfig = VideoStreamConfig(
-            target = videoTarget,
-            data = data.videoConfig,
-        ),
-    ).also {
-        it.updateStreamVideoRelay(data.videoConfig)
-    }
-
-    private fun StreamHandler.updateStreamVideoRelay(data: VideoConfig) {
-        this.setVideoRelayConfig(
-            VideoRelayConfig(
-                resolution = data.resolution,
-                framerate = data.framerate,
-            ),
+        val handler = streamHolder.getConfigured(
+            data.toStreamConfig(videoTarget),
         )
+
+        return handler
     }
 }
 
-val StreamHandler.obsData: ObsStreamData? get() {
-    return ObsStreamData(
+fun ObsStreamData.toStreamConfig(target: VideoTarget): StreamConfig =
+    StreamConfig(
         protocol = this.protocol,
         host = this.host,
-        videoConfig = this.videoStreamConfig?.data ?: return null,
+        videoStreamConfig = VideoStreamConfig(
+            target = target,
+            data = this.videoConfig,
+        ),
     )
-}
-
 
 sealed interface StreamHandlerState {
     data class Stopped(val reason: ObsStreamErrorKind? = null) :
