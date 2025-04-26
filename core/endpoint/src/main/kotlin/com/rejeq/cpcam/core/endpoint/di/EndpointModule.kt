@@ -25,10 +25,12 @@ internal object EndpointModule {
     fun provideWebscoketClient(): Lazy<HttpClient> = lazy {
         HttpClient(CIO) {
             install(WebSockets) {
-                pingIntervalMillis = 20_000
+                pingIntervalMillis = DEFAULT_WEBSOCKET_PING_INTERVAL
                 contentConverter =
                     KotlinxWebsocketSerializationConverter(Json)
             }
         }
     }
 }
+
+private const val DEFAULT_WEBSOCKET_PING_INTERVAL: Long = 20_000

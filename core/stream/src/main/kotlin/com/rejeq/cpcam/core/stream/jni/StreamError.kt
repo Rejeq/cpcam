@@ -1,4 +1,6 @@
-package com.rejeq.cpcam.core.stream
+package com.rejeq.cpcam.core.stream.jni
+
+import com.rejeq.cpcam.core.stream.StreamErrorKind
 
 // NOTE: Keep sync with jni StreamError
 enum class StreamError(val code: Int) {

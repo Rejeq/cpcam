@@ -1,7 +1,5 @@
 package com.rejeq.cpcam.core.stream.jni
 
-import com.rejeq.cpcam.core.stream.StreamError
-
 internal class FFmpegOutputJni(protocol: String, host: String) {
     companion object {
         init {
