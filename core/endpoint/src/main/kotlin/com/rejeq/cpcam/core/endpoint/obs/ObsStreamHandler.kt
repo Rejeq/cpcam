@@ -4,7 +4,6 @@ import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.model.VideoRelayConfig
-import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.stream.StreamErrorKind
@@ -14,10 +13,8 @@ import com.rejeq.cpcam.core.stream.target.CameraVideoTarget
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 
 class ObsStreamHandler @Inject constructor(
-    private val streamRepo: StreamRepository,
     private val videoTarget: CameraVideoTarget,
 ) {
     private val _state =
@@ -26,10 +23,10 @@ class ObsStreamHandler @Inject constructor(
 
     private var streamHandler: StreamHandler? = null
 
-    suspend fun start(): StreamHandlerState {
+    fun start(streamData: ObsStreamData?): StreamHandlerState {
         _state.value = StreamHandlerState.Connecting
 
-        val handler = retrieveLatestStreamHandler()
+        val handler = retrieveLatestStreamHandler(streamData)
         if (handler == null) {
             Log.w(TAG, "Unable to start stream handler: No stream data")
 
@@ -55,8 +52,13 @@ class ObsStreamHandler @Inject constructor(
         return _state.value
     }
 
-    private suspend fun retrieveLatestStreamHandler(): StreamHandler? {
-        val data = streamRepo.obsData.first()
+    private fun retrieveLatestStreamHandler(
+        data: ObsStreamData?,
+    ): StreamHandler? {
+        if (data == null) {
+            return null
+        }
+
         val handler = streamHandler
 
         return when {

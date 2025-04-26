@@ -32,12 +32,14 @@ class ObsEndpoint @AssistedInject constructor(
     )
 
     override suspend fun connect(): EndpointState = coroutineScope {
+        val data = streamRepo.obsData.first()
+
         val connJob = async {
-            connHandler.start(streamRepo.obsData.first())
+            connHandler.start(data)
         }
 
         val streamJob = async {
-            streamHandler.start()
+            streamHandler.start(data)
         }
 
         val connState = connJob.await()
