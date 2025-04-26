@@ -63,7 +63,7 @@ class EndpointHandler @Inject constructor(
         return error
     }
 
-    suspend fun retrieveLatestEndpoint(): Endpoint? {
+    private suspend fun retrieveLatestEndpoint(): Endpoint? {
         val newConfig = endpointRepo.endpointConfig.first()
         val currentEndpoint = currEndpoint.value
 
