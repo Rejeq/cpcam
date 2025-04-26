@@ -15,7 +15,6 @@ import com.rejeq.cpcam.core.common.hasPermission
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -55,55 +54,57 @@ class CameraController @Inject constructor(
     suspend fun shiftZoom(
         zoom: Float,
         linear: Boolean = true,
-    ): CameraControllerError {
+    ): CameraControllerError? {
         val camera = source.camera.value
         val zoomState = camera?.cameraInfo?.zoomState?.value
-        if (camera == null || zoomState == null) {
-            return CameraControllerError.CameraNotStarted
-        }
 
-        val newZoom = zoomState.linearZoom + zoom
-        return if (linear) {
-            setLinearZoom(newZoom)
-        } else {
-            setZoom(newZoom)
+        return when {
+            zoomState == null -> CameraControllerError.CameraNotStarted
+            else -> {
+                val newZoom = zoomState.linearZoom + zoom
+
+                if (linear) {
+                    setLinearZoom(newZoom)
+                } else {
+                    setZoom(newZoom)
+                }
+            }
         }
     }
 
     // FIXME: When new use case bounds to pipeline, the zoom is reset
-    suspend fun setLinearZoom(zoom: Float): CameraControllerError {
-        if (zoom !in 0f..1f) {
-            return CameraControllerError.ZoomValueOutOfRange
-        }
-
+    suspend fun setLinearZoom(zoom: Float): CameraControllerError? {
         val camera = source.camera.value
-        if (camera == null) {
-            return CameraControllerError.CameraNotStarted
-        }
 
-        val control = camera.cameraControl
-        return tryZoomCall {
-            control.setLinearZoom(zoom).await()
+        return when {
+            zoom !in 0f..1f -> CameraControllerError.ZoomValueOutOfRange
+            camera == null -> CameraControllerError.CameraNotStarted
+            else -> tryZoomCall {
+                val control = camera.cameraControl
+                control.setLinearZoom(zoom).await()
+            }
         }
     }
 
     @SuppressLint("RestrictedApi")
-    suspend fun setZoom(zoom: Float): CameraControllerError {
+    suspend fun setZoom(zoom: Float): CameraControllerError? {
         val camera = source.camera.value
         val zoomState = camera?.cameraInfo?.zoomState?.value
-        if (camera == null || zoomState == null) {
-            return CameraControllerError.CameraNotStarted
-        }
 
-        val control = camera.cameraControl
-        return tryZoomCall {
-            val ratio = AdapterCameraInfo.getZoomRatioByPercentage(
-                zoom,
-                zoomState.minZoomRatio,
-                zoomState.maxZoomRatio,
-            )
+        return when {
+            zoomState == null -> CameraControllerError.CameraNotStarted
+            else -> {
+                val control = camera.cameraControl
+                tryZoomCall {
+                    val ratio = AdapterCameraInfo.getZoomRatioByPercentage(
+                        zoom,
+                        zoomState.minZoomRatio,
+                        zoomState.maxZoomRatio,
+                    )
 
-            control.setZoomRatio(ratio).await()
+                    control.setZoomRatio(ratio).await()
+                }
+            }
         }
     }
 
@@ -111,20 +112,21 @@ class CameraController @Inject constructor(
      * Enables or disables the torch (flashlight) of the camera.
      *
      * @param state `true` to enable the torch, `false` to disable it.
-     * @return A [CameraControllerError] indicating the result of the operation.
+     * @return A [CameraControllerError] indicating the error of the operation.
+     *         null if the operation was successful.
      */
-    suspend fun enableTorch(state: Boolean): CameraControllerError {
+    suspend fun enableTorch(state: Boolean): CameraControllerError? {
         val control = source.camera.value?.cameraControl
-        if (control == null) {
-            return CameraControllerError.CameraNotStarted
-        }
 
-        return tryTorchCall {
-            control.enableTorch(state).await()
+        return when {
+            control == null -> CameraControllerError.CameraNotStarted
+            else -> tryTorchCall {
+                control.enableTorch(state).await()
+            }
         }
     }
 
-    fun setFocusPoint(state: FocusPointState): CameraControllerError {
+    fun setFocusPoint(state: FocusPointState): CameraControllerError? {
         val control = source.camera.value?.cameraControl
         if (control == null) {
             return CameraControllerError.CameraNotStarted
@@ -137,16 +139,14 @@ class CameraController @Inject constructor(
 //        }
 
         TODO()
-        return CameraControllerError.Success
+        return null
     }
 }
 
 enum class CameraControllerError {
-    Success,
+    Cancelled,
     CameraNotStarted,
-    ZoomCancelled,
     ZoomValueOutOfRange,
-    TorchCancelled,
     TorchIllegalState,
 }
 
@@ -156,39 +156,28 @@ sealed interface FocusPointState {
     class Point(x: Int, y: Int) : FocusPointState
 }
 
-private inline fun tryZoomCall(block: () -> Unit): CameraControllerError {
+private inline fun tryZoomCall(block: () -> Unit): CameraControllerError? =
     try {
         block()
+        null
     } catch (e: CameraControl.OperationCanceledException) {
         Log.v(TAG, "Zoom operation was canceled", e)
-        return CameraControllerError.ZoomCancelled
+        CameraControllerError.Cancelled
     } catch (e: IllegalArgumentException) {
         Log.w(TAG, "Zoom value out of range", e)
-        return CameraControllerError.ZoomValueOutOfRange
-    } catch (e: Exception) {
-        if (e is CancellationException) {
-            throw e
-        }
-
-        Log.w(TAG, "Failed to set zoom", e)
-        return CameraControllerError.ZoomCancelled
+        CameraControllerError.ZoomValueOutOfRange
     }
 
-    return CameraControllerError.Success
-}
-
-private inline fun tryTorchCall(block: () -> Unit): CameraControllerError {
+private inline fun tryTorchCall(block: () -> Unit): CameraControllerError? =
     try {
         block()
+        null
     } catch (e: CameraControl.OperationCanceledException) {
         Log.w(TAG, "Torch operation was canceled", e)
-        return CameraControllerError.TorchCancelled
+        CameraControllerError.Cancelled
     } catch (e: IllegalStateException) {
         Log.w(TAG, "Torch operation got illegal state", e)
-        return CameraControllerError.TorchIllegalState
+        CameraControllerError.TorchIllegalState
     }
-
-    return CameraControllerError.Success
-}
 
 private const val TAG = "CameraController"
