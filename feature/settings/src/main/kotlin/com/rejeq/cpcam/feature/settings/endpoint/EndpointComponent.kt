@@ -12,7 +12,6 @@ import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.repository.EndpointRepository
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
-import com.rejeq.cpcam.core.endpoint.EndpointResult
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -109,17 +108,11 @@ class EndpointComponent @AssistedInject constructor(
         when (val state = endpointForm.value) {
             is FormState.Success -> {
                 checkEndpointJob = scope.launch {
-                    val hasConnection = endpointHandler.checkConnection(
-                        state.data,
-                    )
+                    val error = endpointHandler.checkConnection(state.data)
 
-                    _connectionState.value = when (hasConnection) {
-                        is EndpointResult.Success -> {
-                            EndpointConnectionState.Success
-                        }
-                        else -> {
-                            EndpointConnectionState.Failed
-                        }
+                    _connectionState.value = when (error) {
+                        null -> EndpointConnectionState.Success
+                        else -> EndpointConnectionState.Failed
                     }
                 }
             }

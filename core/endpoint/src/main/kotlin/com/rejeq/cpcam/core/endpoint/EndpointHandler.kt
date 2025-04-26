@@ -53,18 +53,14 @@ class EndpointHandler @Inject constructor(
         return newState
     }
 
-    suspend fun checkConnection(config: EndpointConfig): EndpointResult {
+    suspend fun checkConnection(config: EndpointConfig): EndpointErrorKind? {
         val error = when (config) {
             is ObsConfig -> {
                 checkObsConnection(wbClient, config)?.toEndpointError()
             }
         }
 
-        return if (error != null) {
-            EndpointResult.Error(error)
-        } else {
-            EndpointResult.Success
-        }
+        return error
     }
 
     suspend fun retrieveLatestEndpoint(): Endpoint? {
