@@ -106,14 +106,6 @@ val StreamHandler.obsData: ObsStreamData? get() {
     )
 }
 
-sealed interface ObsStreamErrorKind {
-    data object NoStreamData : ObsStreamErrorKind
-    data class StreamError(val kind: StreamErrorKind) : ObsStreamErrorKind
-}
-
-fun StreamErrorKind.toObsStreamError() = ObsStreamErrorKind.StreamError(this)
-
-fun ObsStreamErrorKind.toEndpointError() = EndpointErrorKind.StreamError(this)
 
 sealed interface StreamHandlerState {
     data class Stopped(val reason: ObsStreamErrorKind? = null) :
