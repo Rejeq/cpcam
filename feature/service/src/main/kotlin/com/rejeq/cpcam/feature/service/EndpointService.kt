@@ -19,6 +19,7 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import com.rejeq.cpcam.core.common.MainActivityContract
 import com.rejeq.cpcam.core.common.hasPermission
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
@@ -43,6 +44,9 @@ import kotlinx.coroutines.launch
 class EndpointService : Service() {
     @Inject
     lateinit var endpoint: EndpointHandler
+
+    @Inject
+    lateinit var mainActivityContract: MainActivityContract
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Default + job)
@@ -197,7 +201,21 @@ class EndpointService : Service() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
-        return buildInfoNotification(state, this, onClose)
+        val openMainActivity = mainActivityContract.createIntent(this)
+
+        val onNotificationClick = PendingIntent.getActivity(
+            this,
+            0,
+            openMainActivity,
+            PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+        return buildInfoNotification(
+            state,
+            this,
+            onClose,
+            onNotificationClick,
+        )
     }
 
     @SuppressLint("WakelockTimeout")

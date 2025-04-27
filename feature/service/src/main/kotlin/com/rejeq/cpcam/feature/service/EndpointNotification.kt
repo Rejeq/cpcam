@@ -43,6 +43,7 @@ fun buildInfoNotification(
     state: EndpointState,
     context: Context,
     closeIntent: PendingIntent,
+    contentIntent: PendingIntent,
 ): Notification {
     val res = context.resources
 
@@ -65,6 +66,8 @@ fun buildInfoNotification(
 
     val text = res.getString(R.string.notification_stream_state, endpointState)
     builder.setContentText(text)
+
+    builder.setContentIntent(contentIntent)
 
     val closeIcon = CoreR.drawable.ic_close_24dp
     val closeText = res.getString(R.string.notification_action_close)
