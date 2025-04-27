@@ -2,6 +2,7 @@ package com.rejeq.cpcam.feature.settings.endpoint
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,9 +37,14 @@ fun StreamDataForm(
 }
 
 @Composable
-fun StreamDataForm(state: ObsStreamData, onChange: (ObsStreamData) -> Unit) {
+fun StreamDataForm(
+    state: ObsStreamData,
+    onChange: (ObsStreamData) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier,
     ) {
         Input(
             label = stringResource(
@@ -46,6 +52,7 @@ fun StreamDataForm(state: ObsStreamData, onChange: (ObsStreamData) -> Unit) {
             ),
             value = state.host,
             onValueChange = { onChange(state.copy(host = it)) },
+            modifier = Modifier.fillMaxWidth(),
         )
 
         EnumEntry<StreamProtocol>(
@@ -55,6 +62,7 @@ fun StreamDataForm(state: ObsStreamData, onChange: (ObsStreamData) -> Unit) {
             subtitle = "",
             selected = state.protocol,
             onChange = { onChange(state.copy(protocol = it)) },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

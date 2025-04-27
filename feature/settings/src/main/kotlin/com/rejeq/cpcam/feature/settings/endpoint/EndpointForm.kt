@@ -86,6 +86,7 @@ fun ObsEndpointForm(
             onInvalid = {
                 Log.i("LOGITS", "Unable to convert port to int: '$it'")
             },
+            modifier = Modifier.fillMaxWidth().focusRequester(portFocus),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Next,

@@ -3,6 +3,7 @@ package com.rejeq.cpcam.feature.settings.endpoint
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,7 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
             subtitle = "",
             selected = state.pixFmt,
             onChange = { onChange(state.copy(pixFmt = it)) },
+            modifier = Modifier.fillMaxWidth(),
         )
 
         EnumEntry<VideoCodec>(
@@ -60,6 +62,7 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
             subtitle = "",
             selected = state.codecName,
             onChange = { onChange(state.copy(codecName = it)) },
+            modifier = Modifier.fillMaxWidth(),
         )
 
         IntegerInput(
@@ -69,6 +72,7 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
             onInvalid = {
                 Log.i("LOGITS", "Unable to convert bitrate to int: '$'")
             },
+            modifier = Modifier.fillMaxWidth(),
         )
 
         IntegerInput(
@@ -78,6 +82,7 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
             onInvalid = {
                 Log.i("LOGITS", "Unable to convert framerate to int: '$it'")
             },
+            modifier = Modifier.fillMaxWidth(),
         )
 
         val res =
@@ -100,6 +105,7 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
                     }
                 }
             },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -110,6 +116,7 @@ inline fun <reified T : Enum<T>> EnumEntry(
     subtitle: String,
     selected: T?,
     crossinline onChange: (T) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val showDialog = rememberSaveable { mutableStateOf(false) }
 
@@ -120,6 +127,7 @@ inline fun <reified T : Enum<T>> EnumEntry(
         isDialogShown = showDialog.value,
         onDialogDismiss = { showDialog.value = false },
         onItemClick = { showDialog.value = true },
+        modifier = modifier,
     ) {
         val entries = enumEntries<T>()
 
