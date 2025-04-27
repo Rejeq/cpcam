@@ -7,9 +7,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.job
 
 /**
  * Settings item that opens a dialog with a text input field.
@@ -35,6 +40,7 @@ fun TextInputItem(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     val isDialogShown = rememberSaveable { mutableStateOf(false) }
+    val textFocus = remember { FocusRequester() }
 
     DialogItem(
         title = title,
@@ -51,10 +57,19 @@ fun TextInputItem(
             )
         },
     ) {
+        LaunchedEffect(Unit) {
+            // We don't use requestFocus() in onItemClick(), since at the moment
+            // of click event - TextField() composable is not created, so
+            // there no any attached focus node, and requestFocus() crashes
+            coroutineContext.job.invokeOnCompletion {
+                textFocus.requestFocus()
+            }
+        }
+
         TextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().focusRequester(textFocus),
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             singleLine = true,
