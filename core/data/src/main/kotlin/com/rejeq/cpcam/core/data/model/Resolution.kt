@@ -12,7 +12,8 @@ package com.rejeq.cpcam.core.data.model
  * @property height The height of the resolution, must be non-negative.
  * @throws IllegalArgumentException if either the width or height is negative.
  */
-class Resolution(val width: Int, val height: Int) : Comparable<Resolution> {
+data class Resolution(val width: Int, val height: Int) :
+    Comparable<Resolution> {
     init {
         require(width >= 0) { "Width cannot be negative" }
         require(height >= 0) { "Height cannot be negative" }
