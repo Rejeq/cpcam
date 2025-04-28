@@ -18,6 +18,7 @@ import android.util.Log
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import com.rejeq.cpcam.core.common.MainActivityContract
 import com.rejeq.cpcam.core.common.hasPermission
@@ -203,12 +204,18 @@ class EndpointService : Service() {
 
         val openMainActivity = mainActivityContract.createIntent(this)
 
-        val onNotificationClick = PendingIntent.getActivity(
-            this,
-            0,
-            openMainActivity,
-            PendingIntent.FLAG_UPDATE_CURRENT,
-        )
+        val onNotificationClick = TaskStackBuilder.create(this).run {
+            addNextIntentWithParentStack(openMainActivity)
+            val intent = getPendingIntent(
+                0,
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                    PendingIntent.FLAG_IMMUTABLE,
+            )
+
+            // getPendingIntent() returns null only if
+            // PendingIntent.FLAG_NO_CREATE applied
+            requireNotNull(intent)
+        }
 
         return buildInfoNotification(
             state,
