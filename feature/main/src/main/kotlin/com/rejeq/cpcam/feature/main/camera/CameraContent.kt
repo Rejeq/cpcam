@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.feature.main.camera
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -65,6 +66,13 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
                         if (zoom != 1.0f) {
                             component.shiftZoom(-(1.0f - zoom))
                         }
+                    }
+                }.pointerInput(Unit) {
+                    detectTapGestures { pos ->
+                        // FIXME: You need to apply additional transform to the
+                        //  position, since the camera surface can not be mapped
+                        //  one to one with screen
+                        component.setFocus(pos)
                     }
                 },
             )

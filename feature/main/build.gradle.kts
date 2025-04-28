@@ -16,6 +16,9 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.device)
 
+    // TODO: Remove this
+    implementation(libs.camerax.core)
+
     implementation(libs.kotlinx.coroutines)
 
     implementation(libs.decompose.core)

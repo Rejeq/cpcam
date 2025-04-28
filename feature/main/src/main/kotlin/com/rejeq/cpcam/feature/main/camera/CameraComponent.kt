@@ -3,6 +3,7 @@ package com.rejeq.cpcam.feature.main.camera
 import android.Manifest
 import android.os.Build
 import android.util.Log
+import androidx.compose.ui.geometry.Offset
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.rejeq.cpcam.core.camera.CameraController
@@ -97,6 +98,16 @@ class CameraComponent @AssistedInject constructor(
     fun shiftZoom(zoom: Float) {
         scope.launch {
             controller.shiftZoom(zoom, linear = true)
+        }
+    }
+
+    fun setFocus(offset: Offset) {
+        scope.launch {
+            val point = target.getPoint(offset.x, offset.y)
+
+            if (point != null) {
+                controller.setFocusPoint(point)
+            }
         }
     }
 

@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.hardware.camera2.CameraManager
 import android.util.Log
 import androidx.camera.core.CameraControl
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.MeteringPoint
 import androidx.camera.core.impl.AdapterCameraInfo
 import com.rejeq.cpcam.core.camera.di.CameraManagerService
 import com.rejeq.cpcam.core.camera.query.queryNextCameraId
@@ -98,20 +100,17 @@ class CameraController @Inject constructor(
         }
     }
 
-    fun setFocusPoint(state: FocusPointState): CameraControllerError? {
+    suspend fun setFocusPoint(point: MeteringPoint): CameraControllerError? {
         val control = source.camera.value?.cameraControl
-        if (control == null) {
-            return CameraControllerError.CameraNotStarted
+
+        return when {
+            control == null -> CameraControllerError.CameraNotStarted
+            else -> tryFocusCall {
+                val action = FocusMeteringAction.Builder(point).build()
+
+                control.startFocusAndMetering(action).await()
+            }
         }
-
-//        val builder = FocusMeteringAction.Builder(meteringPoint)
-//
-//        when (state) {
-//            FocusPointState.AutoFocus -> control.startFocusAndMetering()
-//        }
-
-        TODO()
-        return null
     }
 }
 
@@ -120,12 +119,7 @@ enum class CameraControllerError {
     CameraNotStarted,
     ZoomValueOutOfRange,
     TorchIllegalState,
-}
-
-sealed interface FocusPointState {
-    object AutoFocus : FocusPointState
-
-    class Point(x: Int, y: Int) : FocusPointState
+    FocusNotSupported,
 }
 
 private inline fun tryZoomCall(block: () -> Unit): CameraControllerError? =
@@ -150,6 +144,18 @@ private inline fun tryTorchCall(block: () -> Unit): CameraControllerError? =
     } catch (e: IllegalStateException) {
         Log.w(TAG, "Torch operation got illegal state", e)
         CameraControllerError.TorchIllegalState
+    }
+
+private inline fun tryFocusCall(block: () -> Unit): CameraControllerError? =
+    try {
+        block()
+        null
+    } catch (e: CameraControl.OperationCanceledException) {
+        Log.w(TAG, "Focus operation was canceled", e)
+        CameraControllerError.Cancelled
+    } catch (e: IllegalArgumentException) {
+        Log.w(TAG, "Focus operation not supported", e)
+        CameraControllerError.FocusNotSupported
     }
 
 private const val TAG = "CameraController"

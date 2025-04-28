@@ -1,6 +1,8 @@
 package com.rejeq.cpcam.core.camera.target
 
+import androidx.camera.core.MeteringPoint
 import androidx.camera.core.Preview
+import androidx.camera.core.SurfaceOrientedMeteringPointFactory
 import com.rejeq.cpcam.core.camera.CameraTargetId
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.source.CameraSource
@@ -24,6 +26,9 @@ class PreviewCameraTarget @Inject constructor(
 ) : CameraTarget {
     private val targetId = CameraTargetId.Preview
 
+    private var meteringPointFactory: SurfaceOrientedMeteringPointFactory? =
+        null
+
     private val _surfaceRequest =
         MutableStateFlow<SurfaceRequestState>(SurfaceRequestState.Stopped)
     override val surfaceRequest = _surfaceRequest.asStateFlow()
@@ -34,6 +39,11 @@ class PreviewCameraTarget @Inject constructor(
                 SurfaceRequestState.Available(
                     SurfaceRequestWrapper(newSurfaceRequest),
                 )
+
+            meteringPointFactory = SurfaceOrientedMeteringPointFactory(
+                newSurfaceRequest.resolution.width.toFloat(),
+                newSurfaceRequest.resolution.height.toFloat(),
+            )
         }
     }
 
@@ -45,4 +55,7 @@ class PreviewCameraTarget @Inject constructor(
         source.detach(targetId)
         _surfaceRequest.value = SurfaceRequestState.Stopped
     }
+
+    fun getPoint(x: Float, y: Float): MeteringPoint? =
+        meteringPointFactory?.createPoint(x, y)
 }
