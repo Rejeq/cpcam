@@ -1,6 +1,8 @@
 package com.rejeq.cpcam.core.camera.repository
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -10,13 +12,18 @@ import androidx.camera.core.TorchState
 import androidx.camera.core.impl.CameraInfoInternal
 import androidx.lifecycle.asFlow
 import com.rejeq.cpcam.core.camera.CameraController
+import com.rejeq.cpcam.core.camera.CameraError
+import com.rejeq.cpcam.core.camera.CameraStateWrapper
+import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.di.CameraManagerService
 import com.rejeq.cpcam.core.camera.query.queryMaxRecordSize
 import com.rejeq.cpcam.core.camera.query.querySupportedFramerates
 import com.rejeq.cpcam.core.camera.query.querySupportedSizes
 import com.rejeq.cpcam.core.camera.source.CameraSource
+import com.rejeq.cpcam.core.common.hasPermission
 import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +32,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class CameraDataRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     @CameraManagerService private val manager: CameraManager,
     private val source: CameraSource,
 ) {
@@ -42,6 +50,28 @@ class CameraDataRepository @Inject constructor(
      * The ID of the currently active camera.
      */
     val currentCameraId get() = getCurrentCameraId(source.camera.value)
+
+    /**
+     * Represents the state of the camera.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val state = source.cameraInfo.flatMapLatest {
+        it.cameraState.asFlow()
+    }.map {
+        if (!context.hasPermission(Manifest.permission.CAMERA)) {
+            return@map CameraStateWrapper(
+                CameraType.Close,
+                CameraError.PermissionDenied,
+            )
+        }
+
+        val state = CameraStateWrapper.from(it)
+        if (state.error != null) {
+            Log.i(TAG, "Got camera error: ${state.error}")
+        }
+
+        state
+    }
 
     /**
      * Indicates whether the camera's torch is currently enabled.

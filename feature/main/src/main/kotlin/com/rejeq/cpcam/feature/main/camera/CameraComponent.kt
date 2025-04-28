@@ -39,7 +39,7 @@ class CameraComponent @AssistedInject constructor(
         }
     }
 
-    val state = controller.state.stateIn(
+    val state = cameraDataRepo.state.stateIn(
         scope,
         SharingStarted.Eagerly,
         CameraStateWrapper(type = CameraType.Close, error = null),
