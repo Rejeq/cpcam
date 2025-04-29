@@ -2,13 +2,16 @@ package com.rejeq.cpcam.feature.main.camera
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
 import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
@@ -59,24 +62,46 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
         )
     } else {
         if (request is SurfaceRequestState.Available) {
-            CameraPreview(
+            CameraPreviewContainer(
                 request = request.value,
-                modifier = modifier.pointerInput(Unit) {
-                    detectTransformGestures { _, _, zoom, _ ->
-                        if (zoom != 1.0f) {
-                            component.shiftZoom(-(1.0f - zoom))
-                        }
-                    }
-                }.pointerInput(Unit) {
-                    detectTapGestures { pos ->
-                        // FIXME: You need to apply additional transform to the
-                        //  position, since the camera surface can not be mapped
-                        //  one to one with screen
-                        component.setFocus(pos)
-                    }
-                },
+                onShiftZoom = component::shiftZoom,
+                onFocus = component::setFocus,
+                focus = component.focusIndicator.collectAsState().value,
             )
         }
+    }
+}
+
+@Composable
+fun CameraPreviewContainer(
+    request: SurfaceRequestWrapper,
+    onShiftZoom: (Float) -> Unit,
+    onFocus: (Offset) -> Unit,
+    focus: FocusIndicatorState,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        CameraPreview(
+            request = request,
+            modifier = Modifier.pointerInput(Unit) {
+                detectTransformGestures { _, _, zoom, _ ->
+                    if (zoom != 1.0f) {
+                        onShiftZoom(-(1.0f - zoom))
+                    }
+                }
+            }.pointerInput(Unit) {
+                detectTapGestures { pos ->
+                    // FIXME: You need to apply additional transform to the
+                    //  position, since the camera surface can not be mapped
+                    //  one to one with screen
+                    onFocus(pos)
+                }
+            },
+        )
+
+        FocusIndicator(
+            state = focus,
+        )
     }
 }
 

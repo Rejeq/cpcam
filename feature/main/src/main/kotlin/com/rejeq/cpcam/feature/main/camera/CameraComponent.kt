@@ -4,9 +4,11 @@ import android.Manifest
 import android.os.Build
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.rejeq.cpcam.core.camera.CameraController
+import com.rejeq.cpcam.core.camera.CameraControllerError
 import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
@@ -19,7 +21,11 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -53,6 +59,13 @@ class CameraComponent @AssistedInject constructor(
 
     val hasTorch = cameraDataRepo.hasFlashUnit
     val isTorchEnabled = cameraDataRepo.isTorchEnabled
+
+    private val _focusIndicator = MutableStateFlow<FocusIndicatorState>(
+        FocusIndicatorState.Disabled,
+    )
+    val focusIndicator = _focusIndicator.asStateFlow()
+
+    private var focusJob: Job? = null
 
     fun onCameraPermissionResult(state: PermissionState) {
         scope.launch {
@@ -102,12 +115,36 @@ class CameraComponent @AssistedInject constructor(
     }
 
     fun setFocus(offset: Offset) {
-        scope.launch {
-            val point = target.getPoint(offset.x, offset.y)
+        focusJob?.cancel()
+        focusJob = scope.launch {
+            val intOffset = IntOffset(offset.x.toInt(), offset.y.toInt())
 
-            if (point != null) {
-                controller.setFocusPoint(point)
+            _focusIndicator.value = FocusIndicatorState.Focusing(intOffset)
+
+            val point = target.getPoint(offset.x, offset.y)
+            if (point == null) {
+                Log.w(TAG, "Failed to set focus: Unable to get point")
+                _focusIndicator.value = FocusIndicatorState.Disabled
+                return@launch
             }
+
+            launch {
+                val err = controller.setFocusPoint(point)
+
+                if (_focusIndicator.value is FocusIndicatorState.Focusing) {
+                    _focusIndicator.value = when (err) {
+                        null -> FocusIndicatorState.Focused(intOffset)
+                        CameraControllerError.Cancelled ->
+                            FocusIndicatorState.Disabled
+                        else -> FocusIndicatorState.Failed(intOffset)
+                    }
+                }
+            }
+
+            // Do not disturb user if focus takes too long
+            delay(5000)
+
+            _focusIndicator.value = FocusIndicatorState.Disabled
         }
     }
 
