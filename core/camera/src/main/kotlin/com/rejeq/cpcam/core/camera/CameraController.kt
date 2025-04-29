@@ -108,7 +108,11 @@ class CameraController @Inject constructor(
             else -> tryFocusCall {
                 val action = FocusMeteringAction.Builder(point).build()
 
-                control.startFocusAndMetering(action).await()
+                val res = control.startFocusAndMetering(action).await()
+                when (res?.isFocusSuccessful) {
+                    true -> null
+                    else -> CameraControllerError.FocusFailed
+                }
             }
         }
     }
@@ -120,6 +124,7 @@ enum class CameraControllerError {
     ZoomValueOutOfRange,
     TorchIllegalState,
     FocusNotSupported,
+    FocusFailed,
 }
 
 private inline fun tryZoomCall(block: () -> Unit): CameraControllerError? =
