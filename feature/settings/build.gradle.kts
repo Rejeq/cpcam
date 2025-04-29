@@ -6,6 +6,10 @@ plugins {
 
 android {
     namespace = "com.rejeq.cpcam.feature.settings"
+
+    buildFeatures {
+        androidResources = true
+    }
 }
 
 dependencies {

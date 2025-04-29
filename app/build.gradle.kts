@@ -16,6 +16,10 @@ android {
         versionName = "0.1"
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     buildTypes {
         debug {
             packaging {
