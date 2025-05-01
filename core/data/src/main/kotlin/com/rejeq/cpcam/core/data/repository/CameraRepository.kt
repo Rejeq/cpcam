@@ -6,7 +6,9 @@ import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.source.DataStoreSource
 import com.rejeq.cpcam.data.datastore.CameraPreferenceProto
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 /**
@@ -27,7 +29,7 @@ class CameraRepository @Inject constructor(
      * @param camera Camera identifier
      * @return Flow of camera preferences or null if not set
      */
-    fun getPrefernce(camera: String) = source.store.map {
+    fun getPreference(camera: String) = source.store.map {
         it.cameraPreferencesMap[camera]?.fromDataStore()
     }.distinctUntilChanged()
 
@@ -37,8 +39,9 @@ class CameraRepository @Inject constructor(
      * @param camera Camera identifier
      * @return Flow of resolution preference or null if not set
      */
-    fun getResolution(camera: String) = source.store.map {
-        it.cameraPreferencesMap[camera]?.fromDataStore()?.resolution
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getResolution(camera: String) = source.store.flatMapLatest {
+        getPreference(camera).map { it?.resolution }
     }.distinctUntilChanged()
 
     /**
@@ -64,8 +67,9 @@ class CameraRepository @Inject constructor(
      * @param camera Camera identifier
      * @return Flow of framerate preference or null if not set
      */
-    fun getFramerate(camera: String) = source.store.map {
-        it.cameraPreferencesMap[camera]?.fromDataStore()?.framerate
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getFramerate(camera: String) = source.store.flatMapLatest {
+        getPreference(camera).map { it?.framerate }
     }.distinctUntilChanged()
 
     /**
