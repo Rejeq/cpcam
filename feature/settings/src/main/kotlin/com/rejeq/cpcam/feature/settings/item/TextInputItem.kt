@@ -14,6 +14,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.TextFieldValue
+import com.rejeq.cpcam.feature.settings.input.selectAll
 import kotlinx.coroutines.job
 
 /**
@@ -32,8 +34,8 @@ import kotlinx.coroutines.job
 fun TextInputItem(
     title: String,
     subtitle: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -52,7 +54,7 @@ fun TextInputItem(
         enabled = enabled,
         widget = {
             Text(
-                text = value,
+                text = value.text,
                 color = MaterialTheme.colorScheme.secondary,
             )
         },
@@ -63,6 +65,7 @@ fun TextInputItem(
             // there no any attached focus node, and requestFocus() crashes
             coroutineContext.job.invokeOnCompletion {
                 textFocus.requestFocus()
+                onValueChange(value.selectAll())
             }
         }
 

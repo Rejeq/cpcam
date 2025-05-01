@@ -2,7 +2,9 @@ package com.rejeq.cpcam.feature.settings
 
 import android.graphics.ImageFormat
 import android.util.Log
+import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
@@ -15,9 +17,14 @@ import com.rejeq.cpcam.core.data.repository.ScreenRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
@@ -29,12 +36,15 @@ class SettingsComponent @AssistedInject constructor(
     @ApplicationScope private val externalScope: CoroutineScope,
 
     @Assisted componentContext: ComponentContext,
+    @Assisted mainContext: CoroutineContext,
     @Assisted val versionName: String,
     @Assisted("onFinished") val onFinished: () -> Unit,
     @Assisted("onLibraryLicensesClick") val onLibraryLicensesClick: () -> Unit,
     @Assisted("onEndpointClick") val onEndpointClick: () -> Unit,
 ) : ChildComponent,
     ComponentContext by componentContext {
+    private val scope = coroutineScope(mainContext + SupervisorJob())
+
     val themeConfig = appearanceRepo.themeConfig
     val useDynamicColor = appearanceRepo.useDynamicColor
 
@@ -60,7 +70,16 @@ class SettingsComponent @AssistedInject constructor(
     val availableFramerates = cameraDataRepo.getSupportedFramerates()
 
     val keepScreenAwake = screenRepo.keepScreenAwake
-    val dimScreenDelay = screenRepo.dimScreenDelay
+
+    private val _dimScreenDelay = MutableStateFlow(TextFieldValue())
+    val dimScreenDelay = _dimScreenDelay.asStateFlow()
+
+    init {
+        scope.launch {
+            val delay = screenRepo.dimScreenDelay.first()
+            _dimScreenDelay.value = TextFieldValue(delay.toString())
+        }
+    }
 
     fun setThemeConfig(themeConfig: ThemeConfig) = externalScope.launch {
         appearanceRepo.setThemeConfig(themeConfig)
@@ -96,9 +115,11 @@ class SettingsComponent @AssistedInject constructor(
         }
     }
 
-    fun setDimScreenDelay(timeMs: Long) {
+    fun setDimScreenDelay(timeMs: TextFieldValue) {
+        _dimScreenDelay.value = timeMs
+
         externalScope.launch {
-            screenRepo.setDimScreenDelay(timeMs)
+            screenRepo.setDimScreenDelay(timeMs.text.trim().toLongOrNull() ?: 0)
         }
     }
 
@@ -106,6 +127,7 @@ class SettingsComponent @AssistedInject constructor(
     interface Factory {
         fun create(
             componentContext: ComponentContext,
+            mainContext: CoroutineContext,
             versionName: String,
             @Assisted("onFinished") onFinished: () -> Unit,
             @Assisted("onLibraryLicensesClick") onLibraryLicensesClick:

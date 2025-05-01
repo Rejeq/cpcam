@@ -2,6 +2,9 @@
     <string name="settings_screen_title">Settings</string>
     <string name="settings_video_codec_screen_title">Video Codec</string>
 
+    <string name="resolution_width">Width</string>
+    <string name="resolution_height">Height</string>
+
     <string name="unknown_list_preference_entry">Unknown</string>
     <string name="unknown_switch_preference">Unknown</string>
 

@@ -1,30 +1,30 @@
 package com.rejeq.cpcam.feature.settings.endpoint
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.data.model.PixFmt
-import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.VideoCodec
-import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.feature.settings.R
+import com.rejeq.cpcam.feature.settings.input.Input
+import com.rejeq.cpcam.feature.settings.input.ResolutionInput
 import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 import kotlin.enums.enumEntries
 
 @Composable
 fun VideoConfigForm(
-    state: FormState<VideoConfig>,
-    onChange: (VideoConfig) -> Unit,
+    state: FormState<VideoConfigForm>,
+    onChange: (VideoConfigForm) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded = rememberSaveable { mutableStateOf(false) }
@@ -45,7 +45,10 @@ fun VideoConfigForm(
 }
 
 @Composable
-fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
+fun VideoConfigForm(
+    state: VideoConfigForm,
+    onChange: (VideoConfigForm) -> Unit,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -62,50 +65,29 @@ fun VideoConfigForm(state: VideoConfig, onChange: (VideoConfig) -> Unit) {
             subtitle = "",
             selected = state.codecName,
             onChange = { onChange(state.copy(codecName = it)) },
-            modifier = Modifier.fillMaxWidth(),
         )
-
-        IntegerInput(
-            label = "Bitrate",
-            value = state.bitrate,
-            onChange = { onChange(state.copy(bitrate = it)) },
-            onInvalid = {
-                Log.i("LOGITS", "Unable to convert bitrate to int: '$'")
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        IntegerInput(
-            label = "Framerate",
-            value = state.framerate,
-            onChange = { onChange(state.copy(framerate = it)) },
-            onInvalid = {
-                Log.i("LOGITS", "Unable to convert framerate to int: '$it'")
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        val res =
-            remember { mutableStateOf(state.resolution?.toString() ?: "") }
 
         Input(
-            label = "Resolution",
-            value = res.value,
-            onValueChange = {
-                res.value = it
-                if (it.isEmpty()) {
-                    onChange(state.copy(resolution = null))
-                } else {
-                    val resolution = Resolution.fromString(it)
-                    if (resolution != null) {
-                        onChange(state.copy(resolution = resolution))
-                    } else {
-                        // TODO: Highlight error
-                        Log.i("LOGITS", "Unable to convert resolution: '$it'")
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Bitrate",
+            value = state.bitrate,
+            onValueChange = { onChange(state.copy(bitrate = it)) },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+            ),
+        )
+
+        Input(
+            label = "Framerate",
+            value = state.framerate,
+            onValueChange = { onChange(state.copy(framerate = it)) },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+            ),
+        )
+
+        ResolutionInput(
+            value = state.resolution,
+            onValueChange = { onChange(state.copy(resolution = it)) },
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.feature.settings.endpoint
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,9 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.rejeq.cpcam.core.data.model.EndpointConfig
-import com.rejeq.cpcam.core.data.model.ObsStreamData
-import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.ui.CpcamTopBar
 import com.rejeq.cpcam.core.ui.clearFocusOnTap
 import com.rejeq.cpcam.feature.settings.R
@@ -37,10 +35,8 @@ fun EndpointContent(
         },
     ) {
         EndpointSettingsContent(
-            endpointFormState = component.endpointForm.collectAsState().value,
+            endpointFormState = component.endpointConfig.collectAsState().value,
             onEndpointChange = component::updateEndpoint,
-            videoConfigState = component.videoConfig.collectAsState().value,
-            onVideoConfigChange = component::updateVideoConfig,
             streamDataState = component.streamData.collectAsState().value,
             onStreamDataChange = component::updateStreamData,
             connectionState = component.connectionState.collectAsState().value,
@@ -73,12 +69,10 @@ private fun EndpointSettingsLayout(
 
 @Composable
 private fun ColumnScope.EndpointSettingsContent(
-    endpointFormState: FormState<EndpointConfig>,
-    onEndpointChange: (EndpointConfig) -> Unit,
-    videoConfigState: FormState<VideoConfig>,
-    onVideoConfigChange: (VideoConfig) -> Unit,
-    streamDataState: FormState<ObsStreamData>,
-    onStreamDataChange: (ObsStreamData) -> Unit,
+    endpointFormState: FormState<EndpointConfigForm>,
+    onEndpointChange: (EndpointConfigForm) -> Unit,
+    streamDataState: FormState<ObsStreamDataForm>,
+    onStreamDataChange: (ObsStreamDataForm) -> Unit,
     connectionState: EndpointConnectionState,
     onCheckConnection: () -> Unit,
 ) {
@@ -87,6 +81,7 @@ private fun ColumnScope.EndpointSettingsContent(
         onChange = onEndpointChange,
         onCheckConnection = onCheckConnection,
         connectionState = connectionState,
+        modifier = Modifier.focusGroup(),
     )
 
     Spacer(Modifier.requiredHeight(48.dp))
@@ -94,10 +89,6 @@ private fun ColumnScope.EndpointSettingsContent(
     StreamDataForm(
         state = streamDataState,
         onChange = onStreamDataChange,
-    )
-
-    VideoConfigForm(
-        state = videoConfigState,
-        onChange = onVideoConfigChange,
+        modifier = Modifier.focusGroup(),
     )
 }

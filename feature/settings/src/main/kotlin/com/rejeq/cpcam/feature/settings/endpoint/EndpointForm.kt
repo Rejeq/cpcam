@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.feature.settings.endpoint
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,23 +10,23 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.rejeq.cpcam.core.data.model.EndpointConfig
-import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.feature.settings.R
+import com.rejeq.cpcam.feature.settings.input.Input
+import com.rejeq.cpcam.feature.settings.input.PasswordInput
+import com.rejeq.cpcam.feature.settings.input.selectAll
 
 @Composable
 fun EndpointForm(
-    state: FormState<EndpointConfig>,
-    onChange: (EndpointConfig) -> Unit,
+    state: FormState<EndpointConfigForm>,
+    onChange: (EndpointConfigForm) -> Unit,
     onCheckConnection: () -> Unit,
     connectionState: EndpointConnectionState,
     modifier: Modifier = Modifier,
@@ -39,7 +38,7 @@ fun EndpointForm(
         expandable = false,
     ) { config ->
         when (config) {
-            is ObsConfig -> ObsEndpointForm(
+            is ObsConfigForm -> ObsEndpointForm(
                 config,
                 onChange = onChange,
                 onCheckConnection = onCheckConnection,
@@ -51,58 +50,57 @@ fun EndpointForm(
 
 @Composable
 fun ObsEndpointForm(
-    state: ObsConfig,
-    onChange: (ObsConfig) -> Unit,
+    state: ObsConfigForm,
+    onChange: (ObsConfigForm) -> Unit,
     onCheckConnection: () -> Unit,
     connectionState: EndpointConnectionState,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val (portFocus, passwordFocus) = remember {
-            FocusRequester.createRefs()
-        }
+        val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
 
         Input(
             value = state.url,
             onValueChange = { onChange(state.copy(url = it)) },
             label = stringResource(R.string.endpoint_service_url),
-            modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
                 imeAction = ImeAction.Next,
             ),
-            keyboardActions = KeyboardActions(
-                onNext = {
-                    portFocus.requestFocus()
-                },
-            ),
+            keyboardActions = KeyboardActions {
+                focusManager.moveFocus(FocusDirection.Next)
+                onChange(
+                    state.copy(
+                        port = state.port.selectAll(),
+                    ),
+                )
+            },
         )
 
-        IntegerInput(
+        Input(
             label = stringResource(R.string.endpoint_service_port),
             value = state.port,
-            onChange = { onChange(state.copy(port = it ?: 0)) },
-            onInvalid = {
-                Log.i("LOGITS", "Unable to convert port to int: '$it'")
-            },
-            modifier = Modifier.fillMaxWidth().focusRequester(portFocus),
+            onValueChange = { onChange(state.copy(port = it)) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Next,
             ),
-            keyboardActions = KeyboardActions(
-                onNext = {
-                    passwordFocus.requestFocus()
-                },
-            ),
+            keyboardActions = KeyboardActions {
+                focusManager.moveFocus(FocusDirection.Next)
+                onChange(
+                    state.copy(
+                        password = state.password.selectAll(),
+                    ),
+                )
+            },
         )
 
         PasswordInput(
             value = state.password,
             onValueChange = { onChange(state.copy(password = it)) },
             label = stringResource(R.string.endpoint_service_password),
-            modifier = Modifier.fillMaxWidth().focusRequester(passwordFocus),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done,

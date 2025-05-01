@@ -5,10 +5,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
-import com.rejeq.cpcam.core.data.model.EndpointConfig
-import com.rejeq.cpcam.core.data.model.ObsConfig
-import com.rejeq.cpcam.core.data.model.ObsStreamData
-import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.data.repository.EndpointRepository
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
@@ -22,8 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
@@ -40,16 +35,12 @@ class EndpointComponent @AssistedInject constructor(
     ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
-    private val _endpointForm =
-        MutableStateFlow<FormState<EndpointConfig>>(FormState.Loading)
-    val endpointForm = _endpointForm.asStateFlow()
-
-    private val _videoConfig =
-        MutableStateFlow<FormState<VideoConfig>>(FormState.Loading)
-    val videoConfig = _videoConfig.asStateFlow()
+    private val _endpointConfig =
+        MutableStateFlow<FormState<EndpointConfigForm>>(FormState.Loading)
+    val endpointConfig = _endpointConfig.asStateFlow()
 
     private val _streamData =
-        MutableStateFlow<FormState<ObsStreamData>>(FormState.Loading)
+        MutableStateFlow<FormState<ObsStreamDataForm>>(FormState.Loading)
     val streamData = _streamData.asStateFlow()
 
     private var checkEndpointJob: Job? = null
@@ -59,45 +50,33 @@ class EndpointComponent @AssistedInject constructor(
     val connectionState = _connectionState.asStateFlow()
 
     init {
-        endpointRepo.endpointConfig.onEach {
-            _endpointForm.value = FormState.Success(it)
-        }.launchIn(scope)
+        scope.launch {
+            val config = endpointRepo.endpointConfig.first()
+            _endpointConfig.value = FormState.Success(config.fromDomain())
+        }
 
-        streamRepo.obsData.onEach {
-            _videoConfig.value = FormState.Success(it.videoConfig)
-            _streamData.value = FormState.Success(it)
-        }.launchIn(scope)
+        scope.launch {
+            val obsData = streamRepo.obsData.first()
+
+            _streamData.value = FormState.Success(obsData.fromDomain())
+        }
     }
 
-    fun updateEndpoint(data: EndpointConfig) {
-        _endpointForm.value = FormState.Success(data)
+    fun updateEndpoint(data: EndpointConfigForm) {
+        _endpointConfig.value = FormState.Success(data)
 
         externalScope.launch {
             when (data) {
-                is ObsConfig -> endpointRepo.setObsConfig(
-                    ObsConfig(
-                        url = data.url,
-                        port = data.port,
-                        password = data.password,
-                    ),
-                )
+                is ObsConfigForm -> endpointRepo.setObsConfig(data.toDomain())
             }
         }
     }
 
-    fun updateStreamData(data: ObsStreamData) {
+    fun updateStreamData(data: ObsStreamDataForm) {
         _streamData.value = FormState.Success(data)
 
         externalScope.launch {
-            streamRepo.setObsData(data)
-        }
-    }
-
-    fun updateVideoConfig(data: VideoConfig) {
-        _videoConfig.value = FormState.Success(data)
-
-        externalScope.launch {
-            streamRepo.setObsVideoConfig(data)
+            streamRepo.setObsData(data.toDomain())
         }
     }
 
@@ -105,10 +84,12 @@ class EndpointComponent @AssistedInject constructor(
         _connectionState.value = EndpointConnectionState.Connecting
         checkEndpointJob?.cancel()
 
-        when (val state = endpointForm.value) {
+        when (val state = endpointConfig.value) {
             is FormState.Success -> {
                 checkEndpointJob = scope.launch {
-                    val error = endpointHandler.checkConnection(state.data)
+                    val error = endpointHandler.checkConnection(
+                        state.data.toDomain(),
+                    )
 
                     _connectionState.value = when (error) {
                         null -> EndpointConnectionState.Success

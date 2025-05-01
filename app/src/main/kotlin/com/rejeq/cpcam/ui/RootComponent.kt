@@ -115,6 +115,7 @@ class RootComponent @AssistedInject constructor(
     private fun settingsComponent(context: ComponentContext) =
         settingsFactory.create(
             componentContext = context,
+            mainContext = mainContext,
             versionName = BuildConfig.VERSION_NAME,
             onFinished = { nav.pop() },
             onLibraryLicensesClick = { nav.pushNew(Config.Libraries) },
