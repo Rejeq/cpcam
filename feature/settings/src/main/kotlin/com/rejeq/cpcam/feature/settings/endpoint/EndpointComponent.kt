@@ -74,7 +74,7 @@ class EndpointComponent @AssistedInject constructor(
 
         externalScope.launch {
             when (data) {
-                is ObsConfig -> endpointRepo.setObsData(
+                is ObsConfig -> endpointRepo.setObsConfig(
                     ObsConfig(
                         url = data.url,
                         port = data.port,

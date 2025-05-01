@@ -26,7 +26,7 @@ class EndpointRepository @Inject constructor(
 
     /** Flow of OBS-specific endpoint configuration */
     val obsConfig = source.store.map {
-        it.obsEndpoint.fromDataStore()
+        it.obsEndpoint.configData.fromDataStore()
     }.distinctUntilChanged()
 
     /**
@@ -42,10 +42,13 @@ class EndpointRepository @Inject constructor(
     /**
      * Updates OBS endpoint configuration.
      *
-     * @param data New OBS endpoint configuration
+     * @param config New OBS endpoint configuration
      * @return Result of the preference update
      */
-    suspend fun setObsData(data: ObsConfig) = source.tryEdit {
-        this.obsEndpoint = data.toDataStore()
+    suspend fun setObsConfig(config: ObsConfig) = source.tryEdit {
+        val builder = this.obsEndpoint.toBuilder()
+
+        builder.configData = config.toDataStore()
+        this.obsEndpoint = builder.build()
     }
 }

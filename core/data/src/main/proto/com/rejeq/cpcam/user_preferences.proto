@@ -60,13 +60,19 @@ message ObsStreamDataProto {
     // NEXT AVAILABLE ID: 4
 }
 
-message ObsEndpointProto {
+message ObsConfigProto {
     string url = 1;
     int32 port = 2;
     string password = 3;
+
+    // NEXT AVAILABLE ID: 4
+}
+
+message ObsEndpointProto {
+    ObsConfigProto config_data = 5;
     ObsStreamDataProto stream_data = 4;
 
-    // NEXT AVAILABLE ID: 5
+    // NEXT AVAILABLE ID: 6
 }
 
 message AppPreferences {
