@@ -33,23 +33,26 @@ fun Modifier.detectUserActivity(
     pollTime: Long = DEFAULT_POLL_TIME,
     lifecycle: Lifecycle,
     onActivityChange: (isActive: Boolean) -> Unit,
-): Modifier = this then UserActivityDetectorElement(
-    enabled = enabled,
-    inactivityDelay = inactivityDelay,
-    pollTime = pollTime,
-    lifecycle = lifecycle,
-    onActivityChange = onActivityChange,
+): Modifier = this.then(
+    if (enabled) {
+        UserActivityDetectorElement(
+            inactivityDelay = inactivityDelay,
+            pollTime = pollTime,
+            lifecycle = lifecycle,
+            onActivityChange = onActivityChange,
+        )
+    } else {
+        Modifier
+    },
 )
 
 private data class UserActivityDetectorElement(
-    private val enabled: Boolean,
     private val inactivityDelay: Long,
     private val pollTime: Long,
     private val lifecycle: Lifecycle,
     private val onActivityChange: (isActive: Boolean) -> Unit,
 ) : ModifierNodeElement<UserActivityDetectorNode>() {
     override fun create(): UserActivityDetectorNode = UserActivityDetectorNode(
-        enabled = enabled,
         inactivityDelay = inactivityDelay,
         pollTime = pollTime,
         lifecycle = lifecycle,
@@ -58,7 +61,6 @@ private data class UserActivityDetectorElement(
 
     override fun update(node: UserActivityDetectorNode) {
         node.update(
-            enabled,
             inactivityDelay,
             pollTime,
             lifecycle,
@@ -68,7 +70,6 @@ private data class UserActivityDetectorElement(
 
     override fun InspectorInfo.inspectableProperties() {
         name = "detectUserActivity"
-        properties["enabled"] = enabled
         properties["inactivityDelay"] = inactivityDelay
         properties["pollTime"] = pollTime
         properties["lifecycle"] = lifecycle
@@ -76,7 +77,6 @@ private data class UserActivityDetectorElement(
 }
 
 private class UserActivityDetectorNode(
-    private var enabled: Boolean,
     private var inactivityDelay: Long,
     private var pollTime: Long,
     private var lifecycle: Lifecycle,
@@ -97,9 +97,7 @@ private class UserActivityDetectorNode(
 
     override fun onAttach() {
         super.onAttach()
-        if (enabled) {
-            startActivityCheck()
-        }
+        startActivityCheck()
     }
 
     override fun onDetach() {
@@ -112,8 +110,6 @@ private class UserActivityDetectorNode(
         pass: PointerEventPass,
         bounds: IntSize,
     ) {
-        if (!enabled) return
-
         if (pass == PointerEventPass.Main) {
             newInteraction()
             if (!isActive) {
@@ -137,8 +133,6 @@ private class UserActivityDetectorNode(
 
             while (true) {
                 delay(pollTime)
-                if (!enabled) continue
-
                 val delta = System.currentTimeMillis() - lastInteractionTime
                 if (delta > inactivityDelay && isActive) {
                     isActive = false
@@ -154,27 +148,16 @@ private class UserActivityDetectorNode(
     }
 
     fun update(
-        newEnabled: Boolean,
         newInactivityDelay: Long,
         newPollTime: Long,
         newLifecycle: Lifecycle,
         newOnActivityChange: (isActive: Boolean) -> Unit,
     ) {
-        val wasEnabled = enabled
-        enabled = newEnabled
-
         inactivityDelay = newInactivityDelay
         pollTime = newPollTime
         onActivityChange = newOnActivityChange
 
-        if (wasEnabled != newEnabled) {
-            activityCheckJob?.cancel()
-            if (newEnabled) {
-                startActivityCheck()
-            }
-        }
-
-        if (newEnabled && lifecycle !== newLifecycle) {
+        if (lifecycle !== newLifecycle) {
             lifecycle.removeObserver(observer)
             this.lifecycle = newLifecycle
             lifecycle.addObserver(observer)
