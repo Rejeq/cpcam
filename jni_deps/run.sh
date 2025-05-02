@@ -2,17 +2,17 @@
 
 set -e
 
-cd "$(dirname "$0")"
+SCRIPT_DIR=$(dirname "$0")
 
 ANDROID_VERSION=21
 BUILD_ABIS="armeabi-v7a,x86,x86_64,arm64-v8a"
 BUILD_DEBUG=true
-BUILD_DIR=./build
+BUILD_DIR="$SCRIPT_DIR/build"
 BUILD_RELEASE=true
 CMAKE=cmake
-DOWNLOAD_DIR=./downloads
+DOWNLOAD_DIR="$SCRIPT_DIR/downloads"
 FLEXIBLE_PAGE_SIZE=true
-PREFIX_DIR=./targets
+PREFIX_DIR="$SCRIPT_DIR/targets"
 TOTAL_JOBS=$(nproc)
 
 function print_help {
@@ -39,7 +39,7 @@ function run_cmake {
 
     # For details see:
     # https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html#cross-compiling-for-android-with-the-ndk
-    $CMAKE -H. \
+    $CMAKE -H"${SCRIPT_DIR}" \
         -B"${TARGET_BUILD_DIR}" \
         -G 'Unix Makefiles' \
         -DCMAKE_INSTALL_PREFIX="${TARGET_PREFIX_DIR}" \
