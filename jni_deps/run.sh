@@ -2,11 +2,6 @@
 
 set -e
 
-if [ -z "$ANDROID_NDK" ]; then
-    echo "Please set ANDROID_NDK to the Android NDK folder"
-    exit 1
-fi
-
 cd "$(dirname "$0")"
 
 ANDROID_VERSION=21
@@ -113,6 +108,11 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     esac
 done
+
+if [ -z "$ANDROID_NDK" ]; then
+    echo "Please set ANDROID_NDK to the Android NDK folder"
+    exit 1
+fi
 
 BUILD_DIR=$(readlink -f "$BUILD_DIR")
 PREFIX_DIR=$(readlink -f "$PREFIX_DIR")
