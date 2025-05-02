@@ -89,19 +89,31 @@ private class UserActivityDetectorNode(
 
     private val observer = LifecycleEventObserver { _, event ->
         when (event) {
-            Lifecycle.Event.ON_START -> newInteraction()
-            Lifecycle.Event.ON_STOP -> newInteraction()
+            Lifecycle.Event.ON_START -> {
+                updateActivity(true)
+                startActivityCheck()
+            }
+            Lifecycle.Event.ON_STOP -> {
+                stopActivityCheck()
+                updateActivity(true)
+            }
             else -> Unit
         }
     }
 
     override fun onAttach() {
         super.onAttach()
-        startActivityCheck()
+
+        if (activityCheckJob == null) {
+            lifecycle.addObserver(observer)
+            startActivityCheck()
+        }
     }
 
     override fun onDetach() {
         super.onDetach()
+
+        lifecycle.removeObserver(observer)
         stopActivityCheck()
     }
 
@@ -113,8 +125,7 @@ private class UserActivityDetectorNode(
         if (pass == PointerEventPass.Main) {
             newInteraction()
             if (!isActive) {
-                isActive = true
-                onActivityChange(true)
+                updateActivity(true)
             }
         }
     }
@@ -126,8 +137,7 @@ private class UserActivityDetectorNode(
     }
 
     private fun startActivityCheck() {
-        lifecycle.addObserver(observer)
-
+        activityCheckJob?.cancel()
         activityCheckJob = coroutineScope.launch {
             newInteraction()
 
@@ -135,16 +145,20 @@ private class UserActivityDetectorNode(
                 delay(pollTime)
                 val delta = System.currentTimeMillis() - lastInteractionTime
                 if (delta > inactivityDelay && isActive) {
-                    isActive = false
-                    onActivityChange(false)
+                    updateActivity(false)
                 }
             }
         }
     }
 
     private fun stopActivityCheck() {
-        lifecycle.removeObserver(observer)
         activityCheckJob?.cancel()
+        activityCheckJob = null
+    }
+
+    private fun updateActivity(newIsActive: Boolean) {
+        isActive = newIsActive
+        onActivityChange(newIsActive)
     }
 
     fun update(
