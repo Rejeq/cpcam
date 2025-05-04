@@ -15,7 +15,7 @@ import androidx.annotation.RequiresApi
  *         `false` otherwise.
  */
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-fun isStreamUseCaseSupported(
+internal fun isStreamUseCaseSupported(
     char: CameraCharacteristics,
     useCase: Long,
 ): Boolean {

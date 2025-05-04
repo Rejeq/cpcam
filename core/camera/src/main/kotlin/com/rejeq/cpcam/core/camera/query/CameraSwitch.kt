@@ -28,7 +28,10 @@ import kotlin.collections.mutableListOf
  * @return The next camera ID in the sequence, or null if no cameras are
  *         available
  */
-fun queryNextCameraId(manager: CameraManager, currCamId: String?): String? {
+internal fun queryNextCameraId(
+    manager: CameraManager,
+    currCamId: String?,
+): String? {
     // Not cached, because external cameras can be added at any time
     val switchList = makeCameraSwitchList(manager)
     val currCamIndex = switchList.indexOf(currCamId)

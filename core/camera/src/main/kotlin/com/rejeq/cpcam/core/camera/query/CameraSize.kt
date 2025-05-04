@@ -38,7 +38,7 @@ import kotlin.math.min
  * @return The optimal preview size that fits within the target dimensions, or
  *         null if no suitable size is found
  */
-fun queryMaxPreviewSize(
+internal fun queryMaxPreviewSize(
     char: CameraCharacteristics,
     format: Int,
     winSize: Resolution? = null,
@@ -81,7 +81,7 @@ fun queryMaxPreviewSize(
  * @return The maximum supported recording size, or null if no suitable size is
  *         found
  */
-fun queryMaxRecordSize(
+internal fun queryMaxRecordSize(
     char: CameraCharacteristics,
     camId: String,
     format: Int,
@@ -128,7 +128,7 @@ fun queryMaxRecordSize(
  * @return The default recording size, or null if no suitable size is found
  * @see queryMaxRecordSize
  */
-fun queryDefaultRecordSize(
+internal fun queryDefaultRecordSize(
     char: CameraCharacteristics,
     camId: String,
     format: Int,
@@ -159,7 +159,7 @@ fun queryDefaultRecordSize(
  *         available
  * @see ImageFormat
  */
-fun querySupportedSizes(
+internal fun querySupportedSizes(
     char: CameraCharacteristics,
     format: Int,
 ): List<Resolution> {
