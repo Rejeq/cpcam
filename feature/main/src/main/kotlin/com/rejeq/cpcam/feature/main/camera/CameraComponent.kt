@@ -7,11 +7,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy
-import com.rejeq.cpcam.core.camera.CameraController
-import com.rejeq.cpcam.core.camera.CameraControllerError
 import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
-import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
+import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
+import com.rejeq.cpcam.core.camera.operation.CameraStateOp
+import com.rejeq.cpcam.core.camera.operation.CameraSwitchOp
+import com.rejeq.cpcam.core.camera.operation.EnableTorchOp
+import com.rejeq.cpcam.core.camera.operation.FocusError
+import com.rejeq.cpcam.core.camera.operation.HasFlashUnitOp
+import com.rejeq.cpcam.core.camera.operation.IsTorchEnabledOp
+import com.rejeq.cpcam.core.camera.operation.SetFocusPointOp
+import com.rejeq.cpcam.core.camera.operation.ShiftZoomOp
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.device.DndListener
@@ -33,20 +39,20 @@ import kotlinx.coroutines.launch
 class CameraComponent @AssistedInject constructor(
     private val dndListener: DndListener,
     private val appearanceRepo: AppearanceRepository,
-    private val controller: CameraController,
     val target: PreviewCameraTarget,
-    cameraDataRepo: CameraDataRepository,
+    camOpExecutor: CameraOpExecutor,
     @Assisted val onShowPermissionDenied: (String) -> Unit,
     @Assisted private val scope: CoroutineScope,
     @Assisted componentContext: ComponentContext,
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext,
+    CameraOpExecutor by camOpExecutor {
     init {
         lifecycle.doOnDestroy {
             target.stop()
         }
     }
 
-    val state = cameraDataRepo.state.stateIn(
+    val state = CameraStateOp().invoke().stateIn(
         scope,
         SharingStarted.Eagerly,
         CameraStateWrapper(type = CameraType.Close, error = null),
@@ -56,16 +62,6 @@ class CameraComponent @AssistedInject constructor(
     val isCameraPermissionWasLaunched = appearanceRepo.permissionWasLaunched(
         cameraPermission,
     )
-
-    val hasTorch = cameraDataRepo.hasFlashUnit
-    val isTorchEnabled = cameraDataRepo.isTorchEnabled
-
-    private val _focusIndicator = MutableStateFlow<FocusIndicatorState>(
-        FocusIndicatorState.Disabled,
-    )
-    val focusIndicator = _focusIndicator.asStateFlow()
-
-    private var focusJob: Job? = null
 
     fun onCameraPermissionResult(state: PermissionState) {
         scope.launch {
@@ -85,35 +81,40 @@ class CameraComponent @AssistedInject constructor(
 
     fun switchCamera() {
         scope.launch {
-            Log.i(TAG, "Switching camera")
-
-            controller.switchNextDevice()
+            CameraSwitchOp().invoke()
         }
     }
+
+    val hasTorch = HasFlashUnitOp().invoke()
+    val isTorchEnabled = IsTorchEnabledOp().invoke()
 
     fun toggleTorch() {
         scope.launch {
             Log.i(TAG, "Toggling torch")
-
             val newState = !isTorchEnabled.first()
-            controller.enableTorch(newState)
+            EnableTorchOp(newState).invoke()
         }
     }
 
     fun restartCamera() {
         scope.launch {
             Log.i(TAG, "Reopening camera")
-
             target.start()
         }
     }
 
     fun shiftZoom(zoom: Float) {
         scope.launch {
-            controller.shiftZoom(zoom, linear = true)
+            ShiftZoomOp(zoom, linear = true).invoke()
         }
     }
 
+    private val _focusIndicator = MutableStateFlow<FocusIndicatorState>(
+        FocusIndicatorState.Disabled,
+    )
+    val focusIndicator = _focusIndicator.asStateFlow()
+
+    private var focusJob: Job? = null
     fun setFocus(offset: Offset) {
         focusJob?.cancel()
         focusJob = scope.launch {
@@ -129,13 +130,12 @@ class CameraComponent @AssistedInject constructor(
             }
 
             launch {
-                val err = controller.setFocusPoint(point)
+                val err = SetFocusPointOp(point).invoke()
 
                 if (_focusIndicator.value is FocusIndicatorState.Focusing) {
                     _focusIndicator.value = when (err) {
                         null -> FocusIndicatorState.Focused(intOffset)
-                        CameraControllerError.Cancelled ->
-                            FocusIndicatorState.Disabled
+                        FocusError.Cancelled -> FocusIndicatorState.Disabled
                         else -> FocusIndicatorState.Failed(intOffset)
                     }
                 }

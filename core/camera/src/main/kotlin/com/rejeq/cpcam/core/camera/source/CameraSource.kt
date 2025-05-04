@@ -1,8 +1,12 @@
 package com.rejeq.cpcam.core.camera.source
 
+import android.annotation.SuppressLint
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.UseCase
+import androidx.camera.core.impl.CameraInfoInternal
 import com.rejeq.cpcam.core.camera.CameraTargetId
 import com.rejeq.cpcam.core.camera.di.CameraManagerService
 import com.rejeq.cpcam.core.camera.query.queryNextCameraId
@@ -28,7 +32,7 @@ import kotlinx.coroutines.flow.map
 @Singleton
 class CameraSource @Inject constructor(
     private val lifecycle: CameraLifecycle,
-    @CameraManagerService manager: CameraManager,
+    @CameraManagerService val manager: CameraManager,
 ) {
     var currId: String? = queryNextCameraId(manager, null)
         private set
@@ -116,6 +120,7 @@ class CameraSource @Inject constructor(
      *        be a valid camera ID available on the device.
      */
     fun setCameraId(id: String) = synchronized(this) {
+        Log.i(TAG, "Camera id changed to: $id")
         selector = CameraSelector.Builder().requireCameraId(id).build()
         currId = id
 
@@ -124,4 +129,30 @@ class CameraSource @Inject constructor(
             useCases = useCases,
         )
     }
+
+    @SuppressLint("RestrictedApi")
+    fun getCameraCharacteristics(): CameraCharacteristics? {
+        val info = camera.value?.cameraInfo
+        return when (info) {
+            is CameraInfoInternal -> {
+                info.cameraCharacteristics as? CameraCharacteristics
+                    ?: manager.getCameraCharacteristics(info.cameraId)
+            }
+            else -> {
+                currId?.let { id ->
+                    manager.getCameraCharacteristics(id)
+                }.apply {
+                    if (this == null) {
+                        Log.w(
+                            TAG,
+                            "Unable to query camera characteristics: " +
+                                "Camera not started and camera id isn't cached",
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
+
+private const val TAG = "CameraSource"

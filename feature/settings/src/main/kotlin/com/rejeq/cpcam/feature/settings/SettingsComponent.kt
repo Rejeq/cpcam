@@ -5,7 +5,10 @@ import android.util.Log
 import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
-import com.rejeq.cpcam.core.camera.repository.CameraDataRepository
+import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
+import com.rejeq.cpcam.core.camera.operation.GetCameraIdOp
+import com.rejeq.cpcam.core.camera.operation.GetRecordResolutionsOp
+import com.rejeq.cpcam.core.camera.operation.GetSupportedFrameratesOp
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.data.model.Framerate
@@ -22,18 +25,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsComponent @AssistedInject constructor(
     private val appearanceRepo: AppearanceRepository,
     private val cameraRepo: CameraRepository,
-    private val cameraDataRepo: CameraDataRepository,
     private val screenRepo: ScreenRepository,
     @ApplicationScope private val externalScope: CoroutineScope,
+    camOpExecutor: CameraOpExecutor,
 
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
@@ -42,32 +48,40 @@ class SettingsComponent @AssistedInject constructor(
     @Assisted("onLibraryLicensesClick") val onLibraryLicensesClick: () -> Unit,
     @Assisted("onEndpointClick") val onEndpointClick: () -> Unit,
 ) : ChildComponent,
-    ComponentContext by componentContext {
+    ComponentContext by componentContext,
+    CameraOpExecutor by camOpExecutor {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
     val themeConfig = appearanceRepo.themeConfig
     val useDynamicColor = appearanceRepo.useDynamicColor
 
+    private val cameraId: StateFlow<String?> = GetCameraIdOp().invoke()
+        .stateIn(
+            scope,
+            started = SharingStarted.Eagerly,
+            null,
+        )
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedResolution = cameraDataRepo.cameraId
+    val selectedResolution = cameraId
         .filterNotNull()
         .flatMapLatest {
             cameraRepo.getResolution(it)
         }
 
-    val availableResolution = cameraDataRepo.getRecordResolutions(
+    val availableResolution = GetRecordResolutionsOp(
         // TODO: Do not hardcode
         ImageFormat.YUV_420_888,
-    )
+    ).invoke()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedFramerate = cameraDataRepo.cameraId
+    val selectedFramerate = cameraId
         .filterNotNull()
         .flatMapLatest {
             cameraRepo.getFramerate(it)
         }
 
-    val availableFramerates = cameraDataRepo.getSupportedFramerates()
+    val availableFramerates = GetSupportedFrameratesOp().invoke()
 
     val keepScreenAwake = screenRepo.keepScreenAwake
 
@@ -90,7 +104,7 @@ class SettingsComponent @AssistedInject constructor(
     }
 
     fun setCameraResolution(resolution: Resolution?) = externalScope.launch {
-        val camId = cameraDataRepo.currentCameraId
+        val camId = cameraId.value
         if (camId == null) {
             Log.e(TAG, "Unable to set camera resolution: Camera id is null")
             return@launch
@@ -100,7 +114,7 @@ class SettingsComponent @AssistedInject constructor(
     }
 
     fun setCameraFramerate(framerate: Framerate?) = externalScope.launch {
-        val camId = cameraDataRepo.currentCameraId
+        val camId = cameraId.value
         if (camId == null) {
             Log.e(TAG, "Unable to set camera resolution: Camera id is null")
             return@launch

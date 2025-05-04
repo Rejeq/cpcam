@@ -5,6 +5,8 @@ import android.content.Context
 import android.hardware.camera2.CameraManager
 import androidx.camera.core.impl.utils.executor.CameraXExecutors
 import androidx.camera.lifecycle.ProcessCameraProvider
+import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
+import com.rejeq.cpcam.core.camera.operation.DefaultCameraOpExecutor
 import com.rejeq.cpcam.core.camera.source.CameraLifecycle
 import com.rejeq.cpcam.core.camera.source.CameraSource
 import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
@@ -75,4 +77,10 @@ internal object CameraModule {
         executor = executor,
         scope = CoroutineScope(Dispatchers.Unconfined),
     )
+
+    @Provides
+    fun provideCameraOpExecutor(
+        @ApplicationContext context: Context,
+        source: CameraSource,
+    ): CameraOpExecutor = DefaultCameraOpExecutor(context, source)
 }
