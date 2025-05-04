@@ -29,10 +29,20 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
             onBack = component::onBackClicked,
         ),
     ) {
+        val dialog = component.dialog.subscribeAsState().value
+        val dialogInstance = dialog.child?.instance
+        dialogInstance?.let {
+            when (it) {
+                is RootComponent.DialogChild.ConnectionError ->
+                    ConnectionErrorContent(it.component)
+            }
+        }
+
         Surface(modifier = Modifier.fillMaxSize()) {
             when (val child = it.instance) {
                 is RootComponent.Child.Main -> MainContent(
                     component = child.component,
+                    dimScreenAllowed = dialogInstance == null,
                 )
 
                 is RootComponent.Child.Settings -> SettingsContent(
@@ -50,14 +60,6 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
                 is RootComponent.Child.Library -> LibraryContent(
                     component = child.component,
                 )
-            }
-        }
-
-        val dialog = component.dialog.subscribeAsState().value
-        dialog.child?.instance?.let {
-            when (it) {
-                is RootComponent.DialogChild.ConnectionError ->
-                    ConnectionErrorContent(it.component)
             }
         }
     }

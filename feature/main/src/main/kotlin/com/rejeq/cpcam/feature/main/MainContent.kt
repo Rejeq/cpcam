@@ -37,38 +37,33 @@ import com.rejeq.cpcam.feature.main.camera.CameraContent
 import com.rejeq.cpcam.feature.main.info.InfoContent
 
 @Composable
-fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
-    val window = LocalActivity.current?.window
-    val lifecycle = LocalLifecycleOwner.current
-    val keepScreenAwake = component.keepScreenAwake.collectAsState(false).value
-    val dimScreenDelay = component.dimScreenDelay.collectAsState(null).value
+fun MainContent(
+    component: MainComponent,
+    modifier: Modifier = Modifier,
+    dimScreenAllowed: Boolean = true,
+) {
+    val dialog = component.nav.dialog.subscribeAsState().value
+    val dialogInstance = dialog.child?.instance
 
-    if (window != null) {
-        DisposableEffect(keepScreenAwake) {
-            keepScreenAwake(window, keepScreenAwake)
+    dialogInstance?.let {
+        when (it) {
+            is MainNavigation.Dialog.Info -> InfoContent(it.component)
 
-            onDispose {
-                keepScreenAwake(window, false)
-                restoreScreenBrightness(window)
-            }
+            is MainNavigation.Dialog.PermanentNotification ->
+                PermissionDeniedContent(it.component)
         }
     }
 
+    val dimScreenPossible = dimScreenAllowed && dialogInstance == null
+    val keepScreenAwake =
+        component.keepScreenAwake.collectAsState(false).value &&
+            dimScreenPossible
+    val dimScreenDelay = component.dimScreenDelay.collectAsState(null).value
+
     MainScreenLayout(
-        modifier = modifier.fillMaxSize()
-            .detectUserActivity(
-                enabled = keepScreenAwake == true && dimScreenDelay != null,
-                inactivityDelay = dimScreenDelay ?: 0L,
-                lifecycle = lifecycle.lifecycle,
-            ) { isActive ->
-                if (window != null) {
-                    if (isActive) {
-                        restoreScreenBrightness(window)
-                    } else {
-                        dimScreen(window)
-                    }
-                }
-            },
+        keepScreenAwake = keepScreenAwake,
+        dimScreenDelay = if (dimScreenPossible) dimScreenDelay else null,
+        modifier = modifier.fillMaxSize(),
         background = {
             CameraContent(component.cam)
         },
@@ -111,16 +106,6 @@ fun MainContent(component: MainComponent, modifier: Modifier = Modifier) {
             )
         },
     )
-
-    val dialog = component.nav.dialog.subscribeAsState().value
-    dialog.child?.instance?.let {
-        when (it) {
-            is MainNavigation.Dialog.Info -> InfoContent(it.component)
-
-            is MainNavigation.Dialog.PermanentNotification ->
-                PermissionDeniedContent(it.component)
-        }
-    }
 }
 
 @Composable
@@ -129,6 +114,8 @@ fun MainScreenLayout(
     top: @Composable () -> Unit,
     bottom: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
+    keepScreenAwake: Boolean = false,
+    dimScreenDelay: Long? = null,
 ) {
     val actionBarPadding = 56.dp
 
@@ -143,10 +130,37 @@ fun MainScreenLayout(
         }
     }
 
+    val window = LocalActivity.current?.window
+    val lifecycle = LocalLifecycleOwner.current
+
+    if (window != null) {
+        DisposableEffect(keepScreenAwake) {
+            keepScreenAwake(window, keepScreenAwake)
+
+            onDispose {
+                keepScreenAwake(window, false)
+                restoreScreenBrightness(window)
+            }
+        }
+    }
+
     ProvideDeviceOrientation(DeviceOrientation.Portrait) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = modifier,
+            modifier = modifier
+                .detectUserActivity(
+                    enabled = keepScreenAwake == true && dimScreenDelay != null,
+                    inactivityDelay = dimScreenDelay ?: 0L,
+                    lifecycle = lifecycle.lifecycle,
+                ) { isActive ->
+                    if (window != null) {
+                        if (isActive) {
+                            restoreScreenBrightness(window)
+                        } else {
+                            dimScreen(window)
+                        }
+                    }
+                },
         ) {
             background()
 
