@@ -26,6 +26,7 @@ import com.rejeq.cpcam.core.device.keepScreenAwake
 import com.rejeq.cpcam.core.device.restoreScreenBrightness
 import com.rejeq.cpcam.core.ui.DeviceOrientation
 import com.rejeq.cpcam.core.ui.Edge
+import com.rejeq.cpcam.core.ui.LocalIsWindowFocused
 import com.rejeq.cpcam.core.ui.MorphButtonState
 import com.rejeq.cpcam.core.ui.MorphIconButton
 import com.rejeq.cpcam.core.ui.MorphIconTarget
@@ -54,10 +55,14 @@ fun MainContent(
         }
     }
 
-    val dimScreenPossible = dimScreenAllowed && dialogInstance == null
-    val keepScreenAwake =
-        component.keepScreenAwake.collectAsState(false).value &&
-            dimScreenPossible
+    val isWindowFocused = LocalIsWindowFocused.current
+
+    val dimScreenPossible = isWindowFocused &&
+        dimScreenAllowed &&
+        dialogInstance == null
+    val keepScreenAwake = dimScreenPossible &&
+        component.keepScreenAwake.collectAsState(false).value
+
     val dimScreenDelay = component.dimScreenDelay.collectAsState(null).value
 
     MainScreenLayout(
