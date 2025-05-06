@@ -10,16 +10,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.arkivanov.decompose.defaultComponentContext
-import com.rejeq.cpcam.core.data.model.ThemeConfig
-import com.rejeq.cpcam.core.data.repository.AppearanceRepository
-import com.rejeq.cpcam.core.ui.LocalIsWindowFocused
-import com.rejeq.cpcam.core.ui.theme.CpcamTheme
-import com.rejeq.cpcam.core.ui.wantUseDarkMode
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var appearanceRepo: AppearanceRepository
-
     @Inject
     lateinit var rootFactory: RootComponent.Factory
 
@@ -55,24 +45,15 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            // TODO: Entire app will be recomposed several times if
-            //  appData == null and the user has custom theme that differ with
-            //  ThemeConfig.FOLLOW_SYSTEM
-            //  Maybe wait actual appData somehow?
-            val useDarkMode = appearanceRepo.themeConfig
-                .collectAsState(ThemeConfig.FOLLOW_SYSTEM)
-            val useDynamicColor = appearanceRepo.useDynamicColor
-                .collectAsState(false)
-
-            val wantUseDarkMode = wantUseDarkMode(useDarkMode.value)
-
-            CpcamTheme(wantUseDarkMode, useDynamicColor.value) {
-                LaunchedEffect(wantUseDarkMode) {
+            RootContent(
+                component,
+                hasWindowFocus = hasWindowFocus.collectAsState().value,
+                onDarkModeChange = { isDarkModeEnabled ->
                     enableEdgeToEdge(
                         statusBarStyle = SystemBarStyle.auto(
                             Color.TRANSPARENT,
                             Color.TRANSPARENT,
-                        ) { wantUseDarkMode },
+                        ) { isDarkModeEnabled },
 
                         // Used SystemBarStyle.dark() here to force setting
                         //   window.isNavigationBarContrastEnforced = false
@@ -81,15 +62,8 @@ class MainActivity : ComponentActivity() {
                             Color.TRANSPARENT,
                         ),
                     )
-                }
-
-                CompositionLocalProvider(
-                    LocalIsWindowFocused provides
-                        hasWindowFocus.collectAsState().value,
-                ) {
-                    RootContent(component)
-                }
-            }
+                },
+            )
         }
     }
 

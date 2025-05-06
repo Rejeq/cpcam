@@ -17,6 +17,8 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.BuildConfig
 import com.rejeq.cpcam.core.common.ChildComponent
+import com.rejeq.cpcam.core.data.model.ThemeConfig
+import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
@@ -24,7 +26,6 @@ import com.rejeq.cpcam.feature.about.LibrariesComponent
 import com.rejeq.cpcam.feature.about.LibraryComponent
 import com.rejeq.cpcam.feature.about.LibraryState
 import com.rejeq.cpcam.feature.main.MainComponent
-import com.rejeq.cpcam.feature.main.MainNavigation.DialogConfig
 import com.rejeq.cpcam.feature.service.ConnectionErrorComponent
 import com.rejeq.cpcam.feature.service.startEndpointService
 import com.rejeq.cpcam.feature.service.stopEndpointService
@@ -36,6 +37,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -43,6 +46,7 @@ class RootComponent @AssistedInject constructor(
     @Assisted componentContext: ComponentContext,
     @Assisted val mainContext: CoroutineContext,
     @ApplicationContext private val context: Context,
+    appearanceRepo: AppearanceRepository,
     private val endpoint: EndpointHandler,
     private val mainFactory: MainComponent.Factory,
     private val settingsFactory: SettingsComponent.Factory,
@@ -82,6 +86,12 @@ class RootComponent @AssistedInject constructor(
     )
 
     val stack: Value<ChildStack<*, Child>> = _stack
+
+    val useDarkMode = appearanceRepo.themeConfig
+        .stateIn(scope, SharingStarted.Eagerly, ThemeConfig.FOLLOW_SYSTEM)
+
+    val useDynamicColor = appearanceRepo.useDynamicColor
+        .stateIn(scope, SharingStarted.Eagerly, false)
 
     fun onBackClicked() {
         nav.pop()

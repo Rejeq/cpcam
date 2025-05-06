@@ -3,6 +3,9 @@ package com.rejeq.cpcam.ui
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -10,6 +13,9 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.rejeq.cpcam.core.ui.LocalIsWindowFocused
+import com.rejeq.cpcam.core.ui.theme.CpcamTheme
+import com.rejeq.cpcam.core.ui.wantUseDarkMode
 import com.rejeq.cpcam.feature.about.LibrariesContent
 import com.rejeq.cpcam.feature.about.LibraryContent
 import com.rejeq.cpcam.feature.main.MainContent
@@ -17,9 +23,30 @@ import com.rejeq.cpcam.feature.service.ConnectionErrorContent
 import com.rejeq.cpcam.feature.settings.SettingsContent
 import com.rejeq.cpcam.feature.settings.endpoint.EndpointContent
 
-@OptIn(ExperimentalDecomposeApi::class)
 @Composable
-fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
+fun RootContent(
+    component: RootComponent,
+    onDarkModeChange: (isDarkModeEnabled: Boolean) -> Unit,
+    hasWindowFocus: Boolean = true,
+) {
+    val useDarkMode = component.useDarkMode.collectAsState()
+    val useDynamicColor = component.useDynamicColor.collectAsState()
+
+    val wantUseDarkMode = wantUseDarkMode(useDarkMode.value)
+    CpcamTheme(wantUseDarkMode, useDynamicColor.value) {
+        LaunchedEffect(wantUseDarkMode) {
+            onDarkModeChange(wantUseDarkMode)
+        }
+
+        CompositionLocalProvider(LocalIsWindowFocused provides hasWindowFocus) {
+            RootChildren(component)
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalDecomposeApi::class)
+fun RootChildren(component: RootComponent, modifier: Modifier = Modifier) {
     Children(
         modifier = modifier,
         stack = component.stack,
