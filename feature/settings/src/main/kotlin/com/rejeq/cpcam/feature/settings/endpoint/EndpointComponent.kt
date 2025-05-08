@@ -16,13 +16,25 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+interface EndpointComponent : ChildComponent {
+    val endpointConfig: StateFlow<FormState<EndpointConfigForm>>
+    val streamData: StateFlow<FormState<ObsStreamDataForm>>
+    val connectionState: StateFlow<EndpointConnectionState>
+
+    fun onEndpointChange(data: EndpointConfigForm)
+    fun onStreamDataChange(data: ObsStreamDataForm)
+    fun onCheckConnection()
+    fun onFinished()
+}
+
 @OptIn(FlowPreview::class)
-class EndpointComponent @AssistedInject constructor(
+class DefaultEndpointComponent @AssistedInject constructor(
     val endpointRepo: EndpointRepository,
     val streamRepo: StreamRepository,
     val endpointHandler: EndpointHandler,
@@ -30,24 +42,24 @@ class EndpointComponent @AssistedInject constructor(
 
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
-    @Assisted val onFinished: () -> Unit,
-) : ChildComponent,
+    @Assisted("onFinished") val onFinished: () -> Unit,
+) : EndpointComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
     private val _endpointConfig =
         MutableStateFlow<FormState<EndpointConfigForm>>(FormState.Loading)
-    val endpointConfig = _endpointConfig.asStateFlow()
+    override val endpointConfig = _endpointConfig.asStateFlow()
 
     private val _streamData =
         MutableStateFlow<FormState<ObsStreamDataForm>>(FormState.Loading)
-    val streamData = _streamData.asStateFlow()
+    override val streamData = _streamData.asStateFlow()
 
     private var checkEndpointJob: Job? = null
     private val _connectionState = MutableStateFlow<EndpointConnectionState>(
         EndpointConnectionState.NotStarted,
     )
-    val connectionState = _connectionState.asStateFlow()
+    override val connectionState = _connectionState.asStateFlow()
 
     init {
         scope.launch {
@@ -57,12 +69,11 @@ class EndpointComponent @AssistedInject constructor(
 
         scope.launch {
             val obsData = streamRepo.obsData.first()
-
             _streamData.value = FormState.Success(obsData.fromDomain())
         }
     }
 
-    fun updateEndpoint(data: EndpointConfigForm) {
+    override fun onEndpointChange(data: EndpointConfigForm) {
         _endpointConfig.value = FormState.Success(data)
 
         externalScope.launch {
@@ -72,7 +83,7 @@ class EndpointComponent @AssistedInject constructor(
         }
     }
 
-    fun updateStreamData(data: ObsStreamDataForm) {
+    override fun onStreamDataChange(data: ObsStreamDataForm) {
         _streamData.value = FormState.Success(data)
 
         externalScope.launch {
@@ -80,7 +91,7 @@ class EndpointComponent @AssistedInject constructor(
         }
     }
 
-    fun checkEndpointConnection() {
+    override fun onCheckConnection() {
         _connectionState.value = EndpointConnectionState.Connecting
         checkEndpointJob?.cancel()
 
@@ -104,13 +115,15 @@ class EndpointComponent @AssistedInject constructor(
         }
     }
 
+    override fun onFinished() = onFinished.invoke()
+
     @AssistedFactory
     interface Factory {
         fun create(
             componentContext: ComponentContext,
             mainContext: CoroutineContext,
-            onFinished: () -> Unit,
-        ): EndpointComponent
+            @Assisted("onFinished") onFinished: () -> Unit,
+        ): DefaultEndpointComponent
     }
 }
 

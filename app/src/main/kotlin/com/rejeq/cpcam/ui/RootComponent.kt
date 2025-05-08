@@ -25,11 +25,14 @@ import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.feature.about.LibrariesComponent
 import com.rejeq.cpcam.feature.about.LibraryComponent
 import com.rejeq.cpcam.feature.about.LibraryState
+import com.rejeq.cpcam.feature.main.DefaultMainComponent
 import com.rejeq.cpcam.feature.main.MainComponent
 import com.rejeq.cpcam.feature.service.ConnectionErrorComponent
 import com.rejeq.cpcam.feature.service.startEndpointService
 import com.rejeq.cpcam.feature.service.stopEndpointService
+import com.rejeq.cpcam.feature.settings.DefaultSettingsComponent
 import com.rejeq.cpcam.feature.settings.SettingsComponent
+import com.rejeq.cpcam.feature.settings.endpoint.DefaultEndpointComponent
 import com.rejeq.cpcam.feature.settings.endpoint.EndpointComponent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -48,9 +51,9 @@ class RootComponent @AssistedInject constructor(
     @ApplicationContext private val context: Context,
     appearanceRepo: AppearanceRepository,
     private val endpoint: EndpointHandler,
-    private val mainFactory: MainComponent.Factory,
-    private val settingsFactory: SettingsComponent.Factory,
-    private val endpointSettingsFactory: EndpointComponent.Factory,
+    private val mainFactory: DefaultMainComponent.Factory,
+    private val settingsFactory: DefaultSettingsComponent.Factory,
+    private val endpointSettingsFactory: DefaultEndpointComponent.Factory,
 ) : ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 

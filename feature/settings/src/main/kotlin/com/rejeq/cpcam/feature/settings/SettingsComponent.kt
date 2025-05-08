@@ -24,6 +24,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +35,30 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class SettingsComponent @AssistedInject constructor(
+interface SettingsComponent : ChildComponent {
+    val themeConfig: Flow<ThemeConfig>
+    val useDynamicColor: Flow<Boolean>
+    val selectedResolution: Flow<Resolution?>
+    val availableResolution: Flow<List<Resolution>>
+    val selectedFramerate: Flow<Framerate?>
+    val availableFramerates: Flow<List<Framerate>>
+    val keepScreenAwake: Flow<Boolean>
+    val dimScreenDelay: Flow<TextFieldValue>
+    val versionName: String
+
+    fun onThemeConfigChange(themeConfig: ThemeConfig)
+    fun onUseDynamicColorChange(needUse: Boolean)
+    fun onCameraResolutionChange(resolution: Resolution?)
+    fun onCameraFramerateChange(framerate: Framerate?)
+    fun onKeepScreenAwakeChange(enabled: Boolean)
+    fun onDimScreenDelayChange(timeMs: TextFieldValue)
+
+    fun onFinished()
+    fun onLibraryLicensesClick()
+    fun onEndpointClick()
+}
+
+class DefaultSettingsComponent @AssistedInject constructor(
     private val appearanceRepo: AppearanceRepository,
     private val cameraRepo: CameraRepository,
     private val screenRepo: ScreenRepository,
@@ -43,17 +67,17 @@ class SettingsComponent @AssistedInject constructor(
 
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
-    @Assisted val versionName: String,
     @Assisted("onFinished") val onFinished: () -> Unit,
     @Assisted("onLibraryLicensesClick") val onLibraryLicensesClick: () -> Unit,
     @Assisted("onEndpointClick") val onEndpointClick: () -> Unit,
-) : ChildComponent,
+    @Assisted override val versionName: String,
+) : SettingsComponent,
     ComponentContext by componentContext,
     CameraOpExecutor by camOpExecutor {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
-    val themeConfig = appearanceRepo.themeConfig
-    val useDynamicColor = appearanceRepo.useDynamicColor
+    override val themeConfig = appearanceRepo.themeConfig
+    override val useDynamicColor = appearanceRepo.useDynamicColor
 
     private val cameraId: StateFlow<String?> = GetCameraIdOp().invoke()
         .stateIn(
@@ -63,30 +87,30 @@ class SettingsComponent @AssistedInject constructor(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedResolution = cameraId
+    override val selectedResolution = cameraId
         .filterNotNull()
         .flatMapLatest {
             cameraRepo.getResolution(it)
         }
 
-    val availableResolution = GetRecordResolutionsOp(
+    override val availableResolution = GetRecordResolutionsOp(
         // TODO: Do not hardcode
         ImageFormat.YUV_420_888,
     ).invoke()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectedFramerate = cameraId
+    override val selectedFramerate = cameraId
         .filterNotNull()
         .flatMapLatest {
             cameraRepo.getFramerate(it)
         }
 
-    val availableFramerates = GetSupportedFrameratesOp().invoke()
+    override val availableFramerates = GetSupportedFrameratesOp().invoke()
 
-    val keepScreenAwake = screenRepo.keepScreenAwake
+    override val keepScreenAwake = screenRepo.keepScreenAwake
 
     private val _dimScreenDelay = MutableStateFlow(TextFieldValue())
-    val dimScreenDelay = _dimScreenDelay.asStateFlow()
+    override val dimScreenDelay = _dimScreenDelay.asStateFlow()
 
     init {
         scope.launch {
@@ -95,41 +119,49 @@ class SettingsComponent @AssistedInject constructor(
         }
     }
 
-    fun setThemeConfig(themeConfig: ThemeConfig) = externalScope.launch {
-        appearanceRepo.setThemeConfig(themeConfig)
-    }
-
-    fun setUseDynamicColor(needUse: Boolean) = externalScope.launch {
-        appearanceRepo.setUseDynamicColor(needUse)
-    }
-
-    fun setCameraResolution(resolution: Resolution?) = externalScope.launch {
-        val camId = cameraId.value
-        if (camId == null) {
-            Log.e(TAG, "Unable to set camera resolution: Camera id is null")
-            return@launch
+    override fun onThemeConfigChange(themeConfig: ThemeConfig) {
+        externalScope.launch {
+            appearanceRepo.setThemeConfig(themeConfig)
         }
-
-        cameraRepo.setResolution(camId, resolution)
     }
 
-    fun setCameraFramerate(framerate: Framerate?) = externalScope.launch {
-        val camId = cameraId.value
-        if (camId == null) {
-            Log.e(TAG, "Unable to set camera resolution: Camera id is null")
-            return@launch
+    override fun onUseDynamicColorChange(needUse: Boolean) {
+        externalScope.launch {
+            appearanceRepo.setUseDynamicColor(needUse)
         }
-
-        cameraRepo.setFramerate(camId, framerate)
     }
 
-    fun setKeepScreenAwake(enabled: Boolean) {
+    override fun onCameraResolutionChange(resolution: Resolution?) {
+        externalScope.launch {
+            val camId = cameraId.value
+            if (camId == null) {
+                Log.e(TAG, "Unable to set camera resolution: Camera id is null")
+                return@launch
+            }
+
+            cameraRepo.setResolution(camId, resolution)
+        }
+    }
+
+    override fun onCameraFramerateChange(framerate: Framerate?) {
+        externalScope.launch {
+            val camId = cameraId.value
+            if (camId == null) {
+                Log.e(TAG, "Unable to set camera resolution: Camera id is null")
+                return@launch
+            }
+
+            cameraRepo.setFramerate(camId, framerate)
+        }
+    }
+
+    override fun onKeepScreenAwakeChange(enabled: Boolean) {
         externalScope.launch {
             screenRepo.setKeepScreenAwake(enabled)
         }
     }
 
-    fun setDimScreenDelay(timeMs: TextFieldValue) {
+    override fun onDimScreenDelayChange(timeMs: TextFieldValue) {
         _dimScreenDelay.value = timeMs
 
         externalScope.launch {
@@ -137,17 +169,23 @@ class SettingsComponent @AssistedInject constructor(
         }
     }
 
+    override fun onFinished() = onFinished.invoke()
+    override fun onLibraryLicensesClick() = onLibraryLicensesClick.invoke()
+    override fun onEndpointClick() = onEndpointClick.invoke()
+
     @AssistedFactory
     interface Factory {
         fun create(
             componentContext: ComponentContext,
             mainContext: CoroutineContext,
             versionName: String,
-            @Assisted("onFinished") onFinished: () -> Unit,
-            @Assisted("onLibraryLicensesClick") onLibraryLicensesClick:
-            () -> Unit,
-            @Assisted("onEndpointClick") onEndpointClick: () -> Unit,
-        ): SettingsComponent
+            @Assisted("onFinished")
+            onFinished: () -> Unit,
+            @Assisted("onLibraryLicensesClick")
+            onLibraryLicensesClick: () -> Unit,
+            @Assisted("onEndpointClick")
+            onEndpointClick: () -> Unit,
+        ): DefaultSettingsComponent
     }
 }
 

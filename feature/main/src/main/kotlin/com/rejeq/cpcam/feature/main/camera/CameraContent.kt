@@ -10,11 +10,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
 import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
+import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 
 @Composable
 fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
@@ -50,10 +53,10 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
                         permLauncher.launch()
                     }
                     CameraErrorEvent.StartMonitoringDnd -> {
-                        component.startMonitoringDnd()
+                        component.onStartMonitoringDnd()
                     }
                     CameraErrorEvent.StopMonitoringDnd -> {
-                        component.stopMonitoringDnd()
+                        component.onStopMonitoringDnd()
                     }
                 }
             },
@@ -63,8 +66,8 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
         if (request is SurfaceRequestState.Available) {
             CameraPreviewContainer(
                 request = request.value,
-                onShiftZoom = component::shiftZoom,
-                onFocus = component::setFocus,
+                onShiftZoom = component::onShiftZoom,
+                onFocus = component::onSetFocus,
                 focus = component.focusIndicator.collectAsState().value,
             )
         }

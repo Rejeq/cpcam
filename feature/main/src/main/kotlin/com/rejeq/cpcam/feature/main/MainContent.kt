@@ -12,12 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewDynamicColors
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -78,12 +82,12 @@ fun MainContent(
             val isTorchEnabled = component.cam.isTorchEnabled.collectAsState()
 
             InfoBar(
-                onSettingsClick = component.onSettingsClick,
+                onSettingsClick = component::onSettingsClick,
                 onStreamInfoClick = component.nav::showStreamInfo,
                 hasStreamInfo = hasStreamInfo.value,
                 isTorchEnabled = isTorchEnabled.value,
                 hasTorch = hasTorch.value,
-                onTorchClick = component.cam::toggleTorch,
+                onTorchClick = component.cam::onToggleTorch,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
@@ -104,7 +108,7 @@ fun MainContent(
                     }
                 },
                 showSwitchCameraButton = showSwitchCameraButton.value,
-                onSwitchCameraClick = component.cam::switchCamera,
+                onSwitchCameraClick = component.cam::onSwitchCamera,
                 modifier = bottomModifier.fillMaxWidth(),
             )
         },
@@ -261,6 +265,20 @@ fun ActionBar(
             SlideFromEdge(showSwitchCameraButton, Edge.End) {
                 SwitchCameraButton(onClick = onSwitchCameraClick)
             }
+        }
+    }
+}
+
+@Composable
+@PreviewScreenSizes
+@PreviewLightDark
+@PreviewDynamicColors
+fun PreviewMainContent() {
+    CpcamTheme {
+        Surface {
+            MainContent(
+                component = PreviewMainComponent(),
+            )
         }
     }
 }

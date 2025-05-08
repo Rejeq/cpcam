@@ -15,8 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
+import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.preference.AppearanceState
 import com.rejeq.cpcam.feature.settings.preference.AudioState
 import com.rejeq.cpcam.feature.settings.preference.CameraState
@@ -36,7 +39,7 @@ fun SettingsContent(
 ) {
     val streamTitle = stringResource(R.string.pref_group_stream)
     val streamPreferences = remember {
-        makeStreamPreferences(onEndpointClick = component.onEndpointClick)
+        makeStreamPreferences(onEndpointClick = component::onEndpointClick)
     }
 
     val cameraTitle = stringResource(R.string.pref_group_camera)
@@ -57,7 +60,7 @@ fun SettingsContent(
         topBar = {
             CpcamTopBar(
                 title = stringResource(R.string.settings_screen_title),
-                onBackClick = component.onFinished,
+                onBackClick = component::onFinished,
             )
         },
         content = {
@@ -70,7 +73,7 @@ fun SettingsContent(
         footer = {
             AboutApp(
                 versionName = component.versionName,
-                onLicenseClick = component.onLibraryLicensesClick,
+                onLicenseClick = component::onLibraryLicensesClick,
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -95,10 +98,10 @@ fun makeCameraPreferences(
     val state = CameraState(
         availableResolution = component.availableResolution,
         selectedResolution = component.selectedResolution,
-        onResolutionChange = { component.setCameraResolution(it) },
+        onResolutionChange = component::onCameraResolutionChange,
         availableFramerates = component.availableFramerates,
         selectedFramerate = component.selectedFramerate,
-        onFramerateChange = { component.setCameraFramerate(it) },
+        onFramerateChange = component::onCameraFramerateChange,
     )
 
     return cameraPreferences(state)
@@ -119,9 +122,9 @@ fun makeScreenPreferences(
 ): List<PreferenceContent> {
     val state = ScreenState(
         keepScreenAwake = component.keepScreenAwake,
-        onKeepScreenAwakeChange = component::setKeepScreenAwake,
+        onKeepScreenAwakeChange = component::onKeepScreenAwakeChange,
         dimScreenDelay = component.dimScreenDelay,
-        onDimScreenChange = component::setDimScreenDelay,
+        onDimScreenChange = component::onDimScreenDelayChange,
     )
 
     return screenPreferences(state)
@@ -132,9 +135,9 @@ fun makeAppearancePreferences(
 ): List<PreferenceContent> {
     val state = AppearanceState(
         selectedTheme = component.themeConfig,
-        onThemeChange = { component.setThemeConfig(it) },
+        onThemeChange = component::onThemeConfigChange,
         useDynamicColor = component.useDynamicColor,
-        onDynamicColorChange = { component.setUseDynamicColor(it) },
+        onDynamicColorChange = component::onUseDynamicColorChange,
     )
 
     return appearancePreferences(state)
@@ -177,6 +180,17 @@ fun PreferenceGroupHeader(title: String, modifier: Modifier = Modifier) {
             text = title,
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleSmall,
+        )
+    }
+}
+
+@Composable
+@PreviewScreenSizes
+@PreviewLightDark
+fun PreviewSettingsContent() {
+    CpcamTheme {
+        SettingsContent(
+            component = PreviewSettingsComponent(),
         )
     }
 }

@@ -18,6 +18,7 @@ import com.rejeq.cpcam.core.camera.operation.HasFlashUnitOp
 import com.rejeq.cpcam.core.camera.operation.IsTorchEnabledOp
 import com.rejeq.cpcam.core.camera.operation.SetFocusPointForTargetOp
 import com.rejeq.cpcam.core.camera.operation.ShiftZoomOp
+import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.device.DndListener
@@ -29,22 +30,45 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class CameraComponent @AssistedInject constructor(
+interface CameraComponent {
+    val state: StateFlow<CameraStateWrapper>
+    val cameraPermission: String
+    val isCameraPermissionWasLaunched: Flow<Boolean>
+    val hasTorch: StateFlow<Boolean>
+    val isTorchEnabled: StateFlow<Boolean>
+    val focusIndicator: StateFlow<FocusIndicatorState>
+    val target: CameraTarget
+
+    fun onCameraPermissionResult(state: PermissionState)
+    fun onSwitchCamera()
+    fun onToggleTorch()
+    fun onRestartCamera()
+    fun onShiftZoom(zoom: Float)
+    fun onSetFocus(offset: Offset)
+
+    fun onStartMonitoringDnd()
+    fun onStopMonitoringDnd()
+}
+
+class DefaultCameraComponent @AssistedInject constructor(
     private val dndListener: DndListener,
     private val appearanceRepo: AppearanceRepository,
-    val target: PreviewCameraTarget,
+    override val target: PreviewCameraTarget,
     camOpExecutor: CameraOpExecutor,
     @Assisted val onShowPermissionDenied: (String) -> Unit,
     @Assisted private val scope: CoroutineScope,
     @Assisted componentContext: ComponentContext,
-) : ComponentContext by componentContext,
+) : CameraComponent,
+    ComponentContext by componentContext,
     CameraOpExecutor by camOpExecutor {
     init {
         lifecycle.doOnDestroy {
@@ -52,24 +76,23 @@ class CameraComponent @AssistedInject constructor(
         }
     }
 
-    val state = CameraStateOp().invoke().stateIn(
+    override val state = CameraStateOp().invoke().stateIn(
         scope,
         SharingStarted.Eagerly,
         CameraStateWrapper(type = CameraType.Close, error = null),
     )
 
-    val cameraPermission = Manifest.permission.CAMERA
-    val isCameraPermissionWasLaunched = appearanceRepo.permissionWasLaunched(
-        cameraPermission,
-    )
+    override val cameraPermission = Manifest.permission.CAMERA
+    override val isCameraPermissionWasLaunched =
+        appearanceRepo.permissionWasLaunched(cameraPermission)
 
-    fun onCameraPermissionResult(state: PermissionState) {
+    override fun onCameraPermissionResult(state: PermissionState) {
         scope.launch {
             appearanceRepo.launchPermission(cameraPermission)
 
             when (state) {
                 PermissionState.Granted -> {
-                    restartCamera()
+                    onRestartCamera()
                 }
                 PermissionState.PermanentlyDenied -> {
                     onShowPermissionDenied(cameraPermission)
@@ -79,25 +102,25 @@ class CameraComponent @AssistedInject constructor(
         }
     }
 
-    fun switchCamera() {
+    override fun onSwitchCamera() {
         scope.launch {
             CameraSwitchOp().invoke()
         }
     }
 
-    val hasTorch = HasFlashUnitOp().invoke().stateIn(
+    override val hasTorch = HasFlashUnitOp().invoke().stateIn(
         scope,
         SharingStarted.WhileSubscribed(5_000),
         false,
     )
 
-    val isTorchEnabled = IsTorchEnabledOp().invoke().stateIn(
+    override val isTorchEnabled = IsTorchEnabledOp().invoke().stateIn(
         scope,
         SharingStarted.WhileSubscribed(5_000),
         false,
     )
 
-    fun toggleTorch() {
+    override fun onToggleTorch() {
         scope.launch {
             Log.i(TAG, "Toggling torch")
             val newState = !isTorchEnabled.first()
@@ -105,14 +128,14 @@ class CameraComponent @AssistedInject constructor(
         }
     }
 
-    fun restartCamera() {
+    override fun onRestartCamera() {
         scope.launch {
             Log.i(TAG, "Reopening camera")
             target.start()
         }
     }
 
-    fun shiftZoom(zoom: Float) {
+    override fun onShiftZoom(zoom: Float) {
         scope.launch {
             ShiftZoomOp(zoom, linear = true).invoke()
         }
@@ -121,10 +144,10 @@ class CameraComponent @AssistedInject constructor(
     private val _focusIndicator = MutableStateFlow<FocusIndicatorState>(
         FocusIndicatorState.Disabled,
     )
-    val focusIndicator = _focusIndicator.asStateFlow()
+    override val focusIndicator = _focusIndicator.asStateFlow()
 
     private var focusJob: Job? = null
-    fun setFocus(offset: Offset) {
+    override fun onSetFocus(offset: Offset) {
         focusJob?.cancel()
         focusJob = scope.launch {
             val intOffset = IntOffset(offset.x.toInt(), offset.y.toInt())
@@ -154,7 +177,7 @@ class CameraComponent @AssistedInject constructor(
         }
     }
 
-    fun startMonitoringDnd() {
+    override fun onStartMonitoringDnd() {
         // This should never happen, since this error happens only in android 9
         // see camerax CameraState.ERROR_DO_NOT_DISTURB_MODE_ENABLED
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -163,18 +186,18 @@ class CameraComponent @AssistedInject constructor(
         }
 
         if (dndListener.currentState == DndState.Disabled) {
-            restartCamera()
+            onRestartCamera()
             return
         }
 
         dndListener.start { event ->
             if (event == DndState.Disabled) {
-                restartCamera()
+                onRestartCamera()
             }
         }
     }
 
-    fun stopMonitoringDnd() {
+    override fun onStopMonitoringDnd() {
         dndListener.stop()
     }
 
@@ -184,7 +207,7 @@ class CameraComponent @AssistedInject constructor(
             scope: CoroutineScope,
             componentContext: ComponentContext,
             onShowPermissionDenied: (String) -> Unit,
-        ): CameraComponent
+        ): DefaultCameraComponent
     }
 }
 

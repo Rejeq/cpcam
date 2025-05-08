@@ -15,9 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
 import com.rejeq.cpcam.core.ui.clearFocusOnTap
+import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.R
 
 @Composable
@@ -30,17 +33,17 @@ fun EndpointContent(
         topBar = {
             CpcamTopBar(
                 title = stringResource(R.string.pref_stream_service_title),
-                onBackClick = component.onFinished,
+                onBackClick = component::onFinished,
             )
         },
     ) {
         EndpointSettingsContent(
             endpointFormState = component.endpointConfig.collectAsState().value,
-            onEndpointChange = component::updateEndpoint,
+            onEndpointChange = component::onEndpointChange,
             streamDataState = component.streamData.collectAsState().value,
-            onStreamDataChange = component::updateStreamData,
+            onStreamDataChange = component::onStreamDataChange,
             connectionState = component.connectionState.collectAsState().value,
-            onCheckConnection = component::checkEndpointConnection,
+            onCheckConnection = component::onCheckConnection,
         )
     }
 }
@@ -91,4 +94,15 @@ private fun ColumnScope.EndpointSettingsContent(
         onChange = onStreamDataChange,
         modifier = Modifier.focusGroup(),
     )
+}
+
+@Composable
+@PreviewScreenSizes
+@PreviewLightDark
+fun PreviewEndpointContent() {
+    CpcamTheme {
+        EndpointContent(
+            component = PreviewEndpointComponent(),
+        )
+    }
 }
