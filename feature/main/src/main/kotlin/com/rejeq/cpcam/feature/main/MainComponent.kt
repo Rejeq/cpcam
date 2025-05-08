@@ -17,10 +17,13 @@ import dagger.assisted.AssistedInject
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainComponent @AssistedInject constructor(
@@ -51,18 +54,35 @@ class MainComponent @AssistedInject constructor(
 
     // TODO:
 //    val showStreamButton = endpointHandler.canBeStarted
-    val showStreamButton = flowOf(true)
+    val showStreamButton = MutableStateFlow(true).asStateFlow()
 
     val showSwitchCameraButton = cam.state.map {
         it.error != CameraError.PermissionDenied
-    }
+    }.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
 
     val showInfoButton = endpointHandler.state.map {
         it is EndpointState.Started
-    }
+    }.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
 
-    val keepScreenAwake = screenRepo.keepScreenAwake
-    val dimScreenDelay = screenRepo.dimScreenDelay
+    val keepScreenAwake = screenRepo.keepScreenAwake.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
+
+    val dimScreenDelay = screenRepo.dimScreenDelay.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        null,
+    )
 
     init {
         endpoint.state

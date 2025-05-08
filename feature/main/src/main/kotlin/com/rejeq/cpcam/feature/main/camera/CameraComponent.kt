@@ -85,8 +85,17 @@ class CameraComponent @AssistedInject constructor(
         }
     }
 
-    val hasTorch = HasFlashUnitOp().invoke()
-    val isTorchEnabled = IsTorchEnabledOp().invoke()
+    val hasTorch = HasFlashUnitOp().invoke().stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
+
+    val isTorchEnabled = IsTorchEnabledOp().invoke().stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
 
     fun toggleTorch() {
         scope.launch {

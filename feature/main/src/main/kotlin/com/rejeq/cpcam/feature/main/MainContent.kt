@@ -61,9 +61,9 @@ fun MainContent(
         dimScreenAllowed &&
         dialogInstance == null
     val keepScreenAwake = dimScreenPossible &&
-        component.keepScreenAwake.collectAsState(false).value
+        component.keepScreenAwake.collectAsState().value
 
-    val dimScreenDelay = component.dimScreenDelay.collectAsState(null).value
+    val dimScreenDelay = component.dimScreenDelay.collectAsState().value
 
     MainScreenLayout(
         keepScreenAwake = keepScreenAwake,
@@ -73,10 +73,9 @@ fun MainContent(
             CameraContent(component.cam)
         },
         top = {
-            val hasStreamInfo = component.showInfoButton.collectAsState(false)
-            val hasTorch = component.cam.hasTorch.collectAsState(false)
-            val isTorchEnabled = component.cam.isTorchEnabled
-                .collectAsState(false)
+            val hasStreamInfo = component.showInfoButton.collectAsState()
+            val hasTorch = component.cam.hasTorch.collectAsState()
+            val isTorchEnabled = component.cam.isTorchEnabled.collectAsState()
 
             InfoBar(
                 onSettingsClick = component.onSettingsClick,
@@ -90,10 +89,9 @@ fun MainContent(
         },
         bottom = { bottomModifier ->
             val streamState = component.streamButtonState
-            val showStreamButton = component.showStreamButton
-                .collectAsState(false)
+            val showStreamButton = component.showStreamButton.collectAsState()
             val showSwitchCameraButton = component.showSwitchCameraButton
-                .collectAsState(false)
+                .collectAsState()
 
             ActionBar(
                 streamButtonState = streamState,
