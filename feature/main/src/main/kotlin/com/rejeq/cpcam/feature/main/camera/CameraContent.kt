@@ -10,14 +10,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
 import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
-import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 
 @Composable
 fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {

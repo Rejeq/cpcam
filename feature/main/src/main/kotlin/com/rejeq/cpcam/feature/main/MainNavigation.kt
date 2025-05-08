@@ -7,7 +7,6 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
-import com.rejeq.cpcam.feature.main.DefaultMainNavigation.DialogConfig
 import com.rejeq.cpcam.feature.main.MainNavigation.Dialog
 import com.rejeq.cpcam.feature.main.info.InfoComponent
 import kotlinx.serialization.Serializable

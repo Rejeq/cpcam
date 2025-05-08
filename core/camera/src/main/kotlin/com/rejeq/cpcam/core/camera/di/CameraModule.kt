@@ -18,8 +18,6 @@ import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.Executor
 import javax.inject.Qualifier
 import javax.inject.Singleton
-import kotlin.annotation.AnnotationTarget
-import kotlin.annotation.Target
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 

@@ -5,7 +5,6 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.util.Log
-import kotlin.collections.mutableListOf
 
 /**
  * This file provides utility methods for managing camera switching
