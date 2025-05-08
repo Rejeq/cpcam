@@ -23,6 +23,22 @@ class CameraLifecycle(
     private val lifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = lifecycleRegistry
 
+    /**
+     * Flag to indicate that a stop request has been issued but hasn't yet been
+     * executed.
+     *
+     * This is needed to handle a race condition during configuration changes:
+     * when `lifecycle.stop()` is called, the actual stop occurs on the next
+     * Looper cycle. During this window, the lifecycle is still technically
+     * "started", so any call to `lifecycle.start()` is skipped in
+     * [CameraSource], assuming the lifecycle is already active. As a result,
+     * the camera may never be restarted.
+     *
+     * By tracking this intermediate state, we can avoid incorrectly skipping a
+     * necessary start call when a stop is pending but not yet applied.
+     */
+    private var aboutToStop = false
+
     private var cameraProvider: ProcessCameraProvider? = null
 
     private val _camera = MutableStateFlow<Camera?>(null)
@@ -35,7 +51,8 @@ class CameraLifecycle(
      * @return `true` if the lifecycle is in the [Lifecycle.State.STARTED]
      *         state, `false` otherwise.
      */
-    fun isStarted() = lifecycle.currentState == Lifecycle.State.STARTED
+    fun isStarted() =
+        !aboutToStop && lifecycle.currentState == Lifecycle.State.STARTED
 
     /**
      * Starts the camera pipeline.
@@ -68,7 +85,9 @@ class CameraLifecycle(
      *       thread managed by the [mainExecutor].
      */
     fun stop() {
+        aboutToStop = true
         executor.execute {
+            aboutToStop = false
             lifecycleRegistry.currentState = Lifecycle.State.CREATED
         }
     }
