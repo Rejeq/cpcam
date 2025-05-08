@@ -27,7 +27,6 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
 
         onDispose {
             lifecycle.lifecycle.removeObserver(observer)
-            target.stop()
         }
     }
 
