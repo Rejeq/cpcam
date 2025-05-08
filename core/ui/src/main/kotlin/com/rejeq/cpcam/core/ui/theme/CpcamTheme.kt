@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 fun CpcamTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
-    useDynamicColor: Boolean = false,
+    useDynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
