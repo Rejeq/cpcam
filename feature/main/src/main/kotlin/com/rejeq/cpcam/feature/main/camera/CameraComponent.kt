@@ -16,7 +16,7 @@ import com.rejeq.cpcam.core.camera.operation.EnableTorchOp
 import com.rejeq.cpcam.core.camera.operation.FocusError
 import com.rejeq.cpcam.core.camera.operation.HasFlashUnitOp
 import com.rejeq.cpcam.core.camera.operation.IsTorchEnabledOp
-import com.rejeq.cpcam.core.camera.operation.SetFocusPointOp
+import com.rejeq.cpcam.core.camera.operation.SetFocusPointForTargetOp
 import com.rejeq.cpcam.core.camera.operation.ShiftZoomOp
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
@@ -131,15 +131,12 @@ class CameraComponent @AssistedInject constructor(
 
             _focusIndicator.value = FocusIndicatorState.Focusing(intOffset)
 
-            val point = target.getPoint(offset.x, offset.y)
-            if (point == null) {
-                Log.w(TAG, "Failed to set focus: Unable to get point")
-                _focusIndicator.value = FocusIndicatorState.Disabled
-                return@launch
-            }
-
             launch {
-                val err = SetFocusPointOp(point).invoke()
+                val err = SetFocusPointForTargetOp(
+                    offset.x,
+                    offset.y,
+                    target,
+                ).invoke()
 
                 if (_focusIndicator.value is FocusIndicatorState.Focusing) {
                     _focusIndicator.value = when (err) {

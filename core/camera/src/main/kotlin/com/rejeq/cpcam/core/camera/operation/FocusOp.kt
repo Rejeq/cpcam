@@ -4,7 +4,31 @@ import android.util.Log
 import androidx.camera.core.CameraControl
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.MeteringPoint
+import com.rejeq.cpcam.core.camera.target.CameraTarget
 import kotlinx.coroutines.guava.await
+
+/**
+ * Operation to set the camera focus point relative a specific target.
+ *
+ * @property x The x-coordinate of the point
+ * @property y The y-coordinate of the point
+ * @property target The target for which to set the focus point
+ */
+class SetFocusPointForTargetOp(
+    val x: Float,
+    val y: Float,
+    val target: CameraTarget,
+) : AsyncCameraOperation<FocusError?> {
+    override suspend fun CameraOpExecutor.invoke(): FocusError? {
+        val point = target.getPoint(x, y)
+        if (point == null) {
+            Log.w(TAG, "Failed to set focus: Unable to get point")
+            return FocusError.FocusFailed
+        }
+
+        return SetFocusPointOp(point).invoke()
+    }
+}
 
 /**
  * Operation to set the camera focus point.

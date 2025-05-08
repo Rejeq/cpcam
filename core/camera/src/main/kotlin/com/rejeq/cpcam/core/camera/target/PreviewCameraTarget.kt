@@ -56,6 +56,6 @@ class PreviewCameraTarget @Inject constructor(
         _surfaceRequest.value = SurfaceRequestState.Stopped
     }
 
-    fun getPoint(x: Float, y: Float): MeteringPoint? =
+    override fun getPoint(x: Float, y: Float): MeteringPoint? =
         meteringPointFactory?.createPoint(x, y)
 }

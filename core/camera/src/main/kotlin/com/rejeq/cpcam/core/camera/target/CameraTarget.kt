@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.core.camera.target
 
+import androidx.camera.core.MeteringPoint
 import androidx.camera.core.SurfaceRequest
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -16,6 +17,8 @@ interface CameraTarget {
     fun start()
 
     fun stop()
+
+    fun getPoint(x: Float, y: Float): MeteringPoint? = null
 }
 
 sealed interface SurfaceRequestState {
