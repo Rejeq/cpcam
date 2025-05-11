@@ -1,6 +1,7 @@
 package com.rejeq.cpcam.feature.settings.preference
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -9,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastForEachIndexed
-import com.rejeq.cpcam.core.common.mapFilteredToImmutableList
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.ui.isFollowDarkModeSupported
 import com.rejeq.cpcam.core.ui.theme.isDynamicThemingSupported
@@ -56,32 +56,19 @@ fun ThemeConfigPreference(
 ) {
     val ctx = LocalContext.current
 
-    val entries = ThemeConfig.entries.mapFilteredToImmutableList(
-        filter = {
-            when (it) {
-                ThemeConfig.FOLLOW_SYSTEM -> ctx.isFollowDarkModeSupported()
-                else -> true
-            }
-        },
-        transform = {
-            when (it) {
-                ThemeConfig.FOLLOW_SYSTEM ->
-                    stringResource(R.string.pref_theme_follow_system)
-                ThemeConfig.LIGHT ->
-                    stringResource(R.string.pref_theme_light)
-                ThemeConfig.DARK ->
-                    stringResource(R.string.pref_theme_dark)
-            }
-        },
-    )
+    val entries = ThemeConfig.entries.filter {
+        when (it) {
+            ThemeConfig.FOLLOW_SYSTEM -> ctx.isFollowDarkModeSupported()
+            else -> true
+        }
+    }
 
-    val selectedEntry = selected?.let { entries[it.ordinal] }
     val showDialog = rememberSaveable { mutableStateOf(false) }
 
     ListDialogItem(
         title = stringResource(R.string.pref_theme_title),
         subtitle = stringResource(R.string.pref_theme_desc),
-        selected = selectedEntry,
+        selected = selected?.toStringResource(),
         isDialogShown = showDialog.value,
         onDialogDismiss = { showDialog.value = false },
         onItemClick = { showDialog.value = true },
@@ -90,10 +77,10 @@ fun ThemeConfigPreference(
         entries.fastForEachIndexed { idx, entry ->
             item {
                 DialogSelectableRow(
-                    label = entry,
-                    isSelected = (entries.indexOf(selectedEntry) == idx),
+                    label = entry.toStringResource(),
+                    isSelected = (entries.indexOf(selected) == idx),
                     onSelect = {
-                        onChange(ThemeConfig.entries[idx])
+                        onChange(entries[idx])
                         showDialog.value = false
                     },
                 )
@@ -116,4 +103,15 @@ fun UseDynamicColorPreference(
         modifier = modifier,
         enabled = checked != null,
     )
+}
+
+@Composable
+@ReadOnlyComposable
+private fun ThemeConfig.toStringResource(): String = when (this) {
+    ThemeConfig.FOLLOW_SYSTEM ->
+        stringResource(R.string.pref_theme_follow_system)
+    ThemeConfig.LIGHT ->
+        stringResource(R.string.pref_theme_light)
+    ThemeConfig.DARK ->
+        stringResource(R.string.pref_theme_dark)
 }
