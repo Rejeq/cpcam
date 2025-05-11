@@ -40,6 +40,17 @@ class EndpointRepository @Inject constructor(
     }
 
     /**
+     * Sets the current active endpoint type.
+     *
+     * @param type The [EndpointType] to set for the source. This will be
+     *        converted to the appropriate data store representation.
+     * @return Result of the preference update
+     */
+    suspend fun setEndpointType(type: EndpointType) = source.tryEdit {
+        this.endpointType = type.toDataStore()
+    }
+
+    /**
      * Updates OBS endpoint configuration.
      *
      * @param config New OBS endpoint configuration

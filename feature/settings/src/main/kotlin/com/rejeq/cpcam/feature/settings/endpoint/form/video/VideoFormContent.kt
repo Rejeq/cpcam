@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.settings.endpoint
+package com.rejeq.cpcam.feature.settings.endpoint.form.video
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,43 +11,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.feature.settings.R
+import com.rejeq.cpcam.feature.settings.endpoint.EnumEntry
+import com.rejeq.cpcam.feature.settings.endpoint.form.FormContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.FormState
 import com.rejeq.cpcam.feature.settings.input.Input
 import com.rejeq.cpcam.feature.settings.input.ResolutionInput
-import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
-import com.rejeq.cpcam.feature.settings.item.ListDialogItem
-import kotlin.enums.enumEntries
 
 @Composable
 fun VideoConfigForm(
-    state: FormState<VideoConfigForm>,
-    onChange: (VideoConfigForm) -> Unit,
+    state: FormState<VideoConfigFormState>,
+    onChange: (VideoConfigFormState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded = rememberSaveable { mutableStateOf(false) }
 
-    Form(
+    FormContent(
         state = state,
         title = stringResource(R.string.endpoint_video_config_form_title),
         modifier = modifier,
         expandable = true,
         isExpanded = isExpanded.value,
         onHeaderClick = { isExpanded.value = !isExpanded.value },
-    ) { config ->
-        VideoConfigForm(
-            state = config,
+    ) { state ->
+        VideoConfigFormContent(
+            state = state,
             onChange = onChange,
         )
     }
 }
 
 @Composable
-fun VideoConfigForm(
-    state: VideoConfigForm,
-    onChange: (VideoConfigForm) -> Unit,
+fun VideoConfigFormContent(
+    state: VideoConfigFormState,
+    onChange: (VideoConfigFormState) -> Unit,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -89,41 +88,5 @@ fun VideoConfigForm(
             value = state.resolution,
             onValueChange = { onChange(state.copy(resolution = it)) },
         )
-    }
-}
-
-@Composable
-inline fun <reified T : Enum<T>> EnumEntry(
-    title: String,
-    subtitle: String,
-    selected: T?,
-    crossinline onChange: (T) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val showDialog = rememberSaveable { mutableStateOf(false) }
-
-    ListDialogItem(
-        title = title,
-        subtitle = subtitle,
-        selected = selected?.toString() ?: "",
-        isDialogShown = showDialog.value,
-        onDialogDismiss = { showDialog.value = false },
-        onItemClick = { showDialog.value = true },
-        modifier = modifier,
-    ) {
-        val entries = enumEntries<T>()
-
-        entries.fastForEachIndexed { idx, entry ->
-            item {
-                DialogSelectableRow(
-                    label = entry.toString(),
-                    isSelected = (entries.indexOf(selected) == idx),
-                    onSelect = {
-                        onChange(entry)
-                        showDialog.value = false
-                    },
-                )
-            }
-        }
     }
 }

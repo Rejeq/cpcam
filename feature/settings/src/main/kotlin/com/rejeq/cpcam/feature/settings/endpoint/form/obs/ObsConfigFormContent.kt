@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.settings.endpoint
+package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,44 +19,47 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.feature.settings.R
+import com.rejeq.cpcam.feature.settings.endpoint.ObsConnectionState
+import com.rejeq.cpcam.feature.settings.endpoint.form.FormContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.FormState
 import com.rejeq.cpcam.feature.settings.input.Input
 import com.rejeq.cpcam.feature.settings.input.PasswordInput
 import com.rejeq.cpcam.feature.settings.input.selectAll
 
 @Composable
-fun EndpointForm(
-    state: FormState<EndpointConfigForm>,
-    onChange: (EndpointConfigForm) -> Unit,
-    onCheckConnection: () -> Unit,
-    connectionState: EndpointConnectionState,
+fun ObsConfigForm(
+    state: FormState<ObsConfigFormState>,
+    onChange: (ObsConfigFormState) -> Unit,
+    onCheckConnection: (ObsConfigFormState) -> Unit,
+    connectionState: ObsConnectionState,
     modifier: Modifier = Modifier,
 ) {
-    Form(
+    FormContent(
         state = state,
         title = stringResource(R.string.endpoint_form_title),
         modifier = modifier,
         expandable = false,
-    ) { config ->
-        when (config) {
-            is ObsConfigForm -> ObsEndpointForm(
-                config,
-                onChange = onChange,
-                onCheckConnection = onCheckConnection,
-                connectionState = connectionState,
-            )
-        }
+    ) { state ->
+        ObsConfigFormContent(
+            state = state,
+            onChange = onChange,
+            onCheckConnection = onCheckConnection,
+            connectionState = connectionState,
+        )
     }
 }
 
 @Composable
-fun ObsEndpointForm(
-    state: ObsConfigForm,
-    onChange: (ObsConfigForm) -> Unit,
-    onCheckConnection: () -> Unit,
-    connectionState: EndpointConnectionState,
+fun ObsConfigFormContent(
+    state: ObsConfigFormState,
+    onChange: (ObsConfigFormState) -> Unit,
+    onCheckConnection: (ObsConfigFormState) -> Unit,
+    connectionState: ObsConnectionState,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier,
     ) {
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
@@ -108,31 +111,42 @@ fun ObsEndpointForm(
             keyboardActions = KeyboardActions(
                 onDone = {
                     keyboardController?.hide()
-                    onCheckConnection()
+                    onCheckConnection(state)
                 },
             ),
         )
 
         Spacer(Modifier.requiredHeight(12.dp))
 
-        Button(
-            onClick = onCheckConnection,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                text = stringResource(
-                    R.string.endpoint_service_check_connection,
-                ),
-            )
-        }
-
-        val msg = when (connectionState) {
-            EndpointConnectionState.NotStarted -> ""
-            EndpointConnectionState.Failed -> "Failure"
-            EndpointConnectionState.Connecting -> "Connecting"
-            EndpointConnectionState.Success -> "Success"
-        }
-
-        Text(text = msg)
+        ConnectionChecker(
+            connectionState = connectionState,
+            onCheckConnection = { onCheckConnection(state) },
+        )
     }
+}
+
+@Composable
+private fun ConnectionChecker(
+    connectionState: ObsConnectionState,
+    onCheckConnection: () -> Unit,
+) {
+    Button(
+        onClick = onCheckConnection,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = stringResource(
+                R.string.endpoint_service_check_connection,
+            ),
+        )
+    }
+
+    val msg = when (connectionState) {
+        ObsConnectionState.NotStarted -> ""
+        ObsConnectionState.Failed -> "Failure"
+        ObsConnectionState.Connecting -> "Connecting"
+        ObsConnectionState.Success -> "Success"
+    }
+
+    Text(text = msg)
 }

@@ -1,13 +1,10 @@
 package com.rejeq.cpcam.feature.settings.endpoint
 
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -22,6 +19,8 @@ import com.rejeq.cpcam.core.ui.CpcamTopBar
 import com.rejeq.cpcam.core.ui.clearFocusOnTap
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.R
+import com.rejeq.cpcam.feature.settings.endpoint.form.EndpointFormContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.EndpointFormState
 
 @Composable
 fun EndpointContent(
@@ -38,12 +37,8 @@ fun EndpointContent(
         },
     ) {
         EndpointSettingsContent(
-            endpointFormState = component.endpointConfig.collectAsState().value,
-            onEndpointChange = component::onEndpointChange,
-            streamDataState = component.streamData.collectAsState().value,
-            onStreamDataChange = component::onStreamDataChange,
-            connectionState = component.connectionState.collectAsState().value,
-            onCheckConnection = component::onCheckConnection,
+            endpointFormState = component.endpointFormState
+                .collectAsState().value,
         )
     }
 }
@@ -72,28 +67,13 @@ private fun EndpointSettingsLayout(
 
 @Composable
 private fun ColumnScope.EndpointSettingsContent(
-    endpointFormState: FormState<EndpointConfigForm>,
-    onEndpointChange: (EndpointConfigForm) -> Unit,
-    streamDataState: FormState<ObsStreamDataForm>,
-    onStreamDataChange: (ObsStreamDataForm) -> Unit,
-    connectionState: EndpointConnectionState,
-    onCheckConnection: () -> Unit,
+    endpointFormState: EndpointFormState?,
 ) {
-    EndpointForm(
-        state = endpointFormState,
-        onChange = onEndpointChange,
-        onCheckConnection = onCheckConnection,
-        connectionState = connectionState,
-        modifier = Modifier.focusGroup(),
-    )
-
-    Spacer(Modifier.requiredHeight(48.dp))
-
-    StreamDataForm(
-        state = streamDataState,
-        onChange = onStreamDataChange,
-        modifier = Modifier.focusGroup(),
-    )
+    if (endpointFormState != null) {
+        EndpointFormContent(
+            state = endpointFormState,
+        )
+    }
 }
 
 @Composable

@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.settings.endpoint
+package com.rejeq.cpcam.feature.settings.endpoint.form
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -22,7 +22,7 @@ import com.rejeq.cpcam.core.ui.R as CoreR
 import com.rejeq.cpcam.feature.settings.R
 
 @Composable
-fun <T> Form(
+fun <T> FormContent(
     state: FormState<T>,
     title: String,
     modifier: Modifier = Modifier,

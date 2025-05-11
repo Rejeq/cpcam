@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.settings.endpoint
+package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,35 +17,39 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.feature.settings.R
+import com.rejeq.cpcam.feature.settings.endpoint.EnumEntry
+import com.rejeq.cpcam.feature.settings.endpoint.form.FormContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.FormState
+import com.rejeq.cpcam.feature.settings.endpoint.form.video.VideoConfigFormContent
 import com.rejeq.cpcam.feature.settings.input.Input
 
 @Composable
 fun StreamDataForm(
-    state: FormState<ObsStreamDataForm>,
-    onChange: (ObsStreamDataForm) -> Unit,
+    state: FormState<ObsStreamFormState>,
+    onChange: (ObsStreamFormState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded = rememberSaveable { mutableStateOf(false) }
 
-    Form(
+    FormContent(
         state = state,
         title = stringResource(R.string.endpoint_stream_data_form_title),
         modifier = modifier,
         expandable = true,
         isExpanded = isExpanded.value,
         onHeaderClick = { isExpanded.value = !isExpanded.value },
-    ) { data ->
-        StreamDataForm(
-            state = data,
+    ) { state ->
+        StreamDataFormContent(
+            state = state,
             onChange = onChange,
         )
     }
 }
 
 @Composable
-fun StreamDataForm(
-    state: ObsStreamDataForm,
-    onChange: (ObsStreamDataForm) -> Unit,
+fun StreamDataFormContent(
+    state: ObsStreamFormState,
+    onChange: (ObsStreamFormState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -79,7 +83,7 @@ fun StreamDataForm(
 
         Spacer(Modifier.requiredHeight(48.dp))
 
-        VideoConfigForm(
+        VideoConfigFormContent(
             state = state.videoConfig,
             onChange = { onChange(state.copy(videoConfig = it)) },
         )
