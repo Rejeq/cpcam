@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
@@ -60,46 +59,40 @@ fun MainContent(
     }
 
     val isWindowFocused = LocalIsWindowFocused.current
-
-    val dimScreenPossible = isWindowFocused &&
-        dimScreenAllowed &&
-        dialogInstance == null
-    val keepScreenAwake = dimScreenPossible &&
-        component.keepScreenAwake.collectAsState().value
-
+    val shouldKeepScreenAwake = component.keepScreenAwake.collectAsState().value
     val dimScreenDelay = component.dimScreenDelay.collectAsState().value
 
+    // Screen has unimportant content only when
+    // - The user focused in our window
+    // - Doesn't have any active dialog
+    // - If parent composable doesn't have important content
+    val hasUnimportantContent =
+        isWindowFocused && dialogInstance == null && dimScreenAllowed
+
     MainScreenLayout(
-        keepScreenAwake = keepScreenAwake,
-        dimScreenDelay = if (dimScreenPossible) dimScreenDelay else null,
-        modifier = modifier.fillMaxSize(),
+        keepScreenAwake = hasUnimportantContent && shouldKeepScreenAwake,
+        dimScreenDelay = if (hasUnimportantContent) dimScreenDelay else null,
+        modifier = modifier,
         background = {
             CameraContent(component.cam)
         },
         top = {
-            val hasStreamInfo = component.showInfoButton.collectAsState()
-            val hasTorch = component.cam.hasTorch.collectAsState()
-            val isTorchEnabled = component.cam.isTorchEnabled.collectAsState()
-
             InfoBar(
                 onSettingsClick = component::onSettingsClick,
                 onStreamInfoClick = component.nav::showStreamInfo,
-                hasStreamInfo = hasStreamInfo.value,
-                isTorchEnabled = isTorchEnabled.value,
-                hasTorch = hasTorch.value,
+                hasStreamInfo = component.showInfoButton.collectAsState().value,
+                isTorchEnabled = component.cam.isTorchEnabled
+                    .collectAsState().value,
+                hasTorch = component.cam.hasTorch.collectAsState().value,
                 onTorchClick = component.cam::onToggleTorch,
                 modifier = Modifier.fillMaxWidth(),
             )
         },
         bottom = { bottomModifier ->
             val streamState = component.streamButtonState
-            val showStreamButton = component.showStreamButton.collectAsState()
-            val showSwitchCameraButton = component.showSwitchCameraButton
-                .collectAsState()
 
             ActionBar(
                 streamButtonState = streamState,
-                showStreamButton = showStreamButton.value,
                 onStreamClick = {
                     when (streamState.animTarget) {
                         MorphIconTarget.Stopped -> component.onStartEndpoint()
@@ -107,7 +100,10 @@ fun MainContent(
                         MorphIconTarget.Started -> component.onStopEndpoint()
                     }
                 },
-                showSwitchCameraButton = showSwitchCameraButton.value,
+                showStreamButton = component.showStreamButton
+                    .collectAsState().value,
+                showSwitchCameraButton = component.showSwitchCameraButton
+                    .collectAsState().value,
                 onSwitchCameraClick = component.cam::onSwitchCamera,
                 modifier = bottomModifier.fillMaxWidth(),
             )
@@ -136,7 +132,7 @@ fun MainScreenLayout(
                 .lockOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                 .keepScreenAwake(keepScreenAwake)
                 .detectUserActivity(
-                    enabled = keepScreenAwake == true && dimScreenDelay != null,
+                    enabled = dimScreenDelay != null,
                     inactivityDelay = dimScreenDelay ?: 0L,
                     lifecycle = lifecycle.lifecycle,
                 ) { isActive ->
