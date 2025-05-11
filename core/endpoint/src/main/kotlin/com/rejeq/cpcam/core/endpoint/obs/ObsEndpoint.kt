@@ -42,10 +42,7 @@ class ObsEndpoint @AssistedInject constructor(
             streamHandler.start(data)
         }
 
-        val connState = connJob.await()
-        val streamState = streamJob.await()
-
-        getState(connState, streamState)
+        getState(connJob.await(), streamJob.await())
     }
 
     override suspend fun disconnect(): EndpointState {
