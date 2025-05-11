@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.rejeq.cpcam.core.device.dimScreen
-import com.rejeq.cpcam.core.device.keepScreenAwake
 import com.rejeq.cpcam.core.device.restoreScreenBrightness
 import com.rejeq.cpcam.core.ui.DeviceOrientation
 import com.rejeq.cpcam.core.ui.Edge
@@ -37,6 +36,7 @@ import com.rejeq.cpcam.core.ui.MorphIconTarget
 import com.rejeq.cpcam.core.ui.ProvideDeviceOrientation
 import com.rejeq.cpcam.core.ui.SlideFromEdge
 import com.rejeq.cpcam.core.ui.adaptiveRotation
+import com.rejeq.cpcam.core.ui.keepScreenAwake
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.main.camera.CameraContent
 import com.rejeq.cpcam.feature.main.info.InfoContent
@@ -140,21 +140,11 @@ fun MainScreenLayout(
     val window = LocalActivity.current?.window
     val lifecycle = LocalLifecycleOwner.current
 
-    if (window != null) {
-        DisposableEffect(keepScreenAwake) {
-            keepScreenAwake(window, keepScreenAwake)
-
-            onDispose {
-                keepScreenAwake(window, false)
-                restoreScreenBrightness(window)
-            }
-        }
-    }
-
     ProvideDeviceOrientation(DeviceOrientation.Portrait) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier
+                .keepScreenAwake(keepScreenAwake)
                 .detectUserActivity(
                     enabled = keepScreenAwake == true && dimScreenDelay != null,
                     inactivityDelay = dimScreenDelay ?: 0L,

@@ -113,6 +113,10 @@ private class UserActivityDetectorNode(
     override fun onDetach() {
         super.onDetach()
 
+        // Restore activity to active state, so that caller can clear applied
+        // side effects
+        updateActivity(true)
+
         lifecycle.removeObserver(observer)
         stopActivityCheck()
     }
@@ -157,8 +161,10 @@ private class UserActivityDetectorNode(
     }
 
     private fun updateActivity(newIsActive: Boolean) {
-        isActive = newIsActive
-        onActivityChange(newIsActive)
+        if (isActive != newIsActive) {
+            isActive = newIsActive
+            onActivityChange(newIsActive)
+        }
     }
 
     fun update(
