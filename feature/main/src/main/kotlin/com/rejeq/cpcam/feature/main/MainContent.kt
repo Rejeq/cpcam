@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +36,7 @@ import com.rejeq.cpcam.core.ui.ProvideDeviceOrientation
 import com.rejeq.cpcam.core.ui.SlideFromEdge
 import com.rejeq.cpcam.core.ui.adaptiveRotation
 import com.rejeq.cpcam.core.ui.keepScreenAwake
+import com.rejeq.cpcam.core.ui.lockOrientation
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.main.camera.CameraContent
 import com.rejeq.cpcam.feature.main.info.InfoContent
@@ -126,17 +126,6 @@ fun MainScreenLayout(
 ) {
     val actionBarPadding = 56.dp
 
-    val activity = LocalActivity.current
-    DisposableEffect(Unit) {
-        activity?.requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
-        onDispose {
-            activity?.requestedOrientation =
-                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
-    }
-
     val window = LocalActivity.current?.window
     val lifecycle = LocalLifecycleOwner.current
 
@@ -144,6 +133,7 @@ fun MainScreenLayout(
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier
+                .lockOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                 .keepScreenAwake(keepScreenAwake)
                 .detectUserActivity(
                     enabled = keepScreenAwake == true && dimScreenDelay != null,
