@@ -2,7 +2,7 @@ package com.rejeq.cpcam.core.camera
 
 import androidx.camera.core.CameraState
 
-class CameraStateWrapper(val type: CameraType, val error: CameraError?) {
+data class CameraStateWrapper(val type: CameraType, val error: CameraError?) {
     companion object {
         fun from(state: CameraState) = CameraStateWrapper(
             type = CameraType.from(state.type),

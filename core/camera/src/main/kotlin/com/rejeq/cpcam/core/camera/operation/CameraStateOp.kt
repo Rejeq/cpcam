@@ -28,18 +28,20 @@ class CameraStateOp : CameraOperation<Flow<CameraStateWrapper>> {
         rawState: CameraState,
         context: Context,
     ): CameraStateWrapper {
-        if (!context.hasPermission(Manifest.permission.CAMERA)) {
-            return CameraStateWrapper(
+        val wrapper = if (!context.hasPermission(Manifest.permission.CAMERA)) {
+            CameraStateWrapper(
                 type = CameraType.Close,
                 error = CameraError.PermissionDenied,
             )
+        } else {
+            CameraStateWrapper.from(rawState)
         }
 
-        val wrapper = CameraStateWrapper.from(rawState)
         wrapper.error?.let { error ->
-            Log.i(TAG, "Camera error occurred: $error")
+            Log.w(TAG, "Camera error occurred: $error")
         }
 
+        Log.d(TAG, "Camera state changed: $wrapper")
         return wrapper
     }
 }
