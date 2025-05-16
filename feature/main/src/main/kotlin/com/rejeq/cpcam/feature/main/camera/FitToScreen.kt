@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.feature.main.camera
 
-import android.util.Log
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutModifier
 import androidx.compose.ui.layout.Measurable
@@ -34,23 +33,14 @@ private class FitToScreenModifier : LayoutModifier {
             IntSize(placeable.width, placeable.height)
         }
 
-        Log.i("LOGITS", "The content size: $contentSize")
-
         val scale = constraints.maxWidth.toFloat() / contentSize.width
 
         val newWidth = constraints.maxWidth
         val newHeight = (contentSize.height * scale).roundToInt()
 
-        Log.i(
-            "LOGITS",
-            "The constraints: " +
-                "(${constraints.maxWidth}, ${constraints.maxHeight})",
-        )
-
         val newConstraints = Constraints.fixed(newWidth, newHeight)
         val finalPlaceable = measurable.measure(newConstraints)
 
-        Log.i("LOGITS", "The new: ($newWidth, $newHeight)")
         return layout(newWidth, newHeight) {
             finalPlaceable.place(0, 0)
         }
