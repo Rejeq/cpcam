@@ -60,7 +60,7 @@ class PreviewCameraComponent : CameraComponent {
     override fun onShiftZoom(zoom: Float) {
     }
 
-    override fun onSetFocus(offset: Offset) {
+    override fun onSetFocus(offset: Offset, transformed: Offset) {
         _focusIndicator.value = FocusIndicatorState.Focusing(
             IntOffset(offset.x.toInt(), offset.y.toInt()),
         )

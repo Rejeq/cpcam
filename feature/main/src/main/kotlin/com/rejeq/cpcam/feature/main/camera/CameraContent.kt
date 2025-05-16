@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
@@ -96,7 +97,7 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
 fun CameraPreviewContainer(
     request: SurfaceRequestWrapper,
     onShiftZoom: (Float) -> Unit,
-    onFocus: (Offset) -> Unit,
+    onFocus: (Offset, Offset) -> Unit,
     focus: FocusIndicatorState,
     size: Resolution,
     modifier: Modifier = Modifier,
@@ -119,10 +120,14 @@ fun CameraPreviewContainer(
                     }
                     .pointerInput(Unit) {
                         detectTapGestures { pos ->
-                            // FIXME: You need to apply additional transform to
-                            //  the position, since the camera surface can not
-                            //  be mapped one to one with screen
-                            onFocus(pos)
+                            val posSize = this.size.toSize()
+
+                            val transformed = Offset(
+                                pos.x * size.width / posSize.width,
+                                pos.y * size.height / posSize.height,
+                            )
+
+                            onFocus(pos, transformed)
                         }
                     },
             )

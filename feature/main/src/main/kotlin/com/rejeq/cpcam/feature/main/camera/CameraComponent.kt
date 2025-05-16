@@ -57,7 +57,7 @@ interface CameraComponent {
     fun onToggleTorch()
     fun onRestartCamera()
     fun onShiftZoom(zoom: Float)
-    fun onSetFocus(offset: Offset)
+    fun onSetFocus(offset: Offset, transformed: Offset)
 
     fun onStartMonitoringDnd()
     fun onStopMonitoringDnd()
@@ -173,7 +173,7 @@ class DefaultCameraComponent @AssistedInject constructor(
     override val focusIndicator = _focusIndicator.asStateFlow()
 
     private var focusJob: Job? = null
-    override fun onSetFocus(offset: Offset) {
+    override fun onSetFocus(offset: Offset, transformed: Offset) {
         focusJob?.cancel()
         focusJob = scope.launch {
             val intOffset = IntOffset(offset.x.toInt(), offset.y.toInt())
@@ -182,8 +182,8 @@ class DefaultCameraComponent @AssistedInject constructor(
 
             launch {
                 val err = SetFocusPointForTargetOp(
-                    offset.x,
-                    offset.y,
+                    transformed.x,
+                    transformed.y,
                     target,
                 ).invoke()
 
