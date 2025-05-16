@@ -246,10 +246,11 @@ fun ActionBar(
 }
 
 @Composable
+@Preview
 @PreviewScreenSizes
 @PreviewLightDark
 @PreviewDynamicColors
-fun PreviewMainContent() {
+private fun PreviewMainContent() {
     CpcamTheme {
         Surface {
             MainContent(

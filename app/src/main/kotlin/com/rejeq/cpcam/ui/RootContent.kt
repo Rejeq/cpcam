@@ -34,7 +34,7 @@ fun RootContent(
 
     val wantUseDarkMode = wantUseDarkMode(useDarkMode.value)
     CpcamTheme(wantUseDarkMode, useDynamicColor.value) {
-        LaunchedEffect(wantUseDarkMode) {
+        LaunchedEffect(wantUseDarkMode, onDarkModeChange) {
             onDarkModeChange(wantUseDarkMode)
         }
 
