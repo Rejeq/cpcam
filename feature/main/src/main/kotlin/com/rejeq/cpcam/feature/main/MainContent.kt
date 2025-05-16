@@ -38,6 +38,7 @@ import com.rejeq.cpcam.core.ui.keepScreenAwake
 import com.rejeq.cpcam.core.ui.lockOrientation
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.main.camera.CameraContent
+import com.rejeq.cpcam.feature.main.camera.CameraPreviewState
 import com.rejeq.cpcam.feature.main.info.InfoContent
 
 @Composable
@@ -58,8 +59,11 @@ fun MainContent(
         }
     }
 
+    val camState = component.cam.state.collectAsState().value
     val isWindowFocused = LocalIsWindowFocused.current
-    val shouldKeepScreenAwake = component.keepScreenAwake.collectAsState().value
+    val shouldKeepScreenAwake =
+        component.keepScreenAwake.collectAsState().value &&
+            camState is CameraPreviewState.Opened
     val dimScreenDelay = component.dimScreenDelay.collectAsState().value
 
     // Screen has unimportant content only when
@@ -71,7 +75,9 @@ fun MainContent(
 
     MainScreenLayout(
         keepScreenAwake = hasUnimportantContent && shouldKeepScreenAwake,
-        dimScreenDelay = if (hasUnimportantContent) dimScreenDelay else null,
+        dimScreenDelay = dimScreenDelay.takeIf {
+            hasUnimportantContent && shouldKeepScreenAwake
+        },
         modifier = modifier,
         background = {
             CameraContent(component.cam)
