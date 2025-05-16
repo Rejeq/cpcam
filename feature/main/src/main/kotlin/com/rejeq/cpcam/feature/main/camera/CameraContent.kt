@@ -12,7 +12,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
-import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
 import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
 
@@ -38,35 +37,39 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
     )
 
     val state = component.state.collectAsState().value
-    val request = target.surfaceRequest.collectAsState().value
-
-    val error = state.error
-    if (error != null) {
-        CameraErrorContent(
-            error,
-            onEvent = {
-                when (it) {
-                    CameraErrorEvent.GrantCameraPermission -> {
-                        permLauncher.launch()
+    when (state) {
+        is CameraPreviewState.Failed -> {
+            CameraErrorContent(
+                state.error,
+                onEvent = {
+                    when (it) {
+                        CameraErrorEvent.GrantCameraPermission -> {
+                            permLauncher.launch()
+                        }
+                        CameraErrorEvent.StartMonitoringDnd -> {
+                            component.onStartMonitoringDnd()
+                        }
+                        CameraErrorEvent.StopMonitoringDnd -> {
+                            component.onStopMonitoringDnd()
+                        }
                     }
-                    CameraErrorEvent.StartMonitoringDnd -> {
-                        component.onStartMonitoringDnd()
-                    }
-                    CameraErrorEvent.StopMonitoringDnd -> {
-                        component.onStopMonitoringDnd()
-                    }
-                }
-            },
-            modifier = modifier.fillMaxWidth(ERROR_DIALOG_SIZE),
-        )
-    } else {
-        if (request is SurfaceRequestState.Available) {
-            CameraPreviewContainer(
-                request = request.value,
-                onShiftZoom = component::onShiftZoom,
-                onFocus = component::onSetFocus,
-                focus = component.focusIndicator.collectAsState().value,
+                },
+                modifier = modifier.fillMaxWidth(ERROR_DIALOG_SIZE),
             )
+        }
+
+        is CameraPreviewState.Closed,
+        is CameraPreviewState.Opened,
+        -> {
+            val request = state.request
+            if (request != null) {
+                CameraPreviewContainer(
+                    request = request,
+                    onShiftZoom = component::onShiftZoom,
+                    onFocus = component::onSetFocus,
+                    focus = component.focusIndicator.collectAsState().value,
+                )
+            }
         }
     }
 }

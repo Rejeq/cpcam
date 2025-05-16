@@ -3,7 +3,6 @@ package com.rejeq.cpcam.feature.main
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.camera.CameraError
-import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.data.repository.ScreenRepository
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
@@ -11,6 +10,7 @@ import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.MorphButtonState
 import com.rejeq.cpcam.core.ui.MorphIconTarget
 import com.rejeq.cpcam.feature.main.camera.CameraComponent
+import com.rejeq.cpcam.feature.main.camera.CameraPreviewState
 import com.rejeq.cpcam.feature.main.camera.DefaultCameraComponent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -20,12 +20,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.StateFlow
 
 interface MainComponent : ChildComponent {
     val nav: MainNavigation
@@ -74,7 +74,8 @@ class DefaultMainComponent @AssistedInject constructor(
     override val showStreamButton = MutableStateFlow(true).asStateFlow()
 
     override val showSwitchCameraButton = cam.state.map {
-        it.error != CameraError.PermissionDenied
+        (it as? CameraPreviewState.Failed)?.error !=
+            CameraError.PermissionDenied
     }.stateIn(
         scope,
         SharingStarted.WhileSubscribed(5_000),
@@ -116,7 +117,8 @@ class DefaultMainComponent @AssistedInject constructor(
     override fun readyToShow(): Boolean {
         val state = cam.state.value
 
-        return state.type == CameraType.Open || state.error != null
+        return state is CameraPreviewState.Opened ||
+            state is CameraPreviewState.Failed
     }
 
     override fun onSettingsClick() = onSettingsClick.invoke()

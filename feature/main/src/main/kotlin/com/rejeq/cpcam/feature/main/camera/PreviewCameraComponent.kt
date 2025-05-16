@@ -4,8 +4,6 @@ import android.Manifest
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.rejeq.cpcam.core.camera.CameraError
-import com.rejeq.cpcam.core.camera.CameraStateWrapper
-import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.ui.PermissionState
@@ -14,10 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class PreviewCameraComponent : CameraComponent {
     override val state = MutableStateFlow(
-        CameraStateWrapper(
-            type = CameraType.Open,
-            error = CameraError.PermissionDenied,
-        ),
+        CameraPreviewState.Failed(CameraError.PermissionDenied),
     ).asStateFlow()
 
     override val cameraPermission = Manifest.permission.CAMERA

@@ -7,8 +7,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy
-import com.rejeq.cpcam.core.camera.CameraStateWrapper
-import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
 import com.rejeq.cpcam.core.camera.operation.CameraStateOp
 import com.rejeq.cpcam.core.camera.operation.CameraSwitchOp
@@ -35,12 +33,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 interface CameraComponent {
-    val state: StateFlow<CameraStateWrapper>
+    val state: StateFlow<CameraPreviewState>
     val cameraPermission: String
     val isCameraPermissionWasLaunched: Flow<Boolean>
     val hasTorch: StateFlow<Boolean>
@@ -76,10 +75,14 @@ class DefaultCameraComponent @AssistedInject constructor(
         }
     }
 
-    override val state = CameraStateOp().invoke().stateIn(
+    override val state = CameraStateOp().invoke().combine(
+        target.surfaceRequest,
+    ) { state, requestState ->
+        state.fromDomain(requestState)
+    }.stateIn(
         scope,
         SharingStarted.Eagerly,
-        CameraStateWrapper(type = CameraType.Close, error = null),
+        CameraPreviewState.Closed(),
     )
 
     override val cameraPermission = Manifest.permission.CAMERA
