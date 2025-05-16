@@ -1,11 +1,13 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.video
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.input.TextFieldValue
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
 
+@Immutable
 data class VideoConfigFormState(
     val codecName: VideoCodec?,
     val pixFmt: PixFmt?,
