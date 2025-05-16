@@ -1,5 +1,8 @@
 package com.rejeq.cpcam.core.data.model
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Represents a resolution with a non-negative width and height.
  *
@@ -96,3 +99,9 @@ data class Resolution(val width: Int, val height: Int) :
 }
 
 private tailrec fun gcd(p: Int, q: Int): Int = if (q == 0) p else gcd(q, p % q)
+
+/** Returns the longer dimension of the size (maximum of width and height). */
+fun Resolution.long() = max(this.width, this.height)
+
+/** Returns the shorter dimension of the size (minimum of width and height). */
+fun Resolution.short() = min(this.width, this.height)

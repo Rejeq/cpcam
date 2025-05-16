@@ -12,9 +12,10 @@ import android.media.CamcorderProfile
 import android.media.CamcorderProfile.QUALITY_HIGH
 import android.media.CamcorderProfile.QUALITY_LOW
 import com.rejeq.cpcam.core.data.model.Resolution
+import com.rejeq.cpcam.core.data.model.long
+import com.rejeq.cpcam.core.data.model.short
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * This file provides utility methods for handling camera resolution and
@@ -232,12 +233,6 @@ private fun getCamcorderSize(id: Int): Resolution? {
 
     return Resolution(profile.videoFrameWidth, profile.videoFrameHeight)
 }
-
-/** Returns the longer dimension of the size (maximum of width and height). */
-private fun Resolution.long() = max(this.width, this.height)
-
-/** Returns the shorter dimension of the size (minimum of width and height). */
-private fun Resolution.short() = min(this.width, this.height)
 
 /** Default Full HD (1920x1080) resolution */
 private val FullHdSize = Resolution(1920, 1080)
