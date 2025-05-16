@@ -7,17 +7,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
 import com.rejeq.cpcam.core.camera.operation.CameraStateOp
 import com.rejeq.cpcam.core.camera.operation.CameraSwitchOp
 import com.rejeq.cpcam.core.camera.operation.EnableTorchOp
 import com.rejeq.cpcam.core.camera.operation.FocusError
+import com.rejeq.cpcam.core.camera.operation.GetCurrentBestPreviewResolutionOp
 import com.rejeq.cpcam.core.camera.operation.HasFlashUnitOp
 import com.rejeq.cpcam.core.camera.operation.IsTorchEnabledOp
 import com.rejeq.cpcam.core.camera.operation.SetFocusPointForTargetOp
 import com.rejeq.cpcam.core.camera.operation.ShiftZoomOp
 import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
+import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.device.DndListener
 import com.rejeq.cpcam.core.device.DndState
@@ -47,6 +50,8 @@ interface CameraComponent {
     val focusIndicator: StateFlow<FocusIndicatorState>
     val target: CameraTarget
 
+    fun provideScreenResolution(resolution: Resolution)
+
     fun onCameraPermissionResult(state: PermissionState)
     fun onSwitchCamera()
     fun onToggleTorch()
@@ -75,10 +80,24 @@ class DefaultCameraComponent @AssistedInject constructor(
         }
     }
 
-    override val state = CameraStateOp().invoke().combine(
+    private val screenResolution = MutableStateFlow<Resolution?>(null)
+    private var lastPreviewSize: Resolution? = null
+
+    override val state = combine(
+        CameraStateOp().invoke(),
         target.surfaceRequest,
-    ) { state, requestState ->
-        state.fromDomain(requestState)
+        screenResolution,
+    ) { state, requestState, screenRes ->
+        // We must update the preview resolution only when camera is fully
+        // opened, to avoid incorrect preview size.
+        // When new camera is about to open and old camera has different best
+        // preview resolution
+        if (state.type == CameraType.Open && screenRes != null) {
+            lastPreviewSize =
+                GetCurrentBestPreviewResolutionOp(screenRes).invoke()
+        }
+
+        state.fromDomain(requestState, lastPreviewSize)
     }.stateIn(
         scope,
         SharingStarted.Eagerly,
@@ -103,6 +122,10 @@ class DefaultCameraComponent @AssistedInject constructor(
                 PermissionState.Denied -> { }
             }
         }
+    }
+
+    override fun provideScreenResolution(resolution: Resolution) {
+        screenResolution.value = resolution
     }
 
     override fun onSwitchCamera() {

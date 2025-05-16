@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.IntOffset
 import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
+import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.ui.PermissionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +39,9 @@ class PreviewCameraComponent : CameraComponent {
         override fun start() {}
         override fun stop() {}
         override fun getPoint(x: Float, y: Float) = null
+    }
+
+    override fun provideScreenResolution(resolution: Resolution) {
     }
 
     override fun onCameraPermissionResult(state: PermissionState) {

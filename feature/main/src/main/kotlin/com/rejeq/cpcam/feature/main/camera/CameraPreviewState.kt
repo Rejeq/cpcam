@@ -6,6 +6,7 @@ import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
+import com.rejeq.cpcam.core.data.model.Resolution
 
 /**
  * Represents the various states of the camera preview lifecycle.
@@ -21,33 +22,40 @@ import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
  */
 sealed interface CameraPreviewState {
     val request: SurfaceRequestWrapper?
+    val size: Resolution?
 
     data class Failed(val error: CameraError) : CameraPreviewState {
-        override val request: SurfaceRequestWrapper? = null
+        override val request = null
+        override val size = null
     }
 
     @Immutable
-    data class Closed(override val request: SurfaceRequestWrapper? = null) :
-        CameraPreviewState
+    data class Closed(
+        override val request: SurfaceRequestWrapper? = null,
+        override val size: Resolution? = null,
+    ) : CameraPreviewState
 
     @Immutable
-    data class Opened(override val request: SurfaceRequestWrapper) :
-        CameraPreviewState
+    data class Opened(
+        override val request: SurfaceRequestWrapper,
+        override val size: Resolution?,
+    ) : CameraPreviewState
 }
 
 fun CameraStateWrapper.fromDomain(
     requestState: SurfaceRequestState,
+    size: Resolution?,
 ): CameraPreviewState {
     error?.let { return CameraPreviewState.Failed(it) }
 
     val request = (requestState as? SurfaceRequestState.Available)?.value
     return when (type) {
-        CameraType.Close -> CameraPreviewState.Closed(request)
+        CameraType.Close -> CameraPreviewState.Closed(request, size)
         CameraType.Open -> {
             if (request != null) {
-                CameraPreviewState.Opened(request)
+                CameraPreviewState.Opened(request, size)
             } else {
-                CameraPreviewState.Closed(request)
+                CameraPreviewState.Closed(request, size)
             }
         }
     }

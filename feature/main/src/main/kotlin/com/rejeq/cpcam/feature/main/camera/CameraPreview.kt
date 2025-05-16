@@ -1,8 +1,8 @@
 package com.rejeq.cpcam.feature.main.camera
 
 import android.util.Log
-import android.util.Size
 import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.view.ViewGroup
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -12,11 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.viewinterop.AndroidView
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
-import com.rejeq.cpcam.core.ui.AutoFitSurfaceView
+import com.rejeq.cpcam.core.data.model.Resolution
 
 @Composable
 fun CameraPreview(
     request: SurfaceRequestWrapper,
+    size: Resolution,
     modifier: Modifier = Modifier,
 ) {
     // HACK: Because of SurfaceView, some animations that perform anything
@@ -33,15 +34,12 @@ fun CameraPreview(
             lifecycleHandler.setRequest(request)
         }
 
-        // TODO: Use compose layout modifiers instead of custom
-        //  AutoFitSurfaceView
         AndroidView(
             factory = { ctx ->
-                AutoFitSurfaceView(ctx).apply {
-                    // TODO: Determine resolution
-                    setSize(Size(1920, 1080))
-
+                SurfaceView(ctx).apply {
+                    holder.setFixedSize(size.width, size.height)
                     holder.addCallback(lifecycleHandler)
+
                     // TODO: Use deferred surface via
                     //  finalizeOutputConfigurations if available
                     //  https://developer.android.com/reference/android/hardware/camera2/CameraCaptureSession#finalizeOutputConfigurations(java.util.List%3Candroid.hardware.camera2.params.OutputConfiguration%3E)
@@ -52,7 +50,9 @@ fun CameraPreview(
                     )
                 }
             },
-            modifier = Modifier.clipToBounds(),
+            modifier = Modifier
+                .fitToScreen()
+                .clipToBounds(),
         )
     }
 }
