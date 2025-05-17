@@ -6,16 +6,23 @@ package com.rejeq.cpcam.core.data.model
 enum class StreamProtocol {
     MPEGTS,
     MJPEG,
+    SMJPEG,
+    RTSP,
+    RTP,
+    RTP_MPEGTS,
+    HLS,
 }
 
 /**
  * Supported video codecs.
- *
- * @property H264 H.264/AVC video codec
- * @property MJPEG Motion JPEG video codec
  */
 enum class VideoCodec {
     H264,
+    VP8,
+    VP9,
+    AV1,
+    MPEG4,
+    HEVC,
     MJPEG,
 }
 

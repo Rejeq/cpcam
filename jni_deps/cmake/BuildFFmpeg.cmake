@@ -61,17 +61,41 @@ set(CONFIGURE_COMMAND ${FFMPEG_SOURCE_DIR}/src/ffmpeg/configure
     --disable-swscale-alpha
     --enable-jni
 
+    --enable-mediacodec
+
     --enable-encoder=h264_mediacodec
     --enable-bsf=h264_metadata
-    --enable-mediacodec
+
+    --enable-encoder=vp8_mediacodec
+
+    --enable-encoder=vp9_mediacodec
+    --enable-bsf=vp9_metadata
+
+    --enable-encoder=av1_mediacodec
+    --enable-bsf=av1_metadata
+
+    --enable-encoder=mpeg4_mediacodec
+
+    --enable-encoder=hevc_mediacodec
+    --enable-bsf=hevc_metadata
 
     --enable-encoder=mjpeg
 
     --enable-muxer=mpegts
     --enable-muxer=mjpeg
+    --enable-muxer=smjpeg
+    --enable-muxer=rtsp
+    --enable-muxer=rtp
+    --enable-muxer=rtp_mpegts
+    --enable-muxer=hls
 
     --enable-protocol=tcp
     --enable-protocol=udp
+    --enable-protocol=http
+    --enable-protocol=rtmp
+    --enable-protocol=rtp
+    --enable-protocol=srtp
+    --enable-protocol=hls
 
     ${FFMPEG_EXTRA_CONFIG}
 )

@@ -20,18 +20,23 @@ fun StreamProtocolProto?.fromDataStore() = when (this) {
         StreamProtocol.MPEGTS
     }
 
-    StreamProtocolProto.STREAM_PROTOCOL_MPEGTS -> {
-        StreamProtocol.MPEGTS
-    }
-
-    StreamProtocolProto.STREAM_PROTOCOL_MJPEG -> {
-        StreamProtocol.MJPEG
-    }
+    StreamProtocolProto.STREAM_PROTOCOL_MPEGTS -> StreamProtocol.MPEGTS
+    StreamProtocolProto.STREAM_PROTOCOL_MJPEG -> StreamProtocol.MJPEG
+    StreamProtocolProto.STREAM_PROTOCOL_SMJPEG -> StreamProtocol.SMJPEG
+    StreamProtocolProto.STREAM_PROTOCOL_RTSP -> StreamProtocol.RTSP
+    StreamProtocolProto.STREAM_PROTOCOL_RTP -> StreamProtocol.RTP
+    StreamProtocolProto.STREAM_PROTOCOL_RTP_MPEGTS -> StreamProtocol.RTP_MPEGTS
+    StreamProtocolProto.STREAM_PROTOCOL_HLS -> StreamProtocol.HLS
 }
 
 fun StreamProtocol.toDataStore() = when (this) {
     StreamProtocol.MPEGTS -> StreamProtocolProto.STREAM_PROTOCOL_MPEGTS
     StreamProtocol.MJPEG -> StreamProtocolProto.STREAM_PROTOCOL_MJPEG
+    StreamProtocol.SMJPEG -> StreamProtocolProto.STREAM_PROTOCOL_SMJPEG
+    StreamProtocol.RTSP -> StreamProtocolProto.STREAM_PROTOCOL_RTSP
+    StreamProtocol.RTP -> StreamProtocolProto.STREAM_PROTOCOL_RTP
+    StreamProtocol.RTP_MPEGTS -> StreamProtocolProto.STREAM_PROTOCOL_RTP_MPEGTS
+    StreamProtocol.HLS -> StreamProtocolProto.STREAM_PROTOCOL_HLS
 }
 
 fun VideoCodecProto?.fromDataStore() = when (this) {
@@ -42,18 +47,23 @@ fun VideoCodecProto?.fromDataStore() = when (this) {
         VideoCodec.H264
     }
 
-    VideoCodecProto.VIDEO_CODEC_H264 -> {
-        VideoCodec.H264
-    }
-
-    VideoCodecProto.VIDEO_CODEC_MJPEG -> {
-        VideoCodec.MJPEG
-    }
+    VideoCodecProto.VIDEO_CODEC_H264 -> VideoCodec.H264
+    VideoCodecProto.VIDEO_CODEC_MJPEG -> VideoCodec.MJPEG
+    VideoCodecProto.VIDEO_CODEC_VP8 -> VideoCodec.VP8
+    VideoCodecProto.VIDEO_CODEC_VP9 -> VideoCodec.VP9
+    VideoCodecProto.VIDEO_CODEC_AV1 -> VideoCodec.AV1
+    VideoCodecProto.VIDEO_CODEC_MPEG4 -> VideoCodec.MPEG4
+    VideoCodecProto.VIDEO_CODEC_HEVC -> VideoCodec.HEVC
 }
 
 fun VideoCodec.toDataStore() = when (this) {
     VideoCodec.H264 -> VideoCodecProto.VIDEO_CODEC_H264
     VideoCodec.MJPEG -> VideoCodecProto.VIDEO_CODEC_MJPEG
+    VideoCodec.VP8 -> VideoCodecProto.VIDEO_CODEC_VP8
+    VideoCodec.VP9 -> VideoCodecProto.VIDEO_CODEC_VP9
+    VideoCodec.AV1 -> VideoCodecProto.VIDEO_CODEC_AV1
+    VideoCodec.MPEG4 -> VideoCodecProto.VIDEO_CODEC_MPEG4
+    VideoCodec.HEVC -> VideoCodecProto.VIDEO_CODEC_HEVC
 }
 
 fun VideoConfigProto.fromDataStore(): VideoConfig {
