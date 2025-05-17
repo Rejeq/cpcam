@@ -1,12 +1,6 @@
 package com.rejeq.cpcam.core.stream.jni
 
 internal class FFmpegOutputJni(protocol: String, host: String) {
-    companion object {
-        init {
-            System.loadLibrary("cpcam_jni")
-        }
-    }
-
     private val handle: Long = create(host, protocol)
 
     fun open(): StreamError? = StreamError.fromCode(open(handle))
@@ -35,4 +29,15 @@ internal class FFmpegOutputJni(protocol: String, host: String) {
         handle: Long,
         config: FFmpegVideoConfig,
     ): Long
+
+    companion object {
+        init {
+            System.loadLibrary("cpcam_jni")
+        }
+
+        fun getSupportedFormats(codec: String): IntArray =
+            nGetSupportedFormats(codec)
+    }
 }
+
+private external fun nGetSupportedFormats(codec: String): IntArray

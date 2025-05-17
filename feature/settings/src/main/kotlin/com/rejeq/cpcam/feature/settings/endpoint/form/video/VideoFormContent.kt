@@ -54,6 +54,7 @@ fun VideoConfigFormContent(
         EnumEntry<PixFmt>(
             title = "Pixel format",
             subtitle = "",
+            entries = state.supportedPixFmts,
             selected = state.pixFmt,
             onChange = { onChange(state.copy(pixFmt = it)) },
             modifier = Modifier.fillMaxWidth(),
@@ -62,6 +63,7 @@ fun VideoConfigFormContent(
         EnumEntry<VideoCodec>(
             title = "Video codec",
             subtitle = "",
+            entries = state.supportedCodecs,
             selected = state.codecName,
             onChange = { onChange(state.copy(codecName = it)) },
         )

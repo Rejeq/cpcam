@@ -2,12 +2,17 @@ package com.rejeq.cpcam.core.endpoint
 
 import android.util.Log
 import com.rejeq.cpcam.core.data.model.EndpointConfig
+import com.rejeq.cpcam.core.data.model.EndpointType
 import com.rejeq.cpcam.core.data.model.ObsConfig
+import com.rejeq.cpcam.core.data.model.PixFmt
+import com.rejeq.cpcam.core.data.model.StreamProtocol
+import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.repository.EndpointRepository
 import com.rejeq.cpcam.core.endpoint.di.WebsocketClient
 import com.rejeq.cpcam.core.endpoint.obs.ObsEndpoint
 import com.rejeq.cpcam.core.endpoint.obs.checkObsConnection
 import com.rejeq.cpcam.core.endpoint.obs.toEndpointError
+import com.rejeq.cpcam.core.stream.StreamHandler
 import io.ktor.client.HttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -62,6 +67,17 @@ class EndpointHandler @Inject constructor(
 
         return error
     }
+
+    fun getSupportedProtocols(type: EndpointType): List<StreamProtocol> =
+        when (type) {
+            EndpointType.OBS -> ObsEndpoint.supportedProtocols
+        }
+
+    fun getSupportedCodecs(): List<VideoCodec> =
+        StreamHandler.getSupportedCodecs()
+
+    fun getSupportedFormats(codec: VideoCodec): List<PixFmt> =
+        StreamHandler.getSupportedFormats(codec)
 
     private suspend fun retrieveLatestEndpoint(): Endpoint? {
         val newConfig = endpointRepo.endpointConfig.first()

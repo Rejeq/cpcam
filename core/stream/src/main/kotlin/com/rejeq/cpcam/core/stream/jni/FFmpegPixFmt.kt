@@ -20,3 +20,12 @@ fun PixFmt.toFFmpegPixFmt() = when (this) {
     PixFmt.RGBA -> FFmpegPixFmt.RGBA
     PixFmt.RGBA24 -> FFmpegPixFmt.RGB24
 }
+
+fun FFmpegPixFmt.toPixFmt(): PixFmt = when (this) {
+    FFmpegPixFmt.YUV420P -> PixFmt.YUV420P
+    FFmpegPixFmt.YUV444P -> PixFmt.YUV444P
+    FFmpegPixFmt.NV12 -> PixFmt.NV12
+    FFmpegPixFmt.NV21 -> PixFmt.NV21
+    FFmpegPixFmt.RGBA -> PixFmt.RGBA
+    FFmpegPixFmt.RGB24 -> PixFmt.RGBA24
+}

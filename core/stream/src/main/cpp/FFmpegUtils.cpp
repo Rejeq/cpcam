@@ -29,6 +29,7 @@ std::array<char, AV_TS_MAX_STRING_SIZE> av_ts_to_time_string(
 
 AVPixelFormat to_av_pix_fmt(PixFmt pix_fmt) {
     switch (pix_fmt) {
+        case PixFmt::Unknown: return AV_PIX_FMT_NONE;
         case PixFmt::YUV420P: return AV_PIX_FMT_YUV420P;
         case PixFmt::YUV444P: return AV_PIX_FMT_YUV444P;
         case PixFmt::NV12: return AV_PIX_FMT_NV12;
@@ -38,6 +39,18 @@ AVPixelFormat to_av_pix_fmt(PixFmt pix_fmt) {
     }
 
     assert(false && "Unknown pixel format");
+}
+
+PixFmt from_av_pix_fmt(AVPixelFormat pix_fmt) {
+    switch (pix_fmt) {
+        case AV_PIX_FMT_YUV420P: return PixFmt::YUV420P;
+        case AV_PIX_FMT_YUV444P: return PixFmt::YUV444P;
+        case AV_PIX_FMT_NV12: return PixFmt::NV12;
+        case AV_PIX_FMT_NV21: return PixFmt::NV21;
+        case AV_PIX_FMT_RGBA: return PixFmt::RGBA;
+        case AV_PIX_FMT_RGB24: return PixFmt::RGB24;
+        default: return PixFmt::Unknown;
+    }
 }
 
 AVFrame *make_av_frame(int width, int height, int pix_fmt) {

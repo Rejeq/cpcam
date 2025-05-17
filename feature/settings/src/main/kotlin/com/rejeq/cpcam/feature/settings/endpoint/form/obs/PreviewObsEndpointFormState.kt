@@ -25,8 +25,11 @@ class PreviewObsEndpointFormState : ObsEndpointFormState {
             ObsStreamFormState(
                 protocol = StreamProtocol.MPEGTS,
                 host = TextFieldValue("udp://localhost:12345"),
+                supportedProtocols = emptyList(),
                 videoConfig = VideoConfigFormState(
+                    supportedCodecs = emptyList(),
                     codecName = VideoCodec.H264,
+                    supportedPixFmts = emptyList(),
                     pixFmt = PixFmt.NV12,
                     bitrate = TextFieldValue(""),
                     framerate = TextFieldValue("60"),

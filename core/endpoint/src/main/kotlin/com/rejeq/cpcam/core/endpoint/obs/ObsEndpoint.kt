@@ -2,6 +2,7 @@ package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
 import com.rejeq.cpcam.core.data.model.ObsConfig
+import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.Endpoint
 import com.rejeq.cpcam.core.endpoint.EndpointState
@@ -73,6 +74,10 @@ class ObsEndpoint @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(config: ObsConfig): ObsEndpoint
+    }
+
+    companion object {
+        val supportedProtocols = StreamProtocol.entries
     }
 }
 

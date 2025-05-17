@@ -25,6 +25,9 @@ class FFmpegOutput {
 
     FFmpegVideoStream *make_video_stream(const VideoConfig &config);
 
+    static std::vector<PixFmt> get_supported_formats(
+        const std::string &codec_name);
+
    private:
     // TODO: AVFormatContext has url field, consider using it
     std::string m_url;

@@ -45,5 +45,6 @@ std::array<char, AV_TS_MAX_STRING_SIZE> av_ts_to_time_string(
     } while (0)
 
 AVPixelFormat to_av_pix_fmt(PixFmt pix_fmt);
+PixFmt from_av_pix_fmt(AVPixelFormat pix_fmt);
 
 AVFrame *make_av_frame(int width, int height, int pix_fmt);

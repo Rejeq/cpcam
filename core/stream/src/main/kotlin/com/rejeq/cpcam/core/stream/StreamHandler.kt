@@ -2,7 +2,9 @@ package com.rejeq.cpcam.core.stream
 
 import android.util.Log
 import android.util.Range
+import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.StreamProtocol
+import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
 import com.rejeq.cpcam.core.stream.output.FFmpegOutput
 import com.rejeq.cpcam.core.stream.relay.FFmpegVideoRelay
@@ -89,6 +91,14 @@ class StreamHandler(
 
     fun destroy() = synchronized(this) {
         output.destroy()
+    }
+
+    companion object {
+        fun getSupportedCodecs(): List<VideoCodec> =
+            FFmpegOutput.getSupportedCodecs()
+
+        fun getSupportedFormats(codec: VideoCodec): List<PixFmt> =
+            FFmpegOutput.getSupportedFormats(codec)
     }
 }
 

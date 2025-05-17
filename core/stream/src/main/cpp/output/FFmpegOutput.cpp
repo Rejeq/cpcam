@@ -1,15 +1,16 @@
 #include "FFmpegOutput.h"
 
 #include <cassert>
+#include <vector>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-#include "../FFmpegUtils.h"
+#include "FFmpegUtils.h"
 
 #define LOG_TAG "FFmpegOutput"
-#include "../Log.h"
+#include "Log.h"
 
 FFmpegOutput::~FFmpegOutput() {
     avformat_free_context(m_octx);
@@ -158,4 +159,59 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
     }
 
     return stream;
+}
+
+std::vector<PixFmt> FFmpegOutput::get_supported_formats(
+    const std::string &codec_name) {
+    const AVCodec *codec = nullptr;
+    AVCodecContext *cctx = nullptr;
+    const AVPixelFormat *av_pix_fmts = nullptr;
+    int num_av_pix_fmts = 0;
+    int num_supported_fmts = 0;
+    std::vector<PixFmt> supported_fmts;
+
+    codec = avcodec_find_encoder_by_name(codec_name.c_str());
+    if (!codec) {
+        LOG_ERROR("Unable to find '%s' encoder", codec_name.c_str());
+        goto error;
+    }
+
+    cctx = avcodec_alloc_context3(codec);
+    if (!cctx) {
+        LOG_ERROR("Unable to allocate codec context");
+        goto error;
+    }
+
+    avcodec_get_supported_config(cctx, codec, AV_CODEC_CONFIG_PIX_FORMAT, 0,
+                                 (const void **)&av_pix_fmts, &num_av_pix_fmts);
+    if (av_pix_fmts == nullptr || num_av_pix_fmts == 0) {
+        goto error;
+    }
+
+    for (int i = 0; i < num_av_pix_fmts; i++) {
+        if (from_av_pix_fmt(av_pix_fmts[i]) != PixFmt::Unknown) {
+            num_supported_fmts++;
+        }
+    }
+
+    if (num_supported_fmts == 0) {
+        goto error;
+    }
+
+    supported_fmts.reserve(num_supported_fmts);
+    for (int i = 0; i < num_av_pix_fmts; i++) {
+        PixFmt fmt = from_av_pix_fmt(av_pix_fmts[i]);
+        if (fmt != PixFmt::Unknown) {
+            supported_fmts.emplace_back(fmt);
+        }
+    }
+
+    avcodec_free_context(&cctx);
+    return supported_fmts;
+
+error:
+    if (cctx) {
+        avcodec_free_context(&cctx);
+    }
+    return {};
 }

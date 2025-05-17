@@ -1,5 +1,7 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
+import com.rejeq.cpcam.core.data.model.EndpointType
+import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.repository.EndpointRepository
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
@@ -54,7 +56,8 @@ class DefaultObsEndpointFormState @AssistedInject constructor(
 
         scope.launch {
             val obsData = streamRepo.obsData.first()
-            _streamState.value = FormState.Success(obsData.fromDomain())
+
+            _streamState.value = makeStreamState(obsData)
         }
     }
 
@@ -67,26 +70,41 @@ class DefaultObsEndpointFormState @AssistedInject constructor(
     }
 
     override fun onStreamChange(newState: ObsStreamFormState) {
-        _streamState.value = FormState.Success(newState)
+        val domainState = newState.toDomain()
+        _streamState.value = makeStreamState(domainState)
 
         externalScope.launch {
-            streamRepo.setObsData(newState.toDomain())
+            streamRepo.setObsData(domainState)
         }
     }
 
     private var checkEndpointJob: Job? = null
-    override fun onCheckConnection(config: ObsConfigFormState) {
+    override fun onCheckConnection(state: ObsConfigFormState) {
         _connState.value = ObsConnectionState.Connecting
 
         checkEndpointJob?.cancel()
         checkEndpointJob = scope.launch {
-            val error = endpointHandler.checkConnection(config.toDomain())
+            val error = endpointHandler.checkConnection(state.toDomain())
 
             _connState.value = when (error) {
                 null -> ObsConnectionState.Success
                 else -> ObsConnectionState.Failed
             }
         }
+    }
+
+    fun makeStreamState(data: ObsStreamData): FormState<ObsStreamFormState> {
+        val protocols = endpointHandler.getSupportedProtocols(
+            EndpointType.OBS,
+        )
+
+        val codecs = endpointHandler.getSupportedCodecs()
+
+        val formats = data.videoConfig.codecName?.let {
+            endpointHandler.getSupportedFormats(it)
+        } ?: emptyList()
+
+        return FormState.Success(data.fromDomain(protocols, codecs, formats))
     }
 
     @AssistedFactory

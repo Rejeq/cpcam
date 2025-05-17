@@ -7,12 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
-import kotlin.enums.enumEntries
 
 @Composable
-inline fun <reified T : Enum<T>> EnumEntry(
+inline fun <T : Enum<T>> EnumEntry(
     title: String,
     subtitle: String,
+    entries: List<T>,
     selected: T?,
     crossinline onChange: (T) -> Unit,
     modifier: Modifier = Modifier,
@@ -28,8 +28,6 @@ inline fun <reified T : Enum<T>> EnumEntry(
         onItemClick = { showDialog.value = true },
         modifier = modifier,
     ) {
-        val entries = enumEntries<T>()
-
         entries.fastForEachIndexed { idx, entry ->
             item {
                 DialogSelectableRow(

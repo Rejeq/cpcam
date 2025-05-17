@@ -77,6 +77,7 @@ fun StreamDataFormContent(
                 R.string.endpoint_stream_data_protocol_title,
             ),
             subtitle = "",
+            entries = state.supportedProtocols,
             selected = state.protocol,
             onChange = { onChange(state.copy(protocol = it)) },
         )
