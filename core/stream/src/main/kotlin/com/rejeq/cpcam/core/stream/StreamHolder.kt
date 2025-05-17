@@ -1,5 +1,11 @@
 package com.rejeq.cpcam.core.stream
 
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.flatMap
+import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.toResultOr
 import com.rejeq.cpcam.core.data.model.VideoConfig
 
 class StreamHolder {
@@ -7,17 +13,20 @@ class StreamHolder {
     var current: StreamHandler? = null
         private set
 
-    fun getConfigured(config: StreamConfig): StreamHandler =
-        synchronized(this) {
-            val handler = current
-            when {
-                handler == null -> configure(config)
-                config != currConfig -> configure(config)
-                else -> handler
-            }
+    fun getConfigured(
+        config: StreamConfig,
+    ): Result<StreamHandler, StreamErrorKind> = synchronized(this) {
+        val handler = current
+        when {
+            handler == null -> configure(config)
+            config != currConfig -> configure(config)
+            else -> Ok(handler)
         }
+    }
 
-    private fun configure(config: StreamConfig): StreamHandler {
+    private fun configure(
+        config: StreamConfig,
+    ): Result<StreamHandler, StreamErrorKind> {
         if (current != null) {
             current?.destroy()
         }
@@ -29,13 +38,13 @@ class StreamHolder {
             config.videoStreamConfig,
         )
 
-        config.videoStreamConfig?.data?.let { videoConfig ->
-            // TODO: Error handling
-            handler.configureVideoRelay(videoConfig)
-        }
+        config.videoStreamConfig
+            .toResultOr { StreamErrorKind.NoVideoConfig }
+            .flatMap { config -> handler.configureVideoRelay(config.data) }
+            .onFailure { return Err(it) }
 
         this.current = handler
-        return handler
+        return Ok(handler)
     }
 }
 

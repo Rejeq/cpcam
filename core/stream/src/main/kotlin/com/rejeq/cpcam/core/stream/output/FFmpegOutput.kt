@@ -1,6 +1,9 @@
 package com.rejeq.cpcam.core.stream.output
 
 import android.util.Log
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.mapError
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.model.VideoCodec
@@ -9,6 +12,7 @@ import com.rejeq.cpcam.core.stream.StreamErrorKind
 import com.rejeq.cpcam.core.stream.jni.FFmpegOutputJni
 import com.rejeq.cpcam.core.stream.jni.FFmpegPixFmt
 import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
+import com.rejeq.cpcam.core.stream.jni.StreamError
 import com.rejeq.cpcam.core.stream.jni.toFFmpegCodecName
 import com.rejeq.cpcam.core.stream.jni.toFFmpegConfig
 import com.rejeq.cpcam.core.stream.jni.toFFmpegString
@@ -19,26 +23,28 @@ internal class FFmpegOutput(val protocol: StreamProtocol, host: String) :
     private var detail: FFmpegOutputJni? =
         FFmpegOutputJni(protocol.toFFmpegString(), host)
 
-    fun makeVideoStream(config: VideoConfig): FFmpegVideoStreamJni? {
+    fun makeVideoStream(
+        config: VideoConfig,
+    ): Result<FFmpegVideoStreamJni, StreamError> {
         val detail = requireNotNull(detail)
 
         val config = config.toFFmpegConfig()
         if (config == null) {
             Log.e(TAG, "Unable create encoder: Invalid video config")
-            return null
+            return Err(StreamError.InvalidState)
         }
 
         return detail.makeVideoStream(config)
     }
 
-    override fun open(): StreamErrorKind? {
+    override fun open(): Result<Unit, StreamErrorKind> {
         val detail = requireNotNull(detail)
-        return detail.open()?.toStreamError()
+        return detail.open().mapError { it.toStreamError() }
     }
 
-    override fun close(): StreamErrorKind? {
+    override fun close(): Result<Unit, StreamErrorKind> {
         val detail = requireNotNull(detail)
-        return detail.close()?.toStreamError()
+        return detail.close().mapError { it.toStreamError() }
     }
 
     override fun destroy() {

@@ -1,6 +1,7 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
+import com.github.michaelbull.result.mapBoth
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import io.ktor.client.HttpClient
@@ -31,16 +32,16 @@ class ObsConnectionHandler(
 
         _state.value = ConnectionState.Connecting
 
-        val error = obsConnect(wbClient, config) {
+        val result = obsConnect(wbClient, config) {
             Log.i(TAG, "Successfully connected to the endpoint")
 
             setupObsScene(streamData)
         }
 
-        _state.value = when (error) {
-            null -> ConnectionState.Started
-            else -> ConnectionState.Stopped(error)
-        }
+        _state.value = result.mapBoth(
+            { ConnectionState.Started },
+            { err -> ConnectionState.Stopped(err) },
+        )
 
         return _state.value
     }

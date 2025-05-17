@@ -24,6 +24,7 @@ junitVersion = "4.13.2"
 kotlin = "2.1.20"
 kotlinxCoroutines = "1.10.2"
 kotlinxImmutables = "0.3.8"
+kotlinResult = "2.0.1"
 ksp = "2.1.20-2.0.0"
 ktobs = "0.3.0"
 ktor = "3.1.2"
@@ -97,6 +98,8 @@ kotlin-serialization-gradlePlugin = { module = "org.jetbrains.kotlin.plugin.seri
 kotlinx-collections-immutables = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxImmutables" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
+
+kotlin-result = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinResult" }
 
 ktobs-core = { module = "io.github.rejeq:ktobs-core", version.ref = "ktobs" }
 ktobs-ktor = { module = "io.github.rejeq:ktobs-ktor", version.ref = "ktobs" }

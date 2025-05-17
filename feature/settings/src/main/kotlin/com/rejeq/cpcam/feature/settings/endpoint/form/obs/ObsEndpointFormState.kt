@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
+import com.github.michaelbull.result.mapBoth
 import com.rejeq.cpcam.core.data.model.EndpointType
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.repository.EndpointRepository
@@ -84,12 +85,11 @@ class DefaultObsEndpointFormState @AssistedInject constructor(
 
         checkEndpointJob?.cancel()
         checkEndpointJob = scope.launch {
-            val error = endpointHandler.checkConnection(state.toDomain())
-
-            _connState.value = when (error) {
-                null -> ObsConnectionState.Success
-                else -> ObsConnectionState.Failed
-            }
+            _connState.value =
+                endpointHandler.checkConnection(state.toDomain()).mapBoth(
+                    { ObsConnectionState.Success },
+                    { ObsConnectionState.Failed },
+                )
         }
     }
 

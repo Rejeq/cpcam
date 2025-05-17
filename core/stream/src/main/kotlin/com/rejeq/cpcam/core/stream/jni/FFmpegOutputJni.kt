@@ -1,21 +1,42 @@
 package com.rejeq.cpcam.core.stream.jni
 
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+
 internal class FFmpegOutputJni(protocol: String, host: String) {
     private val handle: Long = create(host, protocol)
 
-    fun open(): StreamError? = StreamError.fromCode(open(handle))
-    fun close(): StreamError? = StreamError.fromCode(close(handle))
+    fun open(): Result<Unit, StreamError> {
+        val res = open(handle)
+
+        return if (res >= 0) {
+            Ok(Unit)
+        } else {
+            Err(StreamError.fromCode(res) ?: StreamError.Unknown)
+        }
+    }
+
+    fun close(): Result<Unit, StreamError> {
+        val res = close(handle)
+
+        return if (res >= 0) {
+            Ok(Unit)
+        } else {
+            Err(StreamError.fromCode(res) ?: StreamError.Unknown)
+        }
+    }
+
     fun destroy() = destroy(handle)
 
-    fun makeVideoStream(config: FFmpegVideoConfig): FFmpegVideoStreamJni? {
+    fun makeVideoStream(
+        config: FFmpegVideoConfig,
+    ): Result<FFmpegVideoStreamJni, StreamError> {
         val res = makeVideoStream(handle, config)
-
         return if (res > 0) {
-            FFmpegVideoStreamJni(res)
+            Ok(FFmpegVideoStreamJni(res))
         } else {
-            // TODO: Return specific error
-            // StreamError.fromCode(res)
-            null
+            Err(StreamError.fromCode(res.toInt()) ?: StreamError.Unknown)
         }
     }
 

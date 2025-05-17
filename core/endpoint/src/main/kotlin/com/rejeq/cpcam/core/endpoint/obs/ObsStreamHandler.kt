@@ -1,6 +1,11 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.getOrElse
+import com.github.michaelbull.result.mapBoth
+import com.github.michaelbull.result.mapError
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.stream.StreamConfig
@@ -25,21 +30,17 @@ class ObsStreamHandler @Inject constructor(
     fun start(streamData: ObsStreamData?): StreamHandlerState {
         _state.value = StreamHandlerState.Connecting
 
-        val handler = getConfiguredStreamHandler(streamData)
-        if (handler == null) {
-            Log.w(TAG, "Unable to start stream handler: No stream data")
+        val handler = getConfiguredStreamHandler(streamData).getOrElse { err ->
+            Log.w(TAG, "Unable to start stream handler: $err")
 
-            _state.value = StreamHandlerState.Stopped(
-                ObsStreamErrorKind.NoStreamData,
-            )
+            _state.value = StreamHandlerState.Stopped(err)
             return _state.value
         }
 
-        val res = handler.start()
-        _state.value = when (res) {
-            null -> StreamHandlerState.Started
-            else -> StreamHandlerState.Stopped(res.toObsStreamError())
-        }
+        _state.value = handler.start().mapBoth(
+            { StreamHandlerState.Started },
+            { err -> StreamHandlerState.Stopped(err.toObsStreamError()) },
+        )
 
         return _state.value
     }
@@ -53,16 +54,16 @@ class ObsStreamHandler @Inject constructor(
 
     private fun getConfiguredStreamHandler(
         data: ObsStreamData?,
-    ): StreamHandler? {
+    ): Result<StreamHandler, ObsStreamErrorKind> {
         if (data == null) {
-            return null
+            return Err(ObsStreamErrorKind.NoStreamData)
         }
 
         val handler = streamHolder.getConfigured(
             data.toStreamConfig(videoTarget),
         )
 
-        return handler
+        return handler.mapError { it.toObsStreamError() }
     }
 }
 

@@ -1,6 +1,8 @@
 package com.rejeq.cpcam.core.endpoint
 
 import android.util.Log
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.mapError
 import com.rejeq.cpcam.core.data.model.EndpointConfig
 import com.rejeq.cpcam.core.data.model.EndpointType
 import com.rejeq.cpcam.core.data.model.ObsConfig
@@ -58,10 +60,13 @@ class EndpointHandler @Inject constructor(
         return newState
     }
 
-    suspend fun checkConnection(config: EndpointConfig): EndpointErrorKind? {
+    suspend fun checkConnection(
+        config: EndpointConfig,
+    ): Result<Unit, EndpointErrorKind> {
         val error = when (config) {
             is ObsConfig -> {
-                checkObsConnection(wbClient, config)?.toEndpointError()
+                checkObsConnection(wbClient, config)
+                    .mapError { it.toEndpointError() }
             }
         }
 
