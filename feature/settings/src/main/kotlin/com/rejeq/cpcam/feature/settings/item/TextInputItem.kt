@@ -16,7 +16,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.TextFieldValue
 import com.rejeq.cpcam.feature.settings.input.selectAll
-import kotlinx.coroutines.job
 
 /**
  * Settings item that opens a dialog with a text input field.
@@ -63,10 +62,8 @@ fun TextInputItem(
             // We don't use requestFocus() in onItemClick(), since at the moment
             // of click event - TextField() composable is not created, so
             // there no any attached focus node, and requestFocus() crashes
-            coroutineContext.job.invokeOnCompletion {
-                textFocus.requestFocus()
-                onValueChange(value.selectAll())
-            }
+            textFocus.requestFocus()
+            onValueChange(value.selectAll())
         }
 
         TextField(
