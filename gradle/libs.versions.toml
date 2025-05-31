@@ -72,7 +72,8 @@ camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref =
 camerax-video = { module = "androidx.camera:camera-video", version.ref = "camerax" }
 
 compose-animation-graphics = { module = "androidx.compose.animation:animation-graphics" }
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose" }
+# TODO: Move to stable channel when SecureTextField support would be stable in material3 library
+compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose" }
 compose-compiler-gradlePlugin = { module = "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
