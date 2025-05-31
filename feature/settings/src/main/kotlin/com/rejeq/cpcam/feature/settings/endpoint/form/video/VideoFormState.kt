@@ -22,10 +22,15 @@ class VideoFormState(
     initAvailablePixFmts: List<PixFmt> = emptyList(),
     getAvailablePixFmts: (VideoCodec) -> List<PixFmt>,
 ) {
-    private var lastSelectedCodec = initCodec
     val codec = EnumFieldState<VideoCodec?>(
         initSelected = initCodec,
         initAvailables = initAvailableCodecs,
+        onSelectedChange = {
+            it?.let { codecState ->
+                val availables = getAvailablePixFmts(codecState)
+                pixFmt.onAvailablesChange(availables)
+            }
+        },
     )
 
     val pixFmt = EnumFieldState<PixFmt?>(
@@ -40,14 +45,6 @@ class VideoFormState(
     val resolution = ResolutionFieldState(initResolution)
 
     val state by derivedStateOf {
-        val codecState = codec.state
-        if (codecState != null && codecState != lastSelectedCodec) {
-            val availables = getAvailablePixFmts(codecState)
-            pixFmt.onAvailablesChange(availables)
-        }
-
-        lastSelectedCodec = codecState
-
         VideoFormData(
             codecName = codec.state,
             pixFmt = pixFmt.state,
