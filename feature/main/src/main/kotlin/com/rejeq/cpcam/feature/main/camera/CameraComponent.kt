@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
 import com.rejeq.cpcam.core.camera.operation.CameraStateOp
@@ -74,12 +73,6 @@ class DefaultCameraComponent @AssistedInject constructor(
 ) : CameraComponent,
     ComponentContext by componentContext,
     CameraOpExecutor by camOpExecutor {
-    init {
-        lifecycle.doOnDestroy {
-            target.stop()
-        }
-    }
-
     private val screenResolution = MutableStateFlow<Resolution?>(null)
     private var lastPreviewSize: Resolution? = null
 

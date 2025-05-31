@@ -38,11 +38,14 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
 
     val lifecycle = LocalLifecycleOwner.current
     DisposableEffect(lifecycle) {
+        // Used lifecycle here, since the camera need to be disabled when the
+        // activity going to the STOP state (onDispose not called in this case)
         val observer = component.target.lifecycleObserver()
         lifecycle.lifecycle.addObserver(observer)
 
         onDispose {
             lifecycle.lifecycle.removeObserver(observer)
+            component.target.stop()
         }
     }
 
