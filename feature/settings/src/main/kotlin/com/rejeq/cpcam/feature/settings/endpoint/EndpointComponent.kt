@@ -2,6 +2,7 @@ package com.rejeq.cpcam.feature.settings.endpoint
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import com.arkivanov.essenty.lifecycle.doOnStop
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.data.model.EndpointType
@@ -50,7 +51,7 @@ class DefaultEndpointComponent @AssistedInject constructor(
 
     override val endpointFormState = endpointType.map {
         when (it) {
-            EndpointType.OBS -> obsState.create(scope, externalScope)
+            EndpointType.OBS -> obsState.create(scope)
             null -> null
         }
     }.stateIn(
@@ -58,6 +59,14 @@ class DefaultEndpointComponent @AssistedInject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         null,
     )
+
+    init {
+        doOnStop {
+            externalScope.launch {
+                endpointFormState.value?.saveState()
+            }
+        }
+    }
 
     override fun onEndpointTypeChange(type: EndpointType) {
         externalScope.launch {

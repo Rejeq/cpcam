@@ -1,44 +1,90 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.video
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.core.data.model.VideoConfig
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.EnumFieldState
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.IntegerFieldState
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.ResolutionFieldState
 
-@Immutable
-data class VideoConfigFormState(
-    val supportedCodecs: List<VideoCodec>,
+@Stable
+class VideoFormState(
+    initBitrate: Int?,
+    initFramerate: Int?,
+    initResolution: Resolution?,
+    initCodec: VideoCodec? = null,
+    initAvailableCodecs: List<VideoCodec> = emptyList(),
+    initPixFmt: PixFmt? = null,
+    initAvailablePixFmts: List<PixFmt> = emptyList(),
+    getAvailablePixFmts: (VideoCodec) -> List<PixFmt>,
+) {
+    private var lastSelectedCodec = initCodec
+    val codec = EnumFieldState<VideoCodec?>(
+        initSelected = initCodec,
+        initAvailables = initAvailableCodecs,
+    )
+
+    val pixFmt = EnumFieldState<PixFmt?>(
+        initSelected = initPixFmt,
+        initAvailables = initAvailablePixFmts,
+    )
+
+    val bitrate = IntegerFieldState(initBitrate)
+
+    val framerate = IntegerFieldState(initFramerate)
+
+    val resolution = ResolutionFieldState(initResolution)
+
+    val state by derivedStateOf {
+        val codecState = codec.state
+        if (codecState != null && codecState != lastSelectedCodec) {
+            val availables = getAvailablePixFmts(codecState)
+            pixFmt.onAvailablesChange(availables)
+        }
+
+        lastSelectedCodec = codecState
+
+        VideoFormData(
+            codecName = codec.state,
+            pixFmt = pixFmt.state,
+            bitrate = bitrate.state,
+            framerate = framerate.state,
+            resolution = resolution.state,
+        )
+    }
+}
+
+data class VideoFormData(
     val codecName: VideoCodec?,
-    val supportedPixFmts: List<PixFmt>,
     val pixFmt: PixFmt?,
-    val bitrate: TextFieldValue,
-    val framerate: TextFieldValue,
-    val resolution: Pair<TextFieldValue, TextFieldValue>,
+    val bitrate: Int?,
+    val framerate: Int?,
+    val resolution: Resolution?,
 ) {
     fun toDomain(): VideoConfig = VideoConfig(
         codecName = codecName,
         pixFmt = pixFmt,
-        bitrate = bitrate.text.toIntOrNull(),
-        framerate = framerate.text.toIntOrNull(),
-        resolution = Resolution(
-            width = resolution.first.text.toIntOrNull() ?: 0,
-            height = resolution.second.text.toIntOrNull() ?: 0,
-        ),
+        bitrate = bitrate,
+        framerate = framerate,
+        resolution = resolution,
     )
 }
 
-fun VideoConfig.fromDomain(codecs: List<VideoCodec>, formats: List<PixFmt>) =
-    VideoConfigFormState(
-        supportedCodecs = codecs,
-        codecName = codecName,
-        supportedPixFmts = formats,
-        pixFmt = pixFmt,
-        bitrate = TextFieldValue(bitrate?.toString() ?: ""),
-        framerate = TextFieldValue(framerate?.toString() ?: ""),
-        resolution = Pair(
-            TextFieldValue(resolution?.width?.toString() ?: ""),
-            TextFieldValue(resolution?.height?.toString() ?: ""),
-        ),
-    )
+fun VideoConfig.fromDomain(
+    codecs: List<VideoCodec>,
+    formats: List<PixFmt>,
+    getAvailablePixFmts: (VideoCodec) -> List<PixFmt>,
+) = VideoFormState(
+    initAvailableCodecs = codecs,
+    initCodec = codecName,
+    initAvailablePixFmts = formats,
+    initPixFmt = pixFmt,
+    initBitrate = bitrate,
+    initFramerate = framerate,
+    initResolution = resolution,
+    getAvailablePixFmts = getAvailablePixFmts,
+)

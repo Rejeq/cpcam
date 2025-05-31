@@ -2,7 +2,6 @@ package com.rejeq.cpcam.feature.settings.endpoint.form.video
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -11,19 +10,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.rejeq.cpcam.core.data.model.PixFmt
-import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.feature.settings.R
-import com.rejeq.cpcam.feature.settings.endpoint.EnumEntry
 import com.rejeq.cpcam.feature.settings.endpoint.form.FormContent
 import com.rejeq.cpcam.feature.settings.endpoint.form.FormState
-import com.rejeq.cpcam.feature.settings.input.Input
-import com.rejeq.cpcam.feature.settings.input.ResolutionInput
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.EnumFieldContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.IntegerFieldContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.ResolutionFieldContent
 
 @Composable
-fun VideoConfigForm(
-    state: FormState<VideoConfigFormState>,
-    onChange: (VideoConfigFormState) -> Unit,
+fun VideoFormContent(
+    state: FormState<VideoFormState>,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded = rememberSaveable { mutableStateOf(false) }
@@ -36,59 +32,50 @@ fun VideoConfigForm(
         isExpanded = isExpanded.value,
         onHeaderClick = { isExpanded.value = !isExpanded.value },
     ) { state ->
-        VideoConfigFormContent(
+        VideoFormContent(
             state = state,
-            onChange = onChange,
         )
     }
 }
 
 @Composable
-fun VideoConfigFormContent(
-    state: VideoConfigFormState,
-    onChange: (VideoConfigFormState) -> Unit,
-) {
+fun VideoFormContent(state: VideoFormState) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        EnumEntry<PixFmt>(
-            title = "Pixel format",
+        EnumFieldContent(
+            state = state.codec,
+            title = stringResource(R.string.endpoint_video_codec),
             subtitle = "",
-            entries = state.supportedPixFmts,
-            selected = state.pixFmt,
-            onChange = { onChange(state.copy(pixFmt = it)) },
-            modifier = Modifier.fillMaxWidth(),
         )
 
-        EnumEntry<VideoCodec>(
-            title = "Video codec",
+        EnumFieldContent(
+            state = state.pixFmt,
+            title = stringResource(R.string.endpoint_video_format),
             subtitle = "",
-            entries = state.supportedCodecs,
-            selected = state.codecName,
-            onChange = { onChange(state.copy(codecName = it)) },
         )
 
-        Input(
-            label = "Bitrate",
-            value = state.bitrate,
-            onValueChange = { onChange(state.copy(bitrate = it)) },
+        IntegerFieldContent(
+            state = state.bitrate,
+            label = stringResource(R.string.endpoint_video_bitrate),
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
             ),
         )
 
-        Input(
-            label = "Framerate",
-            value = state.framerate,
-            onValueChange = { onChange(state.copy(framerate = it)) },
+        IntegerFieldContent(
+            state = state.framerate,
+            label = stringResource(R.string.endpoint_video_framerate),
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
             ),
         )
 
-        ResolutionInput(
-            value = state.resolution,
-            onValueChange = { onChange(state.copy(resolution = it)) },
+        ResolutionFieldContent(
+            state = state.resolution,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+            ),
         )
     }
 }

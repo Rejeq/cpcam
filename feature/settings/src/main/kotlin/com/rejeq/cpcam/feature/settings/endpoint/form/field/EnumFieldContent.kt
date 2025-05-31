@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.settings.endpoint
+package com.rejeq.cpcam.feature.settings.endpoint.form.field
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -9,15 +9,14 @@ import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 
 @Composable
-inline fun <T : Enum<T>> EnumEntry(
+fun <T> EnumFieldContent(
+    state: EnumFieldState<T>,
     title: String,
     subtitle: String,
-    entries: List<T>,
-    selected: T?,
-    crossinline onChange: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val showDialog = rememberSaveable { mutableStateOf(false) }
+    val selected = state.selected
 
     ListDialogItem(
         title = title,
@@ -28,13 +27,14 @@ inline fun <T : Enum<T>> EnumEntry(
         onItemClick = { showDialog.value = true },
         modifier = modifier,
     ) {
+        val entries = state.availables
         entries.fastForEachIndexed { idx, entry ->
             item {
                 DialogSelectableRow(
                     label = entry.toString(),
                     isSelected = (entries.indexOf(selected) == idx),
                     onSelect = {
-                        onChange(entry)
+                        state.onSelectedChange(entry)
                         showDialog.value = false
                     },
                 )

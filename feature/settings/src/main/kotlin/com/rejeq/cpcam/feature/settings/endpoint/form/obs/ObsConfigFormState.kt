@@ -1,24 +1,29 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshotFlow
 import com.rejeq.cpcam.core.data.model.ObsConfig
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.PasswordFieldState
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.PortFieldState
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.UrlFieldState
 
-@Immutable
-data class ObsConfigFormState(
-    val url: TextFieldValue,
-    val port: TextFieldValue,
-    val password: TextFieldValue,
+@Stable
+class ObsConfigFormState(
+    initUrl: String,
+    initPassword: String,
+    initPort: Int?,
 ) {
-    fun toDomain(): ObsConfig = ObsConfig(
-        url = url.text,
-        port = port.text.toIntOrNull() ?: 0,
-        password = password.text,
-    )
-}
+    val url = UrlFieldState(initUrl)
 
-fun ObsConfig.fromDomain(): ObsConfigFormState = ObsConfigFormState(
-    url = TextFieldValue(url),
-    port = TextFieldValue(port.toString()),
-    password = TextFieldValue(password),
-)
+    val password = PasswordFieldState(initPassword)
+
+    val port = PortFieldState(initPort)
+
+    val state = snapshotFlow {
+        ObsConfig(
+            url = url.state,
+            port = port.state ?: 0,
+            password = password.state,
+        )
+    }
+}

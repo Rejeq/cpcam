@@ -5,7 +5,10 @@ import androidx.compose.ui.Modifier
 import com.rejeq.cpcam.feature.settings.endpoint.form.obs.ObsEndpointFormContent
 import com.rejeq.cpcam.feature.settings.endpoint.form.obs.ObsEndpointFormState
 
-interface EndpointFormState
+interface EndpointFormState {
+    // Called when the form is about to be closed
+    suspend fun saveState()
+}
 
 @Composable
 fun EndpointFormContent(
@@ -19,3 +22,6 @@ fun EndpointFormContent(
         )
     }
 }
+
+const val DEFAULT_FORM_DEBOUNCE_DELAY = 500L
+const val FIELD_ERROR_DELAY = 1500L

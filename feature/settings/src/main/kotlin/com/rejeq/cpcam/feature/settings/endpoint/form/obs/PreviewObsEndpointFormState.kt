@@ -1,39 +1,41 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
-import androidx.compose.ui.text.input.TextFieldValue
 import com.rejeq.cpcam.core.data.model.PixFmt
+import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.model.VideoCodec
 import com.rejeq.cpcam.feature.settings.endpoint.ObsConnectionState
 import com.rejeq.cpcam.feature.settings.endpoint.form.FormState
-import com.rejeq.cpcam.feature.settings.endpoint.form.video.VideoConfigFormState
+import com.rejeq.cpcam.feature.settings.endpoint.form.stream.StreamFormState
+import com.rejeq.cpcam.feature.settings.endpoint.form.video.VideoFormState
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class PreviewObsEndpointFormState : ObsEndpointFormState {
     override val configState = MutableStateFlow<FormState<ObsConfigFormState>>(
         FormState.Success(
             ObsConfigFormState(
-                url = TextFieldValue("ws://localhost:4455"),
-                password = TextFieldValue("preview-password"),
-                port = TextFieldValue("4343"),
+                initUrl = "ws://localhost:4455",
+                initPassword = "preview-password",
+                initPort = 4343,
             ),
         ),
     )
 
-    override val streamState = MutableStateFlow<FormState<ObsStreamFormState>>(
+    override val streamState = MutableStateFlow<FormState<StreamFormState>>(
         FormState.Success(
-            ObsStreamFormState(
-                protocol = StreamProtocol.MPEGTS,
-                host = TextFieldValue("udp://localhost:12345"),
-                supportedProtocols = emptyList(),
-                videoConfig = VideoConfigFormState(
-                    supportedCodecs = emptyList(),
-                    codecName = VideoCodec.H264,
-                    supportedPixFmts = emptyList(),
-                    pixFmt = PixFmt.NV12,
-                    bitrate = TextFieldValue(""),
-                    framerate = TextFieldValue("60"),
-                    resolution = TextFieldValue("") to TextFieldValue("1080"),
+            StreamFormState(
+                initProtocol = StreamProtocol.MPEGTS,
+                initHost = "udp://localhost:12345",
+                initAvailableProtocols = emptyList(),
+                videoFormState = VideoFormState(
+                    initAvailableCodecs = emptyList(),
+                    initCodec = VideoCodec.H264,
+                    initAvailablePixFmts = emptyList(),
+                    getAvailablePixFmts = { emptyList() },
+                    initPixFmt = PixFmt.NV12,
+                    initBitrate = null,
+                    initFramerate = 60,
+                    initResolution = Resolution(1920, 1080),
                 ),
             ),
         ),
@@ -41,15 +43,10 @@ class PreviewObsEndpointFormState : ObsEndpointFormState {
 
     override val connState = MutableStateFlow(ObsConnectionState.NotStarted)
 
-    override fun onConfigChange(newState: ObsConfigFormState) {
-        configState.value = FormState.Success(newState)
+    override suspend fun saveState() {
     }
 
-    override fun onStreamChange(newState: ObsStreamFormState) {
-        streamState.value = FormState.Success(newState)
-    }
-
-    override fun onCheckConnection(state: ObsConfigFormState) {
+    override fun onCheckConnection(formState: ObsConfigFormState) {
         connState.value = ObsConnectionState.Success
     }
 }

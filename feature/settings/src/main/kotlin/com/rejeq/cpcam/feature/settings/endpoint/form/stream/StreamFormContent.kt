@@ -1,32 +1,27 @@
-package com.rejeq.cpcam.feature.settings.endpoint.form.obs
+package com.rejeq.cpcam.feature.settings.endpoint.form.stream
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.feature.settings.R
-import com.rejeq.cpcam.feature.settings.endpoint.EnumEntry
 import com.rejeq.cpcam.feature.settings.endpoint.form.FormContent
 import com.rejeq.cpcam.feature.settings.endpoint.form.FormState
-import com.rejeq.cpcam.feature.settings.endpoint.form.video.VideoConfigFormContent
-import com.rejeq.cpcam.feature.settings.input.Input
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.EnumFieldContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.field.UrlFieldContent
+import com.rejeq.cpcam.feature.settings.endpoint.form.video.VideoFormContent
 
 @Composable
-fun StreamDataForm(
-    state: FormState<ObsStreamFormState>,
-    onChange: (ObsStreamFormState) -> Unit,
+fun StreamFormContent(
+    state: FormState<StreamFormState>,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded = rememberSaveable { mutableStateOf(false) }
@@ -39,54 +34,40 @@ fun StreamDataForm(
         isExpanded = isExpanded.value,
         onHeaderClick = { isExpanded.value = !isExpanded.value },
     ) { state ->
-        StreamDataFormContent(
+        StreamFormContent(
             state = state,
-            onChange = onChange,
         )
     }
 }
 
 @Composable
-fun StreamDataFormContent(
-    state: ObsStreamFormState,
-    onChange: (ObsStreamFormState) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun StreamFormContent(state: StreamFormState, modifier: Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier,
     ) {
-        val focusManager = LocalFocusManager.current
-
-        Input(
+        UrlFieldContent(
             label = stringResource(
                 R.string.endpoint_stream_data_host_input_label,
             ),
-            value = state.host,
-            onValueChange = { onChange(state.copy(host = it)) },
+            state = state.host,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
             ),
-            keyboardActions = KeyboardActions {
-                focusManager.moveFocus(FocusDirection.Next)
-            },
         )
 
-        EnumEntry<StreamProtocol>(
+        EnumFieldContent(
+            state = state.protocol,
             title = stringResource(
                 R.string.endpoint_stream_data_protocol_title,
             ),
             subtitle = "",
-            entries = state.supportedProtocols,
-            selected = state.protocol,
-            onChange = { onChange(state.copy(protocol = it)) },
         )
 
         Spacer(Modifier.requiredHeight(48.dp))
 
-        VideoConfigFormContent(
-            state = state.videoConfig,
-            onChange = { onChange(state.copy(videoConfig = it)) },
+        VideoFormContent(
+            state = state.videoFormState,
         )
     }
 }

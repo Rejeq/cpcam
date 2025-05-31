@@ -11,6 +11,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
+import com.rejeq.cpcam.feature.settings.endpoint.form.stream.StreamFormContent
 
 @Composable
 fun ObsEndpointFormContent(
@@ -20,7 +21,6 @@ fun ObsEndpointFormContent(
     Column(modifier = modifier) {
         ObsConfigForm(
             state = state.configState.collectAsState().value,
-            onChange = state::onConfigChange,
             onCheckConnection = state::onCheckConnection,
             connectionState = state.connState.collectAsState().value,
             modifier = Modifier.focusGroup(),
@@ -28,9 +28,8 @@ fun ObsEndpointFormContent(
 
         Spacer(Modifier.requiredHeight(48.dp))
 
-        StreamDataForm(
+        StreamFormContent(
             state = state.streamState.collectAsState().value,
-            onChange = state::onStreamChange,
             modifier = Modifier.focusGroup(),
         )
     }

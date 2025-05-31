@@ -15,6 +15,17 @@
     <string name="endpoint_service_password">Password</string>
     <string name="endpoint_service_check_connection">Check connection</string>
 
+    <string name="endpoint_video_framerate">Framerate</string>
+    <string name="endpoint_video_bitrate">Bitrate</string>
+    <string name="endpoint_video_codec">Video Codec</string>
+    <string name="endpoint_video_format">Pixel format</string>
+
     <string name="endpoint_password_visible_desc">Hide password</string>
     <string name="endpoint_password_hidden_desc">Show password</string>
+
+    <string name="resolution_error_negative">Resolution can\'t be negative</string>
+
+    <string name="port_error_negative">Port number can\'t be negative</string>
+    <string name="port_error_too_big">Port number cannot be greater than 65535</string>
+    <string name="port_error_not_valid">Port must be a valid number</string>
 </resources>
