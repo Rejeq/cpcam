@@ -794,6 +794,7 @@ Compose:
     active: true
   CompositionLocalAllowlist:
     active: true
+    allowedCompositionLocals: ["LocalDeviceOrientation", "LocalIsWindowFocused"]
   CompositionLocalNaming:
     active: true
   ContentEmitterReturningValues:
