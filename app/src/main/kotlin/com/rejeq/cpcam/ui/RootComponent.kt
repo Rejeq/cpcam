@@ -39,7 +39,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -160,9 +162,11 @@ class RootComponent @AssistedInject constructor(
 
     private fun startEndpoint() {
         scope.launch {
-            startEndpointService(context)
+            val newState = async(Dispatchers.Default) {
+                startEndpointService(context)
+                endpoint.connect()
+            }.await()
 
-            val newState = endpoint.connect()
             if (newState is EndpointState.Stopped) {
                 stopEndpointService(context)
 
@@ -178,7 +182,7 @@ class RootComponent @AssistedInject constructor(
     }
 
     private fun stopEndpoint() {
-        scope.launch {
+        scope.launch(Dispatchers.Default) {
             stopEndpointService(context)
             endpoint.disconnect()
         }
