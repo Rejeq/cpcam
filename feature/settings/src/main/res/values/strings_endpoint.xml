@@ -28,4 +28,7 @@
     <string name="port_error_negative">Port number can\'t be negative</string>
     <string name="port_error_too_big">Port number cannot be greater than 65535</string>
     <string name="port_error_not_valid">Port must be a valid number</string>
+
+    <string name="integer_error_negative">Integer number can\'t be negative</string>
+    <string name="integer_error_not_valid">Integer must be a valid number</string>
 </resources>
