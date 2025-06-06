@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.core.ui
 
-import android.content.Context
 import android.view.OrientationEventListener
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -12,43 +11,28 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 
-fun Modifier.adaptiveRotation(): Modifier = composed {
+@Composable
+fun Modifier.adaptiveRotation(): Modifier {
     val orientation = LocalDeviceOrientation.current
-
     val rotationAngle = remember { Animatable(0f) }
 
-    // When the orientation changes, launch an animation to update the rotation.
     LaunchedEffect(orientation) {
-        val targetAngle = when (orientation) {
-            DeviceOrientation.Portrait -> 0f
-            DeviceOrientation.ReversePortrait -> 180f
-            DeviceOrientation.Landscape -> -90f
-            DeviceOrientation.ReverseLandscape -> 90f
-        }
         val current = rotationAngle.value
-        val normalizedCurrent = (current % 360 + 360) % 360
-        val normalizedTarget = (targetAngle % 360 + 360) % 360
 
-        // Compute the delta for the shortest rotation path.
-        var delta = normalizedTarget - normalizedCurrent
-        if (delta > 180f) {
-            delta -= 360f
-        } else if (delta < -180f) {
-            delta += 360f
-        }
+        val targetAngle = orientation.toRotationAngle()
+        val normalizedCurrent = current.normalizedAngle()
+        val delta = shortestAngleDelta(targetAngle, normalizedCurrent)
 
-        // Animate to the new rotation value.
         rotationAngle.animateTo(
             targetValue = current + delta,
             animationSpec = tween(durationMillis = 500),
         )
     }
 
-    this.graphicsLayer { rotationZ = rotationAngle.value }
+    return this.graphicsLayer { rotationZ = rotationAngle.value }
 }
 
 @Composable
@@ -56,10 +40,22 @@ fun ProvideDeviceOrientation(
     orientation: DeviceOrientation,
     content: @Composable () -> Unit,
 ) {
+    val appContext = LocalContext.current.applicationContext
     var orientation = remember { mutableStateOf(orientation) }
 
-    val applicationContext = LocalContext.current.applicationContext
-    DeviceOrientationListener(applicationContext) { orientation.value = it }
+    DisposableEffect(Unit) {
+        val listener = object : OrientationEventListener(appContext) {
+            override fun onOrientationChanged(degrees: Int) {
+                orientation.value = degrees.toDeviceOrientation()
+            }
+        }
+
+        listener.enable()
+
+        onDispose {
+            listener.disable()
+        }
+    }
 
     CompositionLocalProvider(
         LocalDeviceOrientation provides orientation.value,
@@ -67,33 +63,51 @@ fun ProvideDeviceOrientation(
     )
 }
 
-@Composable
-private fun DeviceOrientationListener(
-    applicationContext: Context,
-    onOrientationChange: (DeviceOrientation) -> Unit,
-) {
-    DisposableEffect(onOrientationChange) {
-        val orientationEventListener = object : OrientationEventListener(
-            applicationContext,
-        ) {
-            override fun onOrientationChanged(orientation: Int) {
-                if (orientation >= 316 || orientation < 45) {
-                    onOrientationChange(DeviceOrientation.Portrait)
-                } else if (orientation in 136..225) {
-                    onOrientationChange(DeviceOrientation.ReversePortrait)
-                } else if (orientation in 45..135) {
-                    onOrientationChange(DeviceOrientation.Landscape)
-                } else { // if (orientation in 225..315)
-                    onOrientationChange(DeviceOrientation.ReverseLandscape)
-                }
-            }
-        }
-        orientationEventListener.enable()
+@Suppress("MagicNumber")
+private fun Int.toDeviceOrientation(): DeviceOrientation = when (this) {
+    in 316..359, in 0..44 -> DeviceOrientation.Portrait
+    in 45..135 -> DeviceOrientation.Landscape
+    in 136..225 -> DeviceOrientation.ReversePortrait
+    in 226..315 -> DeviceOrientation.ReverseLandscape
+    else -> DeviceOrientation.Portrait
+}
 
-        onDispose {
-            orientationEventListener.disable()
-        }
+@Suppress("MagicNumber")
+private fun DeviceOrientation.toRotationAngle(): Float = when (this) {
+    DeviceOrientation.Portrait -> 0f
+    DeviceOrientation.ReversePortrait -> 180f
+    DeviceOrientation.Landscape -> -90f
+    DeviceOrientation.ReverseLandscape -> 90f
+}
+
+/**
+ * Normalizes an angle to be within the range [0, 360) degrees.
+ *
+ * @return The normalized angle.
+ */
+@Suppress("MagicNumber")
+private fun Float.normalizedAngle() = (this % 360 + 360) % 360
+
+/**
+ * Computes the shortest angle delta between two angles.
+ *
+ * For example, moving from 0 degrees to +270 degrees could be achieved by
+ * rotating +270 degrees. However, the shortest rotation is -90 degrees.
+ *
+ * @param from The starting angle in degrees.
+ * @param to The target angle in degrees.
+ * @return The shortest angle delta in degrees.
+ */
+@Suppress("MagicNumber")
+private fun shortestAngleDelta(from: Float, to: Float): Float {
+    var delta = from - to
+    if (delta > 180f) {
+        delta -= 360f
+    } else if (delta < -180f) {
+        delta += 360f
     }
+
+    return delta
 }
 
 enum class DeviceOrientation {
