@@ -55,6 +55,7 @@ fun CameraErrorContent(
     CameraError.Fatal -> ServiceError(modifier)
     CameraError.InUse -> InUseError(modifier)
     CameraError.Disabled -> DisabledError(modifier)
+    CameraError.NoAvaiableCameras -> NoAvailableCamerasError(modifier)
     else -> UnknownError(modifier)
 }
 
@@ -151,6 +152,23 @@ private fun DisabledError(modifier: Modifier = Modifier) = CameraErrorCommon(
         )
     },
 )
+
+@Composable
+private fun NoAvailableCamerasError(modifier: Modifier = Modifier) =
+    CameraErrorCommon(
+        modifier = modifier,
+        title = stringResource(R.string.cam_error_no_available_title),
+        description = stringResource(R.string.cam_error_no_available_desc),
+        icon = {
+            Icon(
+                modifier = Modifier.requiredSize(48.dp),
+                painter = painterResource(
+                    CoreR.drawable.ic_no_photography_24dp,
+                ),
+                contentDescription = null,
+            )
+        },
+    )
 
 @Composable
 private fun UnknownError(modifier: Modifier = Modifier) = CameraErrorCommon(

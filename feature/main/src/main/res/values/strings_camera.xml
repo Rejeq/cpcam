@@ -43,4 +43,9 @@
     <string name="cam_error_unknown_desc">
         An unexpected camera error occurred. Please restart the app.
     </string>
+
+    <string name="cam_error_no_available_title">No Camera Available</string>
+    <string name="cam_error_no_available_desc">
+        Device does not have a camera with which to stream video.
+    </string>
 </resources>
