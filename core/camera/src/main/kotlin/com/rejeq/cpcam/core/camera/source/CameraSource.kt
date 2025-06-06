@@ -133,23 +133,25 @@ class CameraSource @Inject constructor(
     @SuppressLint("RestrictedApi")
     fun getCameraCharacteristics(): CameraCharacteristics? {
         val info = camera.value?.cameraInfo
-        return when (info) {
-            is CameraInfoInternal -> {
+        val currId = currId
+        return when {
+            info is CameraInfoInternal -> {
                 info.cameraCharacteristics as? CameraCharacteristics
                     ?: manager.getCameraCharacteristics(info.cameraId)
             }
+
+            currId != null -> {
+                manager.getCameraCharacteristics(currId)
+            }
+
             else -> {
-                currId?.let { id ->
-                    manager.getCameraCharacteristics(id)
-                }.apply {
-                    if (this == null) {
-                        Log.w(
-                            TAG,
-                            "Unable to query camera characteristics: " +
-                                "Camera not started and camera id isn't cached",
-                        )
-                    }
-                }
+                Log.w(
+                    TAG,
+                    "Unable to query camera characteristics: " +
+                        "Camera not started and camera id isn't cached",
+                )
+
+                null
             }
         }
     }
