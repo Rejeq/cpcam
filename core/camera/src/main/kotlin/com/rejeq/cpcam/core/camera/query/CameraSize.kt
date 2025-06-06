@@ -137,7 +137,6 @@ internal fun queryDefaultRecordSize(
     val max = queryMaxRecordSize(char, camId, format) ?: return null
     val sizes = querySupportedSizes(char, format)
 
-    // TODO: Add support for different aspect ratios, currently uses only 16:9
     val hdSize = HdSize.width * HdSize.height
     val maxSize = max.width * max.height
 

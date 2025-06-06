@@ -2,6 +2,7 @@ package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
@@ -112,7 +113,7 @@ fun ObsConfigFormContent(
 }
 
 @Composable
-private fun ConnectionChecker(
+private fun ColumnScope.ConnectionChecker(
     connectionState: ObsConnectionState,
     onCheckConnection: () -> Unit,
 ) {

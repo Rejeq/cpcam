@@ -190,7 +190,7 @@ class DefaultCameraComponent @AssistedInject constructor(
             }
 
             // Do not disturb user if focus takes too long
-            delay(5000)
+            delay(FOCUS_INDICATOR_DELAY)
 
             _focusIndicator.value = FocusIndicatorState.Disabled
         }
@@ -231,3 +231,4 @@ class DefaultCameraComponent @AssistedInject constructor(
 }
 
 private const val TAG = "CameraComponent"
+private const val FOCUS_INDICATOR_DELAY = 5000L

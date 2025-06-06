@@ -10,9 +10,9 @@ import com.rejeq.cpcam.core.camera.operation.DefaultCameraOpExecutor
 import com.rejeq.cpcam.core.camera.source.CameraLifecycle
 import com.rejeq.cpcam.core.camera.source.CameraSource
 import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import dagger.Binds
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
@@ -81,6 +81,8 @@ internal object CameraModule {
     @InstallIn(SingletonComponent::class)
     interface Bindings {
         @Binds
-        fun bindCameraOpExecutor(impl: DefaultCameraOpExecutor): CameraOpExecutor
+        fun bindCameraOpExecutor(
+            impl: DefaultCameraOpExecutor,
+        ): CameraOpExecutor
     }
 }

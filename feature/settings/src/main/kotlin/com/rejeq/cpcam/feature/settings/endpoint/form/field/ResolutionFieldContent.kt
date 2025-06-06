@@ -42,7 +42,7 @@ fun ResolutionFieldContent(
                 keyboardType = KeyboardType.Number,
             ),
             keyboardActions = keyboardActions,
-            modifier = modifier.weight(1f),
+            modifier = Modifier.weight(1f),
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -62,7 +62,7 @@ fun ResolutionFieldContent(
                 keyboardType = KeyboardType.Number,
             ),
             keyboardActions = keyboardActions,
-            modifier = modifier.weight(1f),
+            modifier = Modifier.weight(1f),
         )
     }
 }

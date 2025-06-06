@@ -50,7 +50,7 @@ class PortFieldState(initValue: Int? = null) {
             val portNumber = text.toInt()
             error = when {
                 portNumber < 0 -> PortErrorKind.Negative
-                portNumber > 65535 -> PortErrorKind.TooBig
+                portNumber > PORT_MAX_VALUE -> PortErrorKind.TooBig
                 else -> null
             }
         } catch (e: NumberFormatException) {
@@ -64,3 +64,5 @@ enum class PortErrorKind {
     TooBig,
     NotValid,
 }
+
+private const val PORT_MAX_VALUE = 65535

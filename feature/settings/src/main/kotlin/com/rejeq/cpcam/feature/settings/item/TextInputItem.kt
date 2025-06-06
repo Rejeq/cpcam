@@ -58,7 +58,7 @@ fun TextInputItem(
             )
         },
     ) {
-        LaunchedEffect(Unit) {
+        LaunchedEffect(onValueChange) {
             // We don't use requestFocus() in onItemClick(), since at the moment
             // of click event - TextField() composable is not created, so
             // there no any attached focus node, and requestFocus() crashes

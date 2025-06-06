@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -36,9 +37,10 @@ fun ObsEndpointFormContent(
 }
 
 @Composable
+@Preview
 @PreviewScreenSizes
 @PreviewLightDark
-fun PreviewObsEndpointFormContent() {
+private fun PreviewObsEndpointFormContent() {
     CpcamTheme {
         ObsEndpointFormContent(
             state = PreviewObsEndpointFormState(),

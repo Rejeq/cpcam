@@ -119,11 +119,11 @@ fun DialogSelectableRow(
     label: String,
     isSelected: Boolean,
     onSelect: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier =
-        Modifier
+        modifier = modifier
             .clip(MaterialTheme.shapes.small)
             .selectable(
                 selected = isSelected,

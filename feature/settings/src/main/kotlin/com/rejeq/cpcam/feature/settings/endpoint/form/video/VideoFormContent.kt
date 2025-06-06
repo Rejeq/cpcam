@@ -39,9 +39,10 @@ fun VideoFormContent(
 }
 
 @Composable
-fun VideoFormContent(state: VideoFormState) {
+fun VideoFormContent(state: VideoFormState, modifier: Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier,
     ) {
         EnumFieldContent(
             state = state.codec,

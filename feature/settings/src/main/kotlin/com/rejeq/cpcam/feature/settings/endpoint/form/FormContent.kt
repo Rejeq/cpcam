@@ -93,7 +93,7 @@ fun FormHeader(
 }
 
 @Composable
-fun ExpandIcon(expanded: Boolean) {
+fun ExpandIcon(expanded: Boolean, modifier: Modifier = Modifier) {
     Icon(
         painter = if (expanded) {
             painterResource(CoreR.drawable.ic_keyboard_arrow_up_24dp)
@@ -105,5 +105,6 @@ fun ExpandIcon(expanded: Boolean) {
         } else {
             stringResource(R.string.endpoint_collapse_btn_desc)
         },
+        modifier = modifier,
     )
 }
