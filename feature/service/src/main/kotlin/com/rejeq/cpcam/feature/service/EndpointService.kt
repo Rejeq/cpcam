@@ -130,21 +130,14 @@ class EndpointService : Service() {
      *
      * @return `true` if starting in foreground failed, `false` on success
      */
-    @SuppressLint("InlinedApi")
     private fun runAsForeground(): Boolean {
-        var foregroundType = 0
-
-        if (this.hasPermission(Manifest.permission.CAMERA)) {
-            foregroundType = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
-        }
-
         // NOTE: Notification channel must already be registered at the time of
         // the service creation
         ServiceCompat.startForeground(
             this,
             STREAM_SERVICE_ID,
             buildNotification(endpointState.value),
-            foregroundType,
+            getForegroundType(this),
         )
 
         return false
@@ -272,6 +265,17 @@ class EndpointService : Service() {
     companion object {
         const val ACTION_START_ENDPOINT = "StartEndpoint"
         const val ACTION_STOP_ENDPOINT = "StopEndpoint"
+
+        @SuppressLint("InlinedApi")
+        fun getForegroundType(context: Context): Int {
+            var type = 0
+
+            if (context.hasPermission(Manifest.permission.CAMERA)) {
+                type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+            }
+
+            return type
+        }
     }
 }
 
@@ -281,6 +285,11 @@ class EndpointService : Service() {
  * @param context Application context
  */
 fun startEndpointService(context: Context) {
+    if (EndpointService.getForegroundType(context) == 0) {
+        Log.e(TAG, "Unable to start: Doesn't have permissions")
+        return
+    }
+
     val intent =
         Intent(context, EndpointService::class.java)
             .setAction(EndpointService.ACTION_START_ENDPOINT)
@@ -294,6 +303,11 @@ fun startEndpointService(context: Context) {
  * @param context Application context
  */
 fun stopEndpointService(context: Context) {
+    if (EndpointService.getForegroundType(context) == 0) {
+        Log.e(TAG, "Unable to stop: Doesn't have permissions")
+        return
+    }
+
     val intent =
         Intent(context, EndpointService::class.java)
             .setAction(EndpointService.ACTION_STOP_ENDPOINT)
