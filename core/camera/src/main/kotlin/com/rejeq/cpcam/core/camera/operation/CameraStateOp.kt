@@ -12,6 +12,7 @@ import com.rejeq.cpcam.core.common.hasPermission
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 /**
@@ -21,20 +22,33 @@ class CameraStateOp : CameraOperation<Flow<CameraStateWrapper>> {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun CameraOpExecutor.invoke(): Flow<CameraStateWrapper> =
         source.cameraInfo
-            .flatMapLatest { it.cameraState.asFlow() }
+            .flatMapLatest {
+                it?.cameraState?.asFlow()
+                    ?: flowOf(null)
+            }
             .map { mapToWrapper(it, context) }
 
     private fun mapToWrapper(
-        rawState: CameraState,
+        rawState: CameraState?,
         context: Context,
     ): CameraStateWrapper {
-        val wrapper = if (!context.hasPermission(Manifest.permission.CAMERA)) {
-            CameraStateWrapper(
-                type = CameraType.Close,
-                error = CameraError.PermissionDenied,
-            )
-        } else {
-            CameraStateWrapper.from(rawState)
+        val wrapper = when {
+            rawState == null -> {
+                CameraStateWrapper(
+                    type = CameraType.Close,
+                    error = CameraError.NoAvaiableCameras,
+                )
+            }
+
+            context.hasPermission(Manifest.permission.CAMERA) == false -> {
+                CameraStateWrapper(
+                    type = CameraType.Close,
+                    error = CameraError.PermissionDenied,
+                )
+            }
+            else -> {
+                CameraStateWrapper.from(rawState)
+            }
         }
 
         wrapper.error?.let { error ->

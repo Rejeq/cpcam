@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import com.google.common.util.concurrent.ListenableFuture
 import com.rejeq.cpcam.core.camera.di.MainExecutor
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -157,36 +158,43 @@ class CameraLifecycle(
         }
     }
 
-    suspend fun getCameraInfo(selector: CameraSelector): CameraInfo =
+    suspend fun getCameraInfo(selector: CameraSelector): CameraInfo? =
         queryDirectProvider { cameraProvider ->
             cameraProvider.getCameraInfo(selector)
         }
 
     /**
-     * Queries the camera provider and executes the given action when the
-     * provider is available.
+     * Executes [action] with the [ProcessCameraProvider] once it's available.
      *
-     * If the provider is already available, it executes the action on the
-     * specified executor.
-     * If the provider is not yet available, it adds a listener to the
-     * to be notified when the provider becomes available.
+     * If the provider is already initialized, [action] is run on [executor].
+     * Otherwise, a listener is registered, and [action] runs on [executor]
+     * when the provider becomes available.
      *
-     * @param action The action to be executed with the camera provider.
-     *        Always executed in specified [executor]
+     * Note: [action] may never be invoked if retrieving the provider from
+     * [cameraProviderFuture] fails.
+     *
+     * @param action Lambda receiving the initialized [ProcessCameraProvider].
      */
     private fun queryProvider(
         action: (cameraProvider: ProcessCameraProvider) -> Unit,
     ) {
-        if (cameraProvider != null) {
+        cameraProvider?.let {
             executor.execute {
-                action(cameraProvider!!)
+                action(it)
             }
-        } else {
-            cameraProviderFuture.addListener({
-                cameraProvider = cameraProviderFuture.get()
-                action(cameraProvider!!)
-            }, executor)
+
+            return
         }
+
+        cameraProviderFuture.addListener({
+            cameraProvider = tryCameraProviderCall {
+                cameraProviderFuture.get()
+            }
+
+            cameraProvider?.let {
+                action(it)
+            }
+        }, executor)
     }
 
     /**
@@ -195,16 +203,37 @@ class CameraLifecycle(
      * return the value from action
      *
      * @param action The action to perform with [ProcessCameraProvider].
+     * @return The result of [action] execution
+     *         or `null` if retrieving the provider from [cameraProviderFuture]
+     *         fails
      */
     private suspend fun <T> queryDirectProvider(
         action: (cameraProvider: ProcessCameraProvider) -> T,
-    ): T = if (cameraProvider != null) {
-        action(cameraProvider!!)
-    } else {
-        cameraProvider = cameraProviderFuture.await()
+    ): T? {
+        cameraProvider?.let {
+            return action(it)
+        }
 
-        action(cameraProvider!!)
+        cameraProvider = tryCameraProviderCall {
+            cameraProviderFuture.await()
+        }
+
+        return cameraProvider?.let {
+            action(it)
+        }
     }
+}
+
+private inline fun <T> tryCameraProviderCall(block: () -> T): T? = try {
+    block()
+} catch (e: ExecutionException) {
+    // ExecutionException called when directly use listener
+    Log.e(TAG, "Camera provider initialization failed", e)
+    null
+} catch (e: Exception) {
+    // Any Exception can be thrown when we use guava wrappers
+    Log.e(TAG, "Camera provider initialization failed", e)
+    null
 }
 
 private const val TAG = "CameraLifecycle"

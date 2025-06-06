@@ -36,6 +36,7 @@ enum class CameraError {
     Recoverable,
     Config,
     DoNotDisturbEnabled,
+    NoAvaiableCameras,
     ;
 
     companion object {
