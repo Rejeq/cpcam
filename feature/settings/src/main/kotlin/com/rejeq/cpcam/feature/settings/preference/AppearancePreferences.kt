@@ -17,13 +17,13 @@ import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
 import com.rejeq.cpcam.feature.settings.item.SwitchItem
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 data class AppearanceState(
-    val selectedTheme: Flow<ThemeConfig?>,
+    val selectedTheme: StateFlow<ThemeConfig?>,
     val onThemeChange: (newTheme: ThemeConfig) -> Unit,
-    val useDynamicColor: Flow<Boolean?>,
+    val useDynamicColor: StateFlow<Boolean?>,
     val onDynamicColorChange: (newState: Boolean) -> Unit,
 )
 
@@ -31,7 +31,7 @@ fun appearancePreferences(state: AppearanceState): List<PreferenceContent> =
     buildList {
         add { modifier ->
             ThemeConfigPreference(
-                selected = state.selectedTheme.collectAsState(null).value,
+                selected = state.selectedTheme.collectAsState().value,
                 onChange = state.onThemeChange,
                 modifier = modifier,
             )
@@ -40,7 +40,7 @@ fun appearancePreferences(state: AppearanceState): List<PreferenceContent> =
         if (isDynamicThemingSupported()) {
             add { modifier ->
                 UseDynamicColorPreference(
-                    checked = state.useDynamicColor.collectAsState(null).value,
+                    checked = state.useDynamicColor.collectAsState().value,
                     onChange = state.onDynamicColorChange,
                     modifier = modifier,
                 )

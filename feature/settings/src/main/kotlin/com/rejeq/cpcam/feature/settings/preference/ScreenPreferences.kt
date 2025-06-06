@@ -11,29 +11,29 @@ import androidx.compose.ui.text.input.TextFieldValue
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.SwitchItem
 import com.rejeq.cpcam.feature.settings.item.TextInputItem
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 data class ScreenState(
-    val keepScreenAwake: Flow<Boolean>,
+    val keepScreenAwake: StateFlow<Boolean?>,
     val onKeepScreenAwakeChange: (Boolean) -> Unit,
-    val dimScreenDelay: Flow<TextFieldValue>,
+    val dimScreenDelay: StateFlow<TextFieldValue>,
     val onDimScreenChange: (TextFieldValue) -> Unit,
 )
 
 fun screenPreferences(state: ScreenState): List<PreferenceContent> = listOf(
     { modifier ->
         KeepScreenAwakePreference(
-            enabled = state.keepScreenAwake.collectAsState(null).value,
+            enabled = state.keepScreenAwake.collectAsState().value,
             onChange = state.onKeepScreenAwakeChange,
             modifier = modifier,
         )
     },
     { modifier ->
         DimScreenPreference(
-            delay = state.dimScreenDelay.collectAsState(TextFieldValue()).value,
+            delay = state.dimScreenDelay.collectAsState().value,
             onChange = state.onDimScreenChange,
-            enabled = state.keepScreenAwake.collectAsState(null).value == true,
+            enabled = state.keepScreenAwake.collectAsState().value == true,
             modifier = modifier,
         )
     },

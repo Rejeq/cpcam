@@ -24,7 +24,6 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,14 +35,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 interface SettingsComponent : ChildComponent {
-    val themeConfig: Flow<ThemeConfig>
-    val useDynamicColor: Flow<Boolean>
-    val selectedResolution: Flow<Resolution?>
-    val availableResolution: Flow<List<Resolution>>
-    val selectedFramerate: Flow<Framerate?>
-    val availableFramerates: Flow<List<Framerate>>
-    val keepScreenAwake: Flow<Boolean>
-    val dimScreenDelay: Flow<TextFieldValue>
+    val themeConfig: StateFlow<ThemeConfig?>
+    val useDynamicColor: StateFlow<Boolean?>
+    val selectedResolution: StateFlow<Resolution?>
+    val availableResolution: StateFlow<List<Resolution>>
+    val selectedFramerate: StateFlow<Framerate?>
+    val availableFramerates: StateFlow<List<Framerate>>
+    val keepScreenAwake: StateFlow<Boolean?>
+    val dimScreenDelay: StateFlow<TextFieldValue>
     val versionName: String
 
     fun onThemeConfigChange(themeConfig: ThemeConfig)
@@ -76,8 +75,16 @@ class DefaultSettingsComponent @AssistedInject constructor(
     CameraOpExecutor by camOpExecutor {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
-    override val themeConfig = appearanceRepo.themeConfig
-    override val useDynamicColor = appearanceRepo.useDynamicColor
+    override val themeConfig = appearanceRepo.themeConfig.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        null,
+    )
+    override val useDynamicColor = appearanceRepo.useDynamicColor.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        null,
+    )
 
     private val cameraId: StateFlow<String?> = GetCameraIdOp().invoke()
         .stateIn(
@@ -91,23 +98,44 @@ class DefaultSettingsComponent @AssistedInject constructor(
         .filterNotNull()
         .flatMapLatest {
             cameraRepo.getResolution(it)
-        }
+        }.stateIn(
+            scope,
+            SharingStarted.WhileSubscribed(5_000),
+            null,
+        )
 
     override val availableResolution = GetRecordResolutionsOp(
         // TODO: Do not hardcode
         ImageFormat.YUV_420_888,
-    ).invoke()
+    ).invoke().stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        emptyList(),
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val selectedFramerate = cameraId
         .filterNotNull()
         .flatMapLatest {
             cameraRepo.getFramerate(it)
-        }
+        }.stateIn(
+            scope,
+            SharingStarted.WhileSubscribed(5_000),
+            null,
+        )
 
     override val availableFramerates = GetSupportedFrameratesOp().invoke()
+        .stateIn(
+            scope,
+            SharingStarted.WhileSubscribed(5_000),
+            emptyList(),
+        )
 
-    override val keepScreenAwake = screenRepo.keepScreenAwake
+    override val keepScreenAwake = screenRepo.keepScreenAwake.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        null,
+    )
 
     private val _dimScreenDelay = MutableStateFlow(TextFieldValue())
     override val dimScreenDelay = _dimScreenDelay.asStateFlow()

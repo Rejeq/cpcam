@@ -14,31 +14,31 @@ import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.DialogSelectableRow
 import com.rejeq.cpcam.feature.settings.item.ListDialogItem
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 data class CameraState(
-    val availableResolution: Flow<List<Resolution>>,
-    val selectedResolution: Flow<Resolution?>,
+    val availableResolution: StateFlow<List<Resolution>>,
+    val selectedResolution: StateFlow<Resolution?>,
     val onResolutionChange: (Resolution?) -> Unit,
-    val availableFramerates: Flow<List<Framerate>>,
-    val selectedFramerate: Flow<Framerate?>,
+    val availableFramerates: StateFlow<List<Framerate>>,
+    val selectedFramerate: StateFlow<Framerate?>,
     val onFramerateChange: (Framerate?) -> Unit,
 )
 
 fun cameraPreferences(state: CameraState): List<PreferenceContent> = listOf(
     { modifier ->
         ResolutionPreference(
-            available = state.availableResolution.collectAsState(null).value,
-            selected = state.selectedResolution.collectAsState(null).value,
+            available = state.availableResolution.collectAsState().value,
+            selected = state.selectedResolution.collectAsState().value,
             onChange = state.onResolutionChange,
             modifier = modifier,
         )
     },
     { modifier ->
         FrameratePreference(
-            available = state.availableFramerates.collectAsState(null).value,
-            selected = state.selectedFramerate.collectAsState(null).value,
+            available = state.availableFramerates.collectAsState().value,
+            selected = state.selectedFramerate.collectAsState().value,
             onChange = state.onFramerateChange,
             modifier = modifier,
         )
@@ -47,14 +47,14 @@ fun cameraPreferences(state: CameraState): List<PreferenceContent> = listOf(
 
 @Composable
 fun ResolutionPreference(
-    available: List<Resolution>?,
+    available: List<Resolution>,
     selected: Resolution?,
     onChange: (Resolution?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val showDialog = rememberSaveable { mutableStateOf(false) }
 
-    val entries = available?.mapToImmutableList {
+    val entries = available.mapToImmutableList {
         val simplified = it.simplified()
         "$it (${simplified.width}/${simplified.height})"
     }
@@ -79,7 +79,7 @@ fun ResolutionPreference(
             )
         }
 
-        entries?.fastForEachIndexed { idx, entry ->
+        entries.fastForEachIndexed { idx, entry ->
             item {
                 DialogSelectableRow(
                     label = entry,
@@ -96,14 +96,14 @@ fun ResolutionPreference(
 
 @Composable
 fun FrameratePreference(
-    available: List<Framerate>?,
+    available: List<Framerate>,
     selected: Framerate?,
     onChange: (Framerate?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val showDialog = rememberSaveable { mutableStateOf(false) }
 
-    val entries = available?.mapToImmutableList { framerate ->
+    val entries = available.mapToImmutableList { framerate ->
         framerate.toDisplayedString()
     }
 
@@ -127,7 +127,7 @@ fun FrameratePreference(
             )
         }
 
-        entries?.fastForEachIndexed { idx, framerate ->
+        entries.fastForEachIndexed { idx, framerate ->
             item {
                 DialogSelectableRow(
                     label = framerate.toString(),
