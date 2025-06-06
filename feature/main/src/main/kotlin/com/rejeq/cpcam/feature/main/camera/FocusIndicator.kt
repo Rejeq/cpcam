@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.feature.main.camera
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -8,8 +7,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -23,54 +21,59 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FocusIndicator(state: FocusIndicatorState, modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "focus")
+    if (state !is FocusIndicatorState.Disabled) {
+        val infiniteTransition = rememberInfiniteTransition(label = "focus")
 
-    val size by infiniteTransition.animateFloat(
-        initialValue = 48f,
-        targetValue = 52f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(500, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "size",
-    )
+        val size by infiniteTransition.animateFloat(
+            initialValue = INDICATOR_SIZE,
+            targetValue = INDICATOR_EXPANDED_SIZE,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    SIZE_ANIMATION_DURATION,
+                    easing = LinearEasing,
+                ),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "size",
+        )
 
-    val color by infiniteTransition.animateColor(
-        initialValue = Color.White,
-        targetValue = Color.Red,
-        animationSpec = infiniteRepeatable(
-            animation = tween(300),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "color",
-    )
+        val color by infiniteTransition.animateColor(
+            initialValue = Color.White,
+            targetValue = Color.Red,
+            animationSpec = infiniteRepeatable(
+                animation = tween(COLOR_ANIMATION_DURATION),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "color",
+        )
 
-    AnimatedVisibility(
-        visible = state !is FocusIndicatorState.Disabled,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = modifier
-            .offset { state.pos }
-            .offset((-24).dp, (-24).dp)
-            .size(48.dp)
-            .drawWithContent {
-                val currentSize = when (state) {
-                    is FocusIndicatorState.Focusing -> size
-                    else -> 48f
-                }
-
-                val currentColor = when (state) {
-                    is FocusIndicatorState.Failed -> color
-                    else -> Color.White
-                }
-
-                drawCircle(
-                    color = currentColor,
-                    radius = currentSize / 2,
-                    style = Stroke(width = 2.dp.toPx()),
+        Box(
+            modifier = modifier
+                .offset { state.pos }
+                .offset(
+                    (-INDICATOR_SIZE / 2.0f).dp,
+                    (-INDICATOR_SIZE / 2.0f).dp,
                 )
-            },
-    ) { }
+                .size(INDICATOR_SIZE.dp)
+                .drawWithContent {
+                    val currentSize = when (state) {
+                        is FocusIndicatorState.Focusing -> size
+                        else -> INDICATOR_SIZE
+                    }
+
+                    val currentColor = when (state) {
+                        is FocusIndicatorState.Failed -> color
+                        else -> Color.White
+                    }
+
+                    drawCircle(
+                        color = currentColor,
+                        radius = currentSize / 2,
+                        style = Stroke(width = INDICATOR_WIDTH.dp.toPx()),
+                    )
+                },
+        )
+    }
 }
 
 sealed interface FocusIndicatorState {
@@ -84,3 +87,10 @@ sealed interface FocusIndicatorState {
     data class Focused(override val pos: IntOffset) : FocusIndicatorState
     data class Failed(override val pos: IntOffset) : FocusIndicatorState
 }
+
+private const val INDICATOR_WIDTH = 2.0f
+private const val INDICATOR_SIZE = 48.0f
+private const val INDICATOR_EXPANDED_SIZE = 52.0f
+
+private const val SIZE_ANIMATION_DURATION = 500
+private const val COLOR_ANIMATION_DURATION = 300
