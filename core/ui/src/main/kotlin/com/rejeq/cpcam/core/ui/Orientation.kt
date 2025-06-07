@@ -24,7 +24,7 @@ fun Modifier.adaptiveRotation(): Modifier {
 
         val targetAngle = orientation.toRotationAngle()
         val normalizedCurrent = current.normalizedAngle()
-        val delta = shortestAngleDelta(targetAngle, normalizedCurrent)
+        val delta = shortestAngleDelta(normalizedCurrent, targetAngle)
 
         rotationAngle.animateTo(
             targetValue = current + delta,
@@ -75,9 +75,9 @@ private fun Int.toDeviceOrientation(): DeviceOrientation = when (this) {
 @Suppress("MagicNumber")
 private fun DeviceOrientation.toRotationAngle(): Float = when (this) {
     DeviceOrientation.Portrait -> 0f
-    DeviceOrientation.ReversePortrait -> 180f
-    DeviceOrientation.Landscape -> -90f
     DeviceOrientation.ReverseLandscape -> 90f
+    DeviceOrientation.ReversePortrait -> 180f
+    DeviceOrientation.Landscape -> 270f
 }
 
 /**
@@ -100,7 +100,7 @@ private fun Float.normalizedAngle() = (this % 360 + 360) % 360
  */
 @Suppress("MagicNumber")
 private fun shortestAngleDelta(from: Float, to: Float): Float {
-    var delta = from - to
+    var delta = to - from
     if (delta > 180f) {
         delta -= 360f
     } else if (delta < -180f) {
