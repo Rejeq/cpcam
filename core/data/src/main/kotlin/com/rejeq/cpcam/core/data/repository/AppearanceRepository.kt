@@ -2,6 +2,7 @@ package com.rejeq.cpcam.core.data.repository
 
 import com.rejeq.cpcam.core.data.mapper.fromDataStore
 import com.rejeq.cpcam.core.data.mapper.toDataStore
+import com.rejeq.cpcam.core.data.mapper.toDynamicColorProto
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.source.DataStoreSource
 import javax.inject.Inject
@@ -31,7 +32,7 @@ class AppearanceRepository @Inject constructor(
 
     /** Flow indicating if dynamic colors are enabled */
     val useDynamicColor get() = source.store.map {
-        it.useDynamicColor
+        it.useDynamicColor.fromDataStore()
     }.distinctUntilChanged()
 
     /**
@@ -41,7 +42,7 @@ class AppearanceRepository @Inject constructor(
      * @return Result of the preference update
      */
     suspend fun setUseDynamicColor(useDynamicColor: Boolean) = source.tryEdit {
-        this.useDynamicColor = useDynamicColor
+        this.useDynamicColor = useDynamicColor.toDynamicColorProto()
     }
 
     /**

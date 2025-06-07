@@ -45,6 +45,12 @@ enum ThemeConfigProto {
     // NEXT AVAILABLE ID: 4
 }
 
+enum DynamicColorProto {
+    DYNAMIC_COLOR_UNSPECIFIED = 0;
+    DYNAMIC_COLOR_DISABLE = 1;
+    DYNAMIC_COLOR_ENABLE = 2;
+}
+
 message CameraPreferenceProto {
     optional string resolution = 1;
     optional string framerate = 2;
@@ -95,7 +101,7 @@ message AppPreferences {
     bool keep_screen_awake = 6;
     int64 dim_screen_delay = 7;
     ThemeConfigProto theme_config = 8;
-    bool use_dynamic_color = 9;
+    DynamicColorProto use_dynamic_color = 9;
 
     repeated string launched_permissions = 10;
 
