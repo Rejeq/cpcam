@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.camera.core.CameraControl
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.MeteringPoint
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.target.CameraTarget
 import kotlinx.coroutines.guava.await
 
@@ -17,7 +18,7 @@ import kotlinx.coroutines.guava.await
 class SetFocusPointForTargetOp(
     val x: Float,
     val y: Float,
-    val target: CameraTarget,
+    val target: CameraTarget<SurfaceRequestWrapper>,
 ) : AsyncCameraOperation<FocusError?> {
     override suspend fun CameraOpExecutor.invoke(): FocusError? {
         val point = target.getPoint(x, y)

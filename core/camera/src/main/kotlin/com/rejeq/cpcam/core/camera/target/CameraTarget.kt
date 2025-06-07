@@ -1,18 +1,16 @@
 package com.rejeq.cpcam.core.camera.target
 
 import androidx.camera.core.MeteringPoint
-import androidx.camera.core.SurfaceRequest
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Represents a target for a camera, providing access to surface requests and
  * camera events.
  */
-interface CameraTarget {
-    val surfaceRequest: StateFlow<SurfaceRequestState>
+interface CameraTarget<T> {
+    val request: StateFlow<CameraRequestState<T>>
 
     fun start()
 
@@ -21,29 +19,25 @@ interface CameraTarget {
     fun getPoint(x: Float, y: Float): MeteringPoint? = null
 }
 
-sealed interface SurfaceRequestState {
+sealed interface CameraRequestState<out T> {
     /**
-     * Represents the state where a [SurfaceRequest] has been stopped or not
+     * Represents the state where a [CameraTarget] has been stopped or not
      * started yet.
-     *
-     * This state indicates that the [SurfaceRequest] is not available, likely
-     * due to a change in application needs or lifecycle events.
      */
-    object Stopped : SurfaceRequestState
+    object Stopped : CameraRequestState<Nothing>
 
     /**
-     * Represents the state where a [SurfaceRequestWrapper] is available and
+     * Represents the state where a request data is available and
      * ready to be used.
      *
-     * This state indicates that a surface request has been successfully
+     * This state indicates that a request has been successfully
      * processed and is now available for the client to interact with
      * (e.g., to provide a Surface or release the request).
      *
-     * @property value The [SurfaceRequestWrapper] that is available. This
-     *           represents the actual request object that can be used to
-     *           provide a surface.
+     * @property value The data that is available.
      */
-    class Available(val value: SurfaceRequestWrapper) : SurfaceRequestState
+    @JvmInline
+    value class Available<T>(val value: T) : CameraRequestState<T>
 }
 
 /**
@@ -59,7 +53,7 @@ sealed interface SurfaceRequestState {
  * @return A [LifecycleEventObserver] that automatically starts and stops the
  *         camera target based on lifecycle events.
  */
-fun CameraTarget.lifecycleObserver() = LifecycleEventObserver { _, event ->
+fun CameraTarget<*>.lifecycleObserver() = LifecycleEventObserver { _, event ->
     when (event) {
         Lifecycle.Event.ON_START -> start()
         Lifecycle.Event.ON_STOP -> stop()

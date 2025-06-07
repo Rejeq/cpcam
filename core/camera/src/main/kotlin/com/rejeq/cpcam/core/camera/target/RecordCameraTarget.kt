@@ -30,15 +30,16 @@ class RecordCameraTarget @Inject constructor(
     private val source: CameraSource,
     @MainExecutor private val executor: Executor,
     val scope: CoroutineScope,
-) : CameraTarget {
+) : CameraTarget<SurfaceRequestWrapper> {
     private val targetId = CameraTargetId.Record
 
     private var framerate: Range<Int>? = null
 
-    private val _surfaceRequest = MutableStateFlow<SurfaceRequestState>(
-        SurfaceRequestState.Stopped,
-    )
-    override val surfaceRequest = _surfaceRequest.asStateFlow()
+    private val _request =
+        MutableStateFlow<CameraRequestState<SurfaceRequestWrapper>>(
+            CameraRequestState.Stopped,
+        )
+    override val request = _request.asStateFlow()
 
     override fun start() {
         val useCase = buildUseCase(framerate)
@@ -47,7 +48,7 @@ class RecordCameraTarget @Inject constructor(
 
     override fun stop() {
         source.detach(targetId)
-        _surfaceRequest.value = SurfaceRequestState.Stopped
+        _request.value = CameraRequestState.Stopped
     }
 
     /**
@@ -91,10 +92,9 @@ class RecordCameraTarget @Inject constructor(
         }.build().apply {
             executor.execute {
                 setSurfaceProvider { newSurfaceRequest ->
-                    _surfaceRequest.value =
-                        SurfaceRequestState.Available(
-                            SurfaceRequestWrapper(newSurfaceRequest),
-                        )
+                    _request.value = CameraRequestState.Available(
+                        SurfaceRequestWrapper(newSurfaceRequest),
+                    )
                 }
             }
         }

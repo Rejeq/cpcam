@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
 import com.rejeq.cpcam.core.camera.CameraType
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
 import com.rejeq.cpcam.core.camera.operation.CameraStateOp
 import com.rejeq.cpcam.core.camera.operation.CameraSwitchOp
@@ -47,7 +48,7 @@ interface CameraComponent {
     val hasTorch: StateFlow<Boolean>
     val isTorchEnabled: StateFlow<Boolean>
     val focusIndicator: StateFlow<FocusIndicatorState>
-    val target: CameraTarget
+    val target: CameraTarget<SurfaceRequestWrapper>
 
     fun provideScreenResolution(resolution: Resolution)
 
@@ -78,7 +79,7 @@ class DefaultCameraComponent @AssistedInject constructor(
 
     override val state = combine(
         CameraStateOp().invoke(),
-        target.surfaceRequest,
+        target.request,
         screenResolution,
     ) { state, requestState, screenRes ->
         // We must update the preview resolution only when camera is fully

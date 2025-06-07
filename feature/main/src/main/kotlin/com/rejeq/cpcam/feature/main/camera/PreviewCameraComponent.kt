@@ -4,8 +4,9 @@ import android.Manifest
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.rejeq.cpcam.core.camera.CameraError
+import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
+import com.rejeq.cpcam.core.camera.target.CameraRequestState
 import com.rejeq.cpcam.core.camera.target.CameraTarget
-import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.ui.PermissionState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,10 +32,12 @@ class PreviewCameraComponent : CameraComponent {
         MutableStateFlow<FocusIndicatorState>(FocusIndicatorState.Disabled)
     override val focusIndicator = _focusIndicator.asStateFlow()
 
-    override val target = object : CameraTarget {
-        private val _surfaceRequest =
-            MutableStateFlow<SurfaceRequestState>(SurfaceRequestState.Stopped)
-        override val surfaceRequest = _surfaceRequest.asStateFlow()
+    override val target = object : CameraTarget<SurfaceRequestWrapper> {
+        private val _request =
+            MutableStateFlow<CameraRequestState<SurfaceRequestWrapper>>(
+                CameraRequestState.Stopped,
+            )
+        override val request = _request.asStateFlow()
 
         override fun start() {}
         override fun stop() {}

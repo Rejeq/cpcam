@@ -3,8 +3,8 @@ package com.rejeq.cpcam.core.stream.target
 import android.util.Log
 import android.util.Range
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
+import com.rejeq.cpcam.core.camera.target.CameraRequestState
 import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
-import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
 import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.stream.relay.VideoRelay
 import javax.inject.Inject
@@ -19,9 +19,9 @@ class CameraVideoTarget @Inject constructor(
     private var relay: VideoRelay? = null
 
     init {
-        target.surfaceRequest.onEach {
+        target.request.onEach {
             when (it) {
-                is SurfaceRequestState.Available -> {
+                is CameraRequestState.Available<SurfaceRequestWrapper> -> {
                     relay?.let { encoder ->
                         attachRelay(it.value, encoder)
                     }
@@ -34,8 +34,8 @@ class CameraVideoTarget @Inject constructor(
     override fun setRelay(relay: VideoRelay) {
         Log.i(TAG, "Updating relay to: $relay")
 
-        when (val request = target.surfaceRequest.value) {
-            is SurfaceRequestState.Available -> {
+        when (val request = target.request.value) {
+            is CameraRequestState.Available<SurfaceRequestWrapper> -> {
                 request.value.invalidate()
                 attachRelay(request.value, relay)
             }

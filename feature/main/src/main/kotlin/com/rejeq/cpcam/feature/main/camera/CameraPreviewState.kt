@@ -5,7 +5,7 @@ import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.camera.CameraStateWrapper
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
-import com.rejeq.cpcam.core.camera.target.SurfaceRequestState
+import com.rejeq.cpcam.core.camera.target.CameraRequestState
 import com.rejeq.cpcam.core.data.model.Resolution
 
 /**
@@ -43,12 +43,12 @@ sealed interface CameraPreviewState {
 }
 
 fun CameraStateWrapper.fromDomain(
-    requestState: SurfaceRequestState,
+    requestState: CameraRequestState<SurfaceRequestWrapper>,
     size: Resolution?,
 ): CameraPreviewState {
     error?.let { return CameraPreviewState.Failed(it) }
 
-    val request = (requestState as? SurfaceRequestState.Available)?.value
+    val request = (requestState as? CameraRequestState.Available)?.value
     return when (type) {
         CameraType.Close -> CameraPreviewState.Closed(request, size)
         CameraType.Open -> {
