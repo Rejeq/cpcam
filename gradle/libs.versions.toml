@@ -38,6 +38,7 @@ testRules = "1.6.1"
 uiautomator = "2.3.0"
 decompose = "3.3.0"
 essenty = "2.5.0"
+mlkitBarcode = "17.3.0"
 
 [libraries]
 about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
@@ -70,6 +71,9 @@ camerax-compose = { module = "androidx.camera:camera-compose", version.ref = "ca
 camerax-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
 camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 camerax-video = { module = "androidx.camera:camera-video", version.ref = "camerax" }
+camerax-mlkit-vision = { module = "androidx.camera:camera-mlkit-vision", version.ref = "camerax" }
+
+google-mlkit-barcode = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkitBarcode" }
 
 compose-animation-graphics = { module = "androidx.compose.animation:animation-graphics" }
 # TODO: Move to stable channel when SecureTextField support would be stable in material3 library
