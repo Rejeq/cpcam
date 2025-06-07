@@ -164,7 +164,14 @@ void FFmpegVideoStream::as_av_frame(const FrameData &data, AVFrame *out) {
         out->linesize[i] = data.buff_stride[i];
     }
 
-    out->pts = data.ts - m_octx->start_time;
+    if (m_start_pts == -1) {
+        m_start_pts = data.ts;
+    }
+
+    int64_t time_diff = data.ts - m_start_pts;
+    out->pts = av_rescale_q(time_diff,
+                           AVRational{1, 1'000'000'000},  // from nanoseconds
+                           m_cctx->time_base);
 }
 
 void FFmpegVideoStream::make_sws_scale(AVFrame *input, AVFrame *output) {

@@ -65,6 +65,8 @@ class FFmpegVideoStream {
     struct SwsContext *m_sws_ctx = nullptr;
     AVFrame *m_sws_frame = nullptr;
 
+    int64_t m_start_pts = -1;
+
     AVPixelFormat m_pix_fmt = AV_PIX_FMT_NONE;
     int m_frame_width = 0;
     int m_frame_height = 0;

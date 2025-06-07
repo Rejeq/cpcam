@@ -5,6 +5,7 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/time.h>
 }
 
 #include "FFmpegUtils.h"
@@ -122,9 +123,11 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
     cctx->bit_rate = config.bitrate;
     cctx->width = config.width;
     cctx->height = config.height;
-    st->time_base = {1, 1'000'000'000};
-    cctx->time_base = {1, 1'000'000'000};
-    //     cctx->time_base = {1, config.framerate};
+
+    AVRational time_base = {1, config.framerate};
+    st->time_base = time_base;
+    cctx->time_base = time_base;
+
     cctx->framerate = {config.framerate, 1};
     cctx->pix_fmt = to_av_pix_fmt(config.pix_fmt);
 
