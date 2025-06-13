@@ -36,6 +36,7 @@ fun TextInputItem(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
+    placeholder: String? = null,
     dialogTitle: String = title,
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -75,6 +76,11 @@ fun TextInputItem(
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             singleLine = true,
+            placeholder = {
+                placeholder?.let {
+                    Text(text = it)
+                }
+            },
         )
     }
 }

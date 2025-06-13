@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.core.camera)
     implementation(projects.core.common)
     implementation(projects.core.data)
+    implementation(projects.core.device)
     implementation(projects.core.endpoint)
     implementation(projects.core.ui)
 

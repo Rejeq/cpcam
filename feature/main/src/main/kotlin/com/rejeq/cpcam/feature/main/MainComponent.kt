@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.feature.main
 
+import android.content.Context
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.camera.CameraError
@@ -8,6 +9,7 @@ import com.rejeq.cpcam.core.camera.ui.CameraPreviewState
 import com.rejeq.cpcam.core.camera.ui.DefaultCameraComponent
 import com.rejeq.cpcam.core.common.ChildComponent
 import com.rejeq.cpcam.core.data.repository.ScreenRepository
+import com.rejeq.cpcam.core.device.screenOffTimeoutMs
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.MorphButtonState
@@ -15,6 +17,7 @@ import com.rejeq.cpcam.core.ui.MorphIconTarget
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -44,6 +47,7 @@ interface MainComponent : ChildComponent {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultMainComponent @AssistedInject constructor(
+    @ApplicationContext private val ctx: Context,
     endpoint: EndpointHandler,
     cameraFactory: DefaultCameraComponent.Factory,
     endpointHandler: EndpointHandler,
@@ -97,7 +101,8 @@ class DefaultMainComponent @AssistedInject constructor(
     )
 
     override val dimScreenDelay = screenRepo.dimScreenDelay.map {
-        it.inWholeMilliseconds
+        val delay = it?.inWholeMilliseconds
+        delay ?: screenOffTimeoutMs(ctx.contentResolver)
     }.stateIn(
         scope,
         SharingStarted.WhileSubscribed(5_000),

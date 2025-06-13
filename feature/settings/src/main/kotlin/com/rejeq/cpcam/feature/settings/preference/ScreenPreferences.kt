@@ -4,13 +4,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import com.rejeq.cpcam.core.device.screenOffTimeoutMs
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.item.SwitchItem
 import com.rejeq.cpcam.feature.settings.item.TextInputItem
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 import kotlinx.coroutines.flow.StateFlow
 
 @Stable
@@ -61,12 +66,20 @@ fun DimScreenPreference(
     enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val systemDimScreenDelay = remember {
+        screenOffTimeoutMs(context.contentResolver)
+            ?.milliseconds
+            ?.toString(DurationUnit.SECONDS)
+    }
+
     TextInputItem(
         title = stringResource(R.string.pref_dim_screen_title),
         dialogTitle = stringResource(R.string.pref_dim_screen_dialog_title),
         subtitle = stringResource(R.string.pref_dim_screen_desc),
         value = delay,
         onValueChange = onChange,
+        placeholder = systemDimScreenDelay,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Decimal,
         ),

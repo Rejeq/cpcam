@@ -145,8 +145,9 @@ class DefaultSettingsComponent @AssistedInject constructor(
     init {
         scope.launch {
             val delay = screenRepo.dimScreenDelay.first()
-            val delaySec = delay.inWholeSeconds
-            _dimScreenDelay.value = TextFieldValue(delaySec.toString())
+            val delaySec = delay?.inWholeSeconds
+
+            _dimScreenDelay.value = TextFieldValue(delaySec?.toString() ?: "")
         }
     }
 
@@ -196,8 +197,10 @@ class DefaultSettingsComponent @AssistedInject constructor(
         _dimScreenDelay.value = time
 
         externalScope.launch {
-            val delay = time.text.trim().toLongOrNull() ?: 0
-            screenRepo.setDimScreenDelay(delay.toDuration(DurationUnit.SECONDS))
+            val delay = time.text.trim().toLongOrNull()
+            screenRepo.setDimScreenDelay(
+                delay?.toDuration(DurationUnit.SECONDS),
+            )
         }
     }
 

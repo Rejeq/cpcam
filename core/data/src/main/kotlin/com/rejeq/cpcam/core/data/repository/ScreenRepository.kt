@@ -20,10 +20,18 @@ class ScreenRepository @Inject constructor(
     }
 
     val dimScreenDelay = source.store.map {
+        if (!it.hasDimScreenDelay()) {
+            return@map null
+        }
+
         it.dimScreenDelay.toDuration(DurationUnit.MILLISECONDS)
     }.distinctUntilChanged()
 
-    suspend fun setDimScreenDelay(delay: Duration) = source.tryEdit {
-        this.dimScreenDelay = delay.inWholeMilliseconds
+    suspend fun setDimScreenDelay(delay: Duration?) = source.tryEdit {
+        if (delay == null) {
+            this.clearDimScreenDelay()
+        } else {
+            this.dimScreenDelay = delay.inWholeMilliseconds
+        }
     }
 }
