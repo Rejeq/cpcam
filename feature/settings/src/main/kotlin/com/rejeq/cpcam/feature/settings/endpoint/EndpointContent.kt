@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
-import com.rejeq.cpcam.core.ui.clearFocusOnTap
+import com.rejeq.cpcam.core.ui.modifier.clearFocusOnTap
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.endpoint.form.EndpointFormContent

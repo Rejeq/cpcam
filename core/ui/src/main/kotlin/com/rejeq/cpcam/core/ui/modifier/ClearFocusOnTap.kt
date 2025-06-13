@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.core.ui
+package com.rejeq.cpcam.core.ui.modifier
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEvent

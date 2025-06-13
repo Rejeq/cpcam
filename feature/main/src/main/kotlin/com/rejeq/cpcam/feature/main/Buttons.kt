@@ -7,7 +7,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.rejeq.cpcam.core.ui.CpcamIconButton
 import com.rejeq.cpcam.core.ui.R as CoreR
-import com.rejeq.cpcam.core.ui.adaptiveRotation
+import com.rejeq.cpcam.core.ui.modifier.adaptiveRotation
 
 @Composable
 fun SwitchCameraButton(onClick: () -> Unit, modifier: Modifier = Modifier) {

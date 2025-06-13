@@ -27,17 +27,17 @@ import com.rejeq.cpcam.core.camera.ui.CameraContent
 import com.rejeq.cpcam.core.camera.ui.CameraPreviewState
 import com.rejeq.cpcam.core.device.dimScreen
 import com.rejeq.cpcam.core.device.restoreScreenBrightness
-import com.rejeq.cpcam.core.ui.DeviceOrientation
 import com.rejeq.cpcam.core.ui.Edge
 import com.rejeq.cpcam.core.ui.LocalIsWindowFocused
 import com.rejeq.cpcam.core.ui.MorphButtonState
 import com.rejeq.cpcam.core.ui.MorphIconButton
 import com.rejeq.cpcam.core.ui.MorphIconTarget
-import com.rejeq.cpcam.core.ui.ProvideDeviceOrientation
 import com.rejeq.cpcam.core.ui.SlideFromEdge
-import com.rejeq.cpcam.core.ui.adaptiveRotation
-import com.rejeq.cpcam.core.ui.keepScreenAwake
-import com.rejeq.cpcam.core.ui.lockOrientation
+import com.rejeq.cpcam.core.ui.modifier.DeviceOrientation
+import com.rejeq.cpcam.core.ui.modifier.ProvideDeviceOrientation
+import com.rejeq.cpcam.core.ui.modifier.adaptiveRotation
+import com.rejeq.cpcam.core.ui.modifier.keepScreenAwake
+import com.rejeq.cpcam.core.ui.modifier.lockOrientation
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.main.info.InfoContent
 

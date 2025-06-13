@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.core.ui
+package com.rejeq.cpcam.core.ui.modifier
 
 import android.view.OrientationEventListener
 import androidx.compose.animation.core.Animatable

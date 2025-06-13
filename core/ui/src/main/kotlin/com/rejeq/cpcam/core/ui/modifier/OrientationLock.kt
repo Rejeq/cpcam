@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.core.ui
+package com.rejeq.cpcam.core.ui.modifier
 
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
