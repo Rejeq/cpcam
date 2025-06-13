@@ -29,6 +29,7 @@ fun <T> FormContent(
     expandable: Boolean = false,
     isExpanded: Boolean = true,
     onHeaderClick: (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     content: @Composable (T) -> Unit,
 ) {
     Surface(
@@ -44,6 +45,7 @@ fun <T> FormContent(
                 title = title,
                 expandable = expandable,
                 isExpanded = isExpanded,
+                trailingIcon = trailingIcon,
                 onClick = { onHeaderClick?.invoke() },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -66,6 +68,7 @@ fun FormHeader(
     modifier: Modifier = Modifier,
     expandable: Boolean = false,
     isExpanded: Boolean = true,
+    trailingIcon: @Composable (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val modifier = if (expandable) {
@@ -83,6 +86,8 @@ fun FormHeader(
             text = title,
             style = MaterialTheme.typography.titleMedium,
         )
+
+        trailingIcon?.invoke()
 
         if (expandable) {
             ExpandIcon(
