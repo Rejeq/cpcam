@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.main.camera
+package com.rejeq.cpcam.core.camera.ui
 
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing

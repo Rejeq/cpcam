@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.main.camera
+package com.rejeq.cpcam.core.camera.ui
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutModifier

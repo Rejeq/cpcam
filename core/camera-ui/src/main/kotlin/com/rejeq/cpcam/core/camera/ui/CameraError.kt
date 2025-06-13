@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.main.camera
+package com.rejeq.cpcam.core.camera.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.ui.R as CoreR
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
-import com.rejeq.cpcam.feature.main.R
 
 enum class CameraErrorEvent {
     GrantCameraPermission,

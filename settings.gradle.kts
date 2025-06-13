@@ -38,6 +38,7 @@ include(":benchmarks:macro")
 include(":benchmarks:micro")
 
 include(":core:camera")
+include(":core:camera-ui")
 include(":core:common")
 include(":core:data")
 include(":core:device")

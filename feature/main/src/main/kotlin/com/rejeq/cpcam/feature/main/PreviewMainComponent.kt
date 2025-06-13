@@ -3,10 +3,10 @@ package com.rejeq.cpcam.feature.main
 import com.arkivanov.decompose.router.slot.ChildSlot
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.rejeq.cpcam.core.camera.ui.PreviewCameraComponent
 import com.rejeq.cpcam.core.ui.MorphButtonState
 import com.rejeq.cpcam.core.ui.MorphIconTarget
 import com.rejeq.cpcam.feature.main.MainNavigation.Dialog
-import com.rejeq.cpcam.feature.main.camera.PreviewCameraComponent
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class PreviewMainNavigation : MainNavigation {

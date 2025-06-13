@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.rejeq.cpcam.core.camera.ui.CameraContent
+import com.rejeq.cpcam.core.camera.ui.CameraPreviewState
 import com.rejeq.cpcam.core.device.dimScreen
 import com.rejeq.cpcam.core.device.restoreScreenBrightness
 import com.rejeq.cpcam.core.ui.DeviceOrientation
@@ -37,8 +39,6 @@ import com.rejeq.cpcam.core.ui.adaptiveRotation
 import com.rejeq.cpcam.core.ui.keepScreenAwake
 import com.rejeq.cpcam.core.ui.lockOrientation
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
-import com.rejeq.cpcam.feature.main.camera.CameraContent
-import com.rejeq.cpcam.feature.main.camera.CameraPreviewState
 import com.rejeq.cpcam.feature.main.info.InfoContent
 
 @Composable

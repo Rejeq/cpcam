@@ -15,13 +15,11 @@ android {
 dependencies {
     implementation(projects.core.data)
     implementation(projects.core.camera)
+    implementation(projects.core.cameraUi)
     implementation(projects.core.endpoint)
     implementation(projects.core.ui)
     implementation(projects.core.common)
     implementation(projects.core.device)
-
-    // TODO: Remove this
-    implementation(libs.camerax.core)
 
     implementation(libs.kotlinx.coroutines)
 
