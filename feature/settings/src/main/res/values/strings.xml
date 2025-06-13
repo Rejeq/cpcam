@@ -40,6 +40,7 @@
     <string name="pref_keep_screen_awake_desc">Control whether the screen should stay awake or allow it to dim based on inactivity.</string>
 
     <string name="pref_dim_screen_title">Dim Screen</string>
+    <string name="pref_dim_screen_dialog_title">Set Delay (in seconds)</string>
     <string name="pref_dim_screen_desc">Set the duration after which the screen dims to conserve power.</string>
 
     <string name="pref_stream_service_title">Service</string>

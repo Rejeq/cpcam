@@ -42,6 +42,7 @@ fun DialogItem(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    dialogTitle: String = title,
     dismissButton: (@Composable () -> Unit) = {},
     confirmButton: (@Composable () -> Unit) = {},
     widget: (@Composable BoxScope.() -> Unit)? = null,
@@ -59,7 +60,7 @@ fun DialogItem(
     if (isDialogShown) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text(text = title) },
+            title = { Text(text = dialogTitle) },
             text = dialog,
             dismissButton = dismissButton,
             confirmButton = confirmButton,

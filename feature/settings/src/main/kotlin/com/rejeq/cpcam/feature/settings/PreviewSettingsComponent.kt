@@ -49,8 +49,8 @@ class PreviewSettingsComponent : SettingsComponent {
         keepScreenAwake.value = enabled
     }
 
-    override fun onDimScreenDelayChange(timeMs: TextFieldValue) {
-        dimScreenDelay.value = timeMs
+    override fun onDimScreenDelayChange(time: TextFieldValue) {
+        dimScreenDelay.value = time
     }
 
     override fun onFinished() { }

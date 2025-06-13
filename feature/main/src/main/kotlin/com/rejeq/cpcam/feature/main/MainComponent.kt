@@ -96,7 +96,9 @@ class DefaultMainComponent @AssistedInject constructor(
         false,
     )
 
-    override val dimScreenDelay = screenRepo.dimScreenDelay.stateIn(
+    override val dimScreenDelay = screenRepo.dimScreenDelay.map {
+        it.inWholeMilliseconds
+    }.stateIn(
         scope,
         SharingStarted.WhileSubscribed(5_000),
         null,

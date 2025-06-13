@@ -36,6 +36,7 @@ fun TextInputItem(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
+    dialogTitle: String = title,
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -45,6 +46,7 @@ fun TextInputItem(
 
     DialogItem(
         title = title,
+        dialogTitle = dialogTitle,
         subtitle = subtitle,
         isDialogShown = isDialogShown.value,
         onItemClick = { isDialogShown.value = true },

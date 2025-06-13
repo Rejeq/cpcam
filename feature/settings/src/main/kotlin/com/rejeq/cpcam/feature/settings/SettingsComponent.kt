@@ -21,6 +21,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -50,7 +52,7 @@ interface SettingsComponent : ChildComponent {
     fun onCameraResolutionChange(resolution: Resolution?)
     fun onCameraFramerateChange(framerate: Framerate?)
     fun onKeepScreenAwakeChange(enabled: Boolean)
-    fun onDimScreenDelayChange(timeMs: TextFieldValue)
+    fun onDimScreenDelayChange(time: TextFieldValue)
 
     fun onFinished()
     fun onLibraryLicensesClick()
@@ -143,7 +145,8 @@ class DefaultSettingsComponent @AssistedInject constructor(
     init {
         scope.launch {
             val delay = screenRepo.dimScreenDelay.first()
-            _dimScreenDelay.value = TextFieldValue(delay.toString())
+            val delaySec = delay.inWholeSeconds
+            _dimScreenDelay.value = TextFieldValue(delaySec.toString())
         }
     }
 
@@ -189,11 +192,12 @@ class DefaultSettingsComponent @AssistedInject constructor(
         }
     }
 
-    override fun onDimScreenDelayChange(timeMs: TextFieldValue) {
-        _dimScreenDelay.value = timeMs
+    override fun onDimScreenDelayChange(time: TextFieldValue) {
+        _dimScreenDelay.value = time
 
         externalScope.launch {
-            screenRepo.setDimScreenDelay(timeMs.text.trim().toLongOrNull() ?: 0)
+            val delay = time.text.trim().toLongOrNull() ?: 0
+            screenRepo.setDimScreenDelay(delay.toDuration(DurationUnit.SECONDS))
         }
     }
 

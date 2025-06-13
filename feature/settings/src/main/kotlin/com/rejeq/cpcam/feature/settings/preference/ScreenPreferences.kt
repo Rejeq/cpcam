@@ -63,6 +63,7 @@ fun DimScreenPreference(
 ) {
     TextInputItem(
         title = stringResource(R.string.pref_dim_screen_title),
+        dialogTitle = stringResource(R.string.pref_dim_screen_dialog_title),
         subtitle = stringResource(R.string.pref_dim_screen_desc),
         value = delay,
         onValueChange = onChange,
