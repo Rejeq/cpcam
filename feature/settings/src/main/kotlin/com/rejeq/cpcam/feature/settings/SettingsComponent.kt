@@ -17,6 +17,9 @@ import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.data.repository.CameraRepository
 import com.rejeq.cpcam.core.data.repository.ScreenRepository
+import com.rejeq.cpcam.core.device.Locale
+import com.rejeq.cpcam.core.device.getCurrentAppLocale
+import com.rejeq.cpcam.core.device.setAppLocale
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -39,6 +42,7 @@ import kotlinx.coroutines.launch
 interface SettingsComponent : ChildComponent {
     val themeConfig: StateFlow<ThemeConfig?>
     val useDynamicColor: StateFlow<Boolean?>
+    val currentLocale: StateFlow<Locale?>
     val selectedResolution: StateFlow<Resolution?>
     val availableResolution: StateFlow<List<Resolution>>
     val selectedFramerate: StateFlow<Framerate?>
@@ -49,6 +53,7 @@ interface SettingsComponent : ChildComponent {
 
     fun onThemeConfigChange(themeConfig: ThemeConfig)
     fun onUseDynamicColorChange(needUse: Boolean)
+    fun onLocaleChange(newLocale: Locale)
     fun onCameraResolutionChange(resolution: Resolution?)
     fun onCameraFramerateChange(framerate: Framerate?)
     fun onKeepScreenAwakeChange(enabled: Boolean)
@@ -87,6 +92,10 @@ class DefaultSettingsComponent @AssistedInject constructor(
         SharingStarted.WhileSubscribed(5_000),
         null,
     )
+
+    // NOTE: getCurrentAppLocale should not be invoked in activity onCreate()
+    private val _currentLocale = MutableStateFlow(getCurrentAppLocale())
+    override val currentLocale = _currentLocale.asStateFlow()
 
     private val cameraId: StateFlow<String?> = GetCameraIdOp().invoke()
         .stateIn(
@@ -160,6 +169,13 @@ class DefaultSettingsComponent @AssistedInject constructor(
     override fun onUseDynamicColorChange(needUse: Boolean) {
         externalScope.launch {
             appearanceRepo.setUseDynamicColor(needUse)
+        }
+    }
+
+    override fun onLocaleChange(newLocale: Locale) {
+        scope.launch {
+            setAppLocale(newLocale.tag)
+            _currentLocale.value = newLocale
         }
     }
 

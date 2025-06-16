@@ -96,7 +96,7 @@ android {
         sarifReport = false
     }
 
-    androidResources.localeFilters += listOf("en")
+    androidResources.localeFilters += listOf("en", "ru")
     kotlinOptions.jvmTarget = ProjectConfig.JVM_TARGET
     buildFeatures.compose = true
     buildFeatures.buildConfig = true

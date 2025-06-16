@@ -139,6 +139,8 @@ fun makeAppearancePreferences(
         onThemeChange = component::onThemeConfigChange,
         useDynamicColor = component.useDynamicColor,
         onDynamicColorChange = component::onUseDynamicColorChange,
+        selectedLocale = component.currentLocale,
+        onLocaleChange = component::onLocaleChange,
     )
 
     return appearancePreferences(state)

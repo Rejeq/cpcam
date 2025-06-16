@@ -36,6 +36,9 @@
     <string name="pref_use_dynamic_color_title">Use Dynamic Color</string>
     <string name="pref_use_dynamic_color_desc">Use theme with dynamic color</string>
 
+    <string name="pref_language_title">Language</string>
+    <string name="pref_language_desc">Set the app language</string>
+
     <string name="pref_keep_screen_awake_title">Keep Screen Awake</string>
     <string name="pref_keep_screen_awake_desc">Control whether the screen should stay awake or allow it to dim based on inactivity.</string>
 

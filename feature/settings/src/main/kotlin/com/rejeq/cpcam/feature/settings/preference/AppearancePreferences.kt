@@ -11,6 +11,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastForEachIndexed
 import com.rejeq.cpcam.core.data.model.ThemeConfig
+import com.rejeq.cpcam.core.device.APPLICATION_LOCALES
+import com.rejeq.cpcam.core.device.Locale
 import com.rejeq.cpcam.core.ui.isFollowDarkModeSupported
 import com.rejeq.cpcam.core.ui.theme.isDynamicThemingSupported
 import com.rejeq.cpcam.feature.settings.R
@@ -25,6 +27,8 @@ data class AppearanceState(
     val onThemeChange: (newTheme: ThemeConfig) -> Unit,
     val useDynamicColor: StateFlow<Boolean?>,
     val onDynamicColorChange: (newState: Boolean) -> Unit,
+    val selectedLocale: StateFlow<Locale?>,
+    val onLocaleChange: (newLocale: Locale) -> Unit,
 )
 
 fun appearancePreferences(state: AppearanceState): List<PreferenceContent> =
@@ -45,6 +49,14 @@ fun appearancePreferences(state: AppearanceState): List<PreferenceContent> =
                     modifier = modifier,
                 )
             }
+        }
+
+        add { modifier ->
+            LocalePickerPreference(
+                selected = state.selectedLocale.collectAsState().value,
+                onChange = state.onLocaleChange,
+                modifier = modifier,
+            )
         }
     }
 
@@ -103,6 +115,39 @@ fun UseDynamicColorPreference(
         modifier = modifier,
         enabled = checked != null,
     )
+}
+
+@Composable
+fun LocalePickerPreference(
+    selected: Locale?,
+    onChange: (newLocale: Locale) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val entries = APPLICATION_LOCALES
+    val showDialog = rememberSaveable { mutableStateOf(false) }
+
+    ListDialogItem(
+        title = stringResource(R.string.pref_language_title),
+        subtitle = stringResource(R.string.pref_language_desc),
+        selected = null,
+        isDialogShown = showDialog.value,
+        onDialogDismiss = { showDialog.value = false },
+        onItemClick = { showDialog.value = true },
+        modifier = modifier,
+    ) {
+        entries.forEach { locale ->
+            item {
+                DialogSelectableRow(
+                    label = stringResource(locale.labelId),
+                    isSelected = selected?.tag == locale.tag,
+                    onSelect = {
+                        onChange(locale)
+                        showDialog.value = false
+                    },
+                )
+            }
+        }
+    }
 }
 
 @Composable

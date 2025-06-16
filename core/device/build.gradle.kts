@@ -5,6 +5,10 @@ plugins {
 
 android {
     namespace = "com.rejeq.cpcam.core.device"
+
+    buildFeatures {
+        androidResources = true
+    }
 }
 
 dependencies {
@@ -12,4 +16,5 @@ dependencies {
     implementation(projects.core.common)
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
 }

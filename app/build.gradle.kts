@@ -20,6 +20,10 @@ android {
         resValues = true
     }
 
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     buildTypes {
         debug {
             packaging {
@@ -51,13 +55,11 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.appcompat)
 
     implementation(libs.decompose.core)
     implementation(libs.decompose.compose)
     implementation(libs.essenty.lifecycle.coroutines)
-
-    implementation(libs.camerax.compose)
 
     implementation(libs.kotlinx.collections.immutables)
 

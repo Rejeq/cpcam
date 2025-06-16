@@ -4,11 +4,16 @@ import androidx.compose.ui.text.input.TextFieldValue
 import com.rejeq.cpcam.core.data.model.Framerate
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.ThemeConfig
+import com.rejeq.cpcam.core.device.Locale
+import com.rejeq.cpcam.core.device.R as DeviceR
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class PreviewSettingsComponent : SettingsComponent {
     override val themeConfig = MutableStateFlow(ThemeConfig.FOLLOW_SYSTEM)
     override val useDynamicColor = MutableStateFlow(true)
+    override val currentLocale = MutableStateFlow(
+        Locale("en", DeviceR.string.locale_en),
+    )
     override val selectedResolution = MutableStateFlow<Resolution?>(null)
     override val availableResolution = MutableStateFlow(
         listOf(
@@ -35,6 +40,10 @@ class PreviewSettingsComponent : SettingsComponent {
 
     override fun onUseDynamicColorChange(needUse: Boolean) {
         useDynamicColor.value = needUse
+    }
+
+    override fun onLocaleChange(newLocale: Locale) {
+        currentLocale.value = newLocale
     }
 
     override fun onCameraResolutionChange(resolution: Resolution?) {
