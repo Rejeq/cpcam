@@ -25,7 +25,8 @@ std::array<char, AV_TS_MAX_STRING_SIZE> av_ts_to_time_string(
 
 #define LOG_PACKET_INFO(octx, pkt)                                            \
     do {                                                                      \
-        AVRational *time_base = &octx->streams[pkt->stream_index]->time_base; \
+        [[maybe_unused]] AVRational *time_base =                              \
+            &octx->streams[pkt->stream_index]->time_base;                     \
                                                                               \
         LOG_TRACE(                                                            \
             "pts:%s "                                                         \
