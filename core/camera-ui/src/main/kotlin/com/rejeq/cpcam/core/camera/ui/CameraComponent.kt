@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import com.arkivanov.decompose.ComponentContext
+import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.camera.CameraType
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
 import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -45,6 +47,7 @@ interface CameraComponent {
     val state: StateFlow<CameraPreviewState>
     val cameraPermission: String
     val isCameraPermissionWasLaunched: Flow<Boolean>
+    val hasMultipleCameras: StateFlow<Boolean>
     val hasTorch: StateFlow<Boolean>
     val isTorchEnabled: StateFlow<Boolean>
     val focusIndicator: StateFlow<FocusIndicatorState>
@@ -121,6 +124,19 @@ class DefaultCameraComponent @AssistedInject constructor(
     override fun provideScreenResolution(resolution: Resolution) {
         screenResolution.value = resolution
     }
+
+    override val hasMultipleCameras = state.map {
+        // TODO: Add a check if device actually has multiple cameras.
+        //  We need somehow detect when an external camera is plugged in/out,
+        //  in case when device doesn't have camera, but new one is plugged in.
+
+        (it as? CameraPreviewState.Failed)?.error !=
+            CameraError.PermissionDenied
+    }.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
 
     override fun onSwitchCamera() {
         scope.launch {

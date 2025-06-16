@@ -23,7 +23,6 @@ class PreviewMainComponent : MainComponent {
 
     override val streamButtonState = MorphButtonState(MorphIconTarget.Stopped)
     override val showStreamButton = MutableStateFlow(true)
-    override val showSwitchCameraButton = MutableStateFlow(true)
     override val showInfoButton = MutableStateFlow(true)
     override val keepScreenAwake = MutableStateFlow(false)
     override val dimScreenDelay = MutableStateFlow(null)

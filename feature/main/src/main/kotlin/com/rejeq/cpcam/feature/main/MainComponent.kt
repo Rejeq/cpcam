@@ -3,7 +3,6 @@ package com.rejeq.cpcam.feature.main
 import android.content.Context
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
-import com.rejeq.cpcam.core.camera.CameraError
 import com.rejeq.cpcam.core.camera.ui.CameraComponent
 import com.rejeq.cpcam.core.camera.ui.CameraPreviewState
 import com.rejeq.cpcam.core.camera.ui.DefaultCameraComponent
@@ -35,7 +34,6 @@ interface MainComponent : ChildComponent {
     val cam: CameraComponent
     val streamButtonState: MorphButtonState
     val showStreamButton: StateFlow<Boolean>
-    val showSwitchCameraButton: StateFlow<Boolean>
     val showInfoButton: StateFlow<Boolean>
     val keepScreenAwake: StateFlow<Boolean>
     val dimScreenDelay: StateFlow<Long?>
@@ -76,15 +74,6 @@ class DefaultMainComponent @AssistedInject constructor(
     // TODO:
 //    val showStreamButton = endpointHandler.canBeStarted
     override val showStreamButton = MutableStateFlow(true).asStateFlow()
-
-    override val showSwitchCameraButton = cam.state.map {
-        (it as? CameraPreviewState.Failed)?.error !=
-            CameraError.PermissionDenied
-    }.stateIn(
-        scope,
-        SharingStarted.WhileSubscribed(5_000),
-        false,
-    )
 
     override val showInfoButton = endpointHandler.state.map {
         it is EndpointState.Started

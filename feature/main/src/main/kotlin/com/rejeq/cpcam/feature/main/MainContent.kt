@@ -108,7 +108,7 @@ fun MainContent(
                 },
                 showStreamButton = component.showStreamButton
                     .collectAsState().value,
-                showSwitchCameraButton = component.showSwitchCameraButton
+                showSwitchCameraButton = component.cam.hasMultipleCameras
                     .collectAsState().value,
                 onSwitchCameraClick = component.cam::onSwitchCamera,
                 modifier = bottomModifier.fillMaxWidth(),

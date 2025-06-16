@@ -22,6 +22,8 @@ class PreviewCameraComponent : CameraComponent {
     private val isPermLaunched = MutableStateFlow(false)
     override val isCameraPermissionWasLaunched = isPermLaunched.asStateFlow()
 
+    override val hasMultipleCameras = MutableStateFlow(true)
+
     private val _hasTorch = MutableStateFlow(true)
     override val hasTorch = _hasTorch.asStateFlow()
 
