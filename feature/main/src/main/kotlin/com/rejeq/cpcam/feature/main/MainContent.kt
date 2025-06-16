@@ -25,6 +25,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.rejeq.cpcam.core.camera.ui.CameraContent
 import com.rejeq.cpcam.core.camera.ui.CameraPreviewState
+import com.rejeq.cpcam.core.camera.ui.SwitchCameraButton
+import com.rejeq.cpcam.core.camera.ui.TorchButton
 import com.rejeq.cpcam.core.device.dimScreen
 import com.rejeq.cpcam.core.device.restoreScreenBrightness
 import com.rejeq.cpcam.core.ui.Edge

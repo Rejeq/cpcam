@@ -1,4 +1,8 @@
 <resources>
+    <string name="flip_camera_btn_desc">Switch camera</string>
+    <string name="torch_on_btn_desc">Turn off torch</string>
+    <string name="torch_off_btn_desc">Turn on torch</string>
+
     <string name="cam_permission_grant_title">Grant Camera Permission</string>
     <string name="cam_permission_grant_desc">
         Allow this app to access your camera to enable video streaming.
