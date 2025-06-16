@@ -144,7 +144,12 @@ class DefaultCameraComponent @AssistedInject constructor(
         }
     }
 
-    override val hasTorch = HasFlashUnitOp().invoke().stateIn(
+    override val hasTorch = combine(
+        state,
+        HasFlashUnitOp().invoke(),
+    ) { state, hasUnit ->
+        hasUnit && state is CameraPreviewState.Opened
+    }.stateIn(
         scope,
         SharingStarted.WhileSubscribed(5_000),
         false,
