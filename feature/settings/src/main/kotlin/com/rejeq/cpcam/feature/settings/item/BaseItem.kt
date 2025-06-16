@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 
@@ -40,6 +41,11 @@ fun BaseItem(
     Row(
         modifier = Modifier
             .clickable(enabled = enabled, onClick = { onClick?.invoke() })
+            .graphicsLayer {
+                if (!enabled) {
+                    alpha = DISABLED_COLOR_OPACITY
+                }
+            }
             .then(modifier),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -64,3 +70,5 @@ fun BaseItem(
         }
     }
 }
+
+private const val DISABLED_COLOR_OPACITY = 0.38f
