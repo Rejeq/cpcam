@@ -116,7 +116,7 @@ class CameraLifecycle(
                     _camera.value = cameraProvider.bindToLifecycle(
                         lifecycleOwner = this,
                         cameraSelector = selector,
-                        useCases = useCases.filterNotNull().toTypedArray(),
+                        useCases = useCases,
                     )
                 }
             } catch (e: Exception) {
