@@ -34,6 +34,7 @@ import com.rejeq.cpcam.core.ui.LocalIsWindowFocused
 import com.rejeq.cpcam.core.ui.MorphButtonState
 import com.rejeq.cpcam.core.ui.MorphIconButton
 import com.rejeq.cpcam.core.ui.MorphIconTarget
+import com.rejeq.cpcam.core.ui.PermissionBlockedContent
 import com.rejeq.cpcam.core.ui.SlideFromEdge
 import com.rejeq.cpcam.core.ui.modifier.DeviceOrientation
 import com.rejeq.cpcam.core.ui.modifier.ProvideDeviceOrientation
@@ -56,8 +57,8 @@ fun MainContent(
         when (it) {
             is MainNavigation.Dialog.Info -> InfoContent(it.component)
 
-            is MainNavigation.Dialog.PermanentNotification ->
-                PermissionDeniedContent(it.component)
+            is MainNavigation.Dialog.PermissionBlocked ->
+                PermissionBlockedContent(it.component)
         }
     }
 

@@ -1,4 +1,4 @@
-package com.rejeq.cpcam.feature.main
+package com.rejeq.cpcam.core.ui
 
 import android.Manifest
 import android.content.Context
@@ -12,10 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.arkivanov.decompose.ComponentContext
+
+class PermissionBlockedComponent(
+    componentContext: ComponentContext,
+    val permission: String,
+    val onFinished: () -> Unit,
+) : ComponentContext by componentContext
 
 @Composable
-fun PermissionDeniedContent(
-    component: PermissionDeniedComponent,
+fun PermissionBlockedContent(
+    component: PermissionBlockedComponent,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current

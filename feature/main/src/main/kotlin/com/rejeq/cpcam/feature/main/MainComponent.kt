@@ -66,7 +66,7 @@ class DefaultMainComponent @AssistedInject constructor(
     override val cam = cameraFactory.create(
         scope = scope,
         componentContext = this,
-        onShowPermissionDenied = { nav.showPermissionDenied(it) },
+        onPermissionBlocked = nav::showPermissionBlocked,
     )
 
     override val streamButtonState = MorphButtonState(MorphIconTarget.Stopped)

@@ -14,7 +14,7 @@ class PreviewMainNavigation : MainNavigation {
         MutableValue(ChildSlot<Any, Dialog>(null))
 
     override fun showStreamInfo() {}
-    override fun showPermissionDenied(permission: String) {}
+    override fun showPermissionBlocked(permission: String) {}
 }
 
 class PreviewMainComponent : MainComponent {

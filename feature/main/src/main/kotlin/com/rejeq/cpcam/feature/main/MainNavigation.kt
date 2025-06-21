@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
+import com.rejeq.cpcam.core.ui.PermissionBlockedComponent
 import com.rejeq.cpcam.feature.main.MainNavigation.Dialog
 import com.rejeq.cpcam.feature.main.info.InfoComponent
 import kotlinx.serialization.Serializable
@@ -16,13 +17,13 @@ interface MainNavigation {
 
     fun showStreamInfo()
 
-    fun showPermissionDenied(permission: String)
+    fun showPermissionBlocked(permission: String)
 
     sealed interface Dialog {
         data class Info(val component: InfoComponent) : Dialog
 
-        data class PermanentNotification(
-            val component: PermissionDeniedComponent,
+        data class PermissionBlocked(
+            val component: PermissionBlockedComponent,
         ) : Dialog
     }
 }
@@ -45,9 +46,9 @@ class DefaultMainNavigation(componentContext: ComponentContext) :
                     ),
                 )
 
-                is DialogConfig.PermissionDenied ->
-                    Dialog.PermanentNotification(
-                        PermissionDeniedComponent(
+                is DialogConfig.PermissionBlocked ->
+                    Dialog.PermissionBlocked(
+                        PermissionBlockedComponent(
                             childComponentContext,
                             config.permissions,
                             onFinished = dialogNavigation::dismiss,
@@ -60,9 +61,9 @@ class DefaultMainNavigation(componentContext: ComponentContext) :
         dialogNavigation.activate(DialogConfig.Info)
     }
 
-    override fun showPermissionDenied(permission: String) {
+    override fun showPermissionBlocked(permission: String) {
         dialogNavigation.activate(
-            DialogConfig.PermissionDenied(permission),
+            DialogConfig.PermissionBlocked(permission),
         )
     }
 
@@ -72,6 +73,6 @@ class DefaultMainNavigation(componentContext: ComponentContext) :
         data object Info : DialogConfig
 
         @Serializable
-        data class PermissionDenied(val permissions: String) : DialogConfig
+        data class PermissionBlocked(val permissions: String) : DialogConfig
     }
 }

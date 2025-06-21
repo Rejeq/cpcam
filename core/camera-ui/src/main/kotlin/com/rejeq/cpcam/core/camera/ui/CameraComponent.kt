@@ -71,7 +71,7 @@ class DefaultCameraComponent @AssistedInject constructor(
     private val appearanceRepo: AppearanceRepository,
     override val target: PreviewCameraTarget,
     camOpExecutor: CameraOpExecutor,
-    @Assisted val onShowPermissionDenied: (String) -> Unit,
+    @Assisted val onPermissionBlocked: (String) -> Unit,
     @Assisted private val scope: CoroutineScope,
     @Assisted componentContext: ComponentContext,
 ) : CameraComponent,
@@ -114,7 +114,7 @@ class DefaultCameraComponent @AssistedInject constructor(
                     onRestartCamera()
                 }
                 PermissionState.PermanentlyDenied -> {
-                    onShowPermissionDenied(cameraPermission)
+                    onPermissionBlocked(cameraPermission)
                 }
                 PermissionState.Denied -> { }
             }
@@ -247,7 +247,7 @@ class DefaultCameraComponent @AssistedInject constructor(
         fun create(
             scope: CoroutineScope,
             componentContext: ComponentContext,
-            onShowPermissionDenied: (String) -> Unit,
+            onPermissionBlocked: (String) -> Unit,
         ): DefaultCameraComponent
     }
 }
