@@ -1,6 +1,7 @@
 package com.rejeq.cpcam.feature.settings.endpoint.form.obs
 
 import com.github.michaelbull.result.mapBoth
+import com.rejeq.cpcam.core.common.CodeVerifier
 import com.rejeq.cpcam.core.data.model.EndpointType
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.data.model.PixFmt
@@ -39,6 +40,7 @@ interface ObsEndpointFormState : EndpointFormState {
     val connState: StateFlow<ObsConnectionState>
 
     fun onCheckConnection(formState: ObsConfigFormState)
+    fun onQrScannerClick()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -48,6 +50,7 @@ class DefaultObsEndpointFormState @AssistedInject constructor(
     val endpointHandler: EndpointHandler,
 
     @Assisted("scope") val scope: CoroutineScope,
+    @Assisted("onQrClick") val onQrClick: (CodeVerifier) -> Unit,
 ) : ObsEndpointFormState {
     private val _configState =
         MutableStateFlow<FormState<ObsConfigFormState>>(FormState.Loading)
@@ -107,6 +110,10 @@ class DefaultObsEndpointFormState @AssistedInject constructor(
         }
     }
 
+    override fun onQrScannerClick() {
+        onQrClick.invoke(ObsQrVerifier())
+    }
+
     override suspend fun saveState() {
         val streamState = (streamState.value as? FormState.Success)
             ?.data?.state?.first()
@@ -135,10 +142,21 @@ class DefaultObsEndpointFormState @AssistedInject constructor(
         )
     }
 
+    override fun handleQrCode(value: String) {
+        scope.launch {
+            // TODO: Instead of string pass specific object
+            val config = parseObsConfigUrl(value)
+            if (config != null) {
+                _configState.value = FormState.Success(config)
+            }
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
             @Assisted("scope") scope: CoroutineScope,
+            @Assisted("onQrClick") onQrClick: (CodeVerifier) -> Unit,
         ): DefaultObsEndpointFormState
     }
 }

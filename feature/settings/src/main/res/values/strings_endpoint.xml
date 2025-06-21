@@ -5,6 +5,8 @@
     <string name="endpoint_form_title">Endpoint Config</string>
     <string name="endpoint_stream_data_form_title">Stream Config</string>
 
+    <string name="endpoint_scan_qr_code_btn_desc">Scan QR Code</string>
+
     <string name="endpoint_video_config_form_title">Video Config</string>
     <string name="endpoint_stream_data_host_input_label">Host</string>
     <string name="endpoint_stream_data_protocol_title">Stream protocol</string>

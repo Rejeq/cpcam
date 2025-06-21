@@ -23,6 +23,7 @@ fun ObsEndpointFormContent(
         ObsConfigForm(
             state = state.configState.collectAsState().value,
             onCheckConnection = state::onCheckConnection,
+            onQrScannerClick = state::onQrScannerClick,
             connectionState = state.connState.collectAsState().value,
             modifier = Modifier.focusGroup(),
         )

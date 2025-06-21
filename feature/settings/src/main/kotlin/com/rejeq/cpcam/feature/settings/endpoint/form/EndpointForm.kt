@@ -2,10 +2,11 @@ package com.rejeq.cpcam.feature.settings.endpoint.form
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.rejeq.cpcam.core.common.QrScannableComponent
 import com.rejeq.cpcam.feature.settings.endpoint.form.obs.ObsEndpointFormContent
 import com.rejeq.cpcam.feature.settings.endpoint.form.obs.ObsEndpointFormState
 
-interface EndpointFormState {
+interface EndpointFormState : QrScannableComponent {
     // Called when the form is about to be closed
     suspend fun saveState()
 }

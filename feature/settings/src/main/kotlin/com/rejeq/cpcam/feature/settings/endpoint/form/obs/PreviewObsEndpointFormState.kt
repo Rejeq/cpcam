@@ -49,4 +49,10 @@ class PreviewObsEndpointFormState : ObsEndpointFormState {
     override fun onCheckConnection(formState: ObsConfigFormState) {
         connState.value = ObsConnectionState.Success
     }
+
+    override fun onQrScannerClick() {
+    }
+
+    override fun handleQrCode(value: String) {
+    }
 }

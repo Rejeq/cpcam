@@ -10,16 +10,20 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.rejeq.cpcam.core.ui.R as CoreR
 import com.rejeq.cpcam.feature.settings.R
 import com.rejeq.cpcam.feature.settings.endpoint.ObsConnectionState
 import com.rejeq.cpcam.feature.settings.endpoint.form.FormContent
@@ -34,6 +38,7 @@ fun ObsConfigForm(
     state: FormState<ObsConfigFormState>,
     onCheckConnection: (ObsConfigFormState) -> Unit,
     connectionState: ObsConnectionState,
+    onQrScannerClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     FormContent(
@@ -41,6 +46,18 @@ fun ObsConfigForm(
         title = stringResource(R.string.endpoint_form_title),
         modifier = modifier,
         expandable = false,
+        trailingIcon = {
+            IconButton(
+                onClick = onQrScannerClick,
+            ) {
+                Icon(
+                    painterResource(CoreR.drawable.ic_qr_code_scanner_24dp),
+                    contentDescription = stringResource(
+                        R.string.endpoint_scan_qr_code_btn_desc,
+                    ),
+                )
+            }
+        },
     ) { state ->
         ObsConfigFormContent(
             state = state,

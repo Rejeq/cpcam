@@ -151,6 +151,7 @@ class RootComponent @AssistedInject constructor(
             componentContext = context,
             mainContext = mainContext,
             onFinished = { nav.pop() },
+            onQrClick = { nav.pushNew(Config.QrScanner(it)) },
         )
 
     private fun qrScannerComponent(
@@ -234,6 +235,7 @@ class RootComponent @AssistedInject constructor(
 
         @Serializable
         data class QrScanner(
+            @Serializable(CodeVerifierSerializer::class)
             val verifier: CodeVerifier,
         ) : Config
 
