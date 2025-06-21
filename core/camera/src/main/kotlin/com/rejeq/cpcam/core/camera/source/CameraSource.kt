@@ -22,6 +22,10 @@ import kotlinx.coroutines.flow.map
  * and managing the camera pipeline. It utilizes a [CameraLifecycle] to
  * handle the underlying camera operations and lifecycle events.
  *
+ * It enforces a priority-based system for managing [UseCase] attachments,
+ * ensuring that only a supported number of use cases are active at any
+ * given time. The priority is as follows: Preview > Analyzer > Record.
+ *
  * @property lifecycle The [CameraLifecycle] instance managing the camera's
  *           lifecycle.
  * @property currId The ID of the currently selected camera.
@@ -43,7 +47,10 @@ class CameraSource @Inject constructor(
         CameraSelector.DEFAULT_BACK_CAMERA
     }
 
-    val useCases = arrayOfNulls<UseCase?>(CameraTargetId.entries.size)
+    private val useCases = arrayOfNulls<UseCase?>(CameraTargetId.entries.size)
+
+    private val pipelineUseCases =
+        arrayOfNulls<UseCase?>(MAX_CONCURRENT_USE_CASES)
 
     val camera = lifecycle.camera
 
@@ -52,11 +59,13 @@ class CameraSource @Inject constructor(
     }
 
     /**
-     * Checks if a use case with the given [CameraTargetId] is currently
-     * attached to the camera.
+     * Checks if a use case for the given [CameraTargetId] has been requested.
+     *
+     * Note that a requested use case is not guaranteed to be active in the
+     * pipeline, as it may be superseded by a higher-priority use case.
      *
      * @param id The [CameraTargetId] of the use case to check.
-     * @return `true` if a use case with the given ID is attached,
+     * @return `true` if a use case with the given ID has been requested,
      *         `false` otherwise.
      */
     fun isAttached(id: CameraTargetId) = synchronized(this) {
@@ -66,45 +75,42 @@ class CameraSource @Inject constructor(
     /**
      * Attaches a [UseCase] to the pipeline.
      *
-     * If this is the first use case being attached, it starts the pipeline.
-     * Otherwise it binds the currently attached use cases to the pipeline.
+     * This method adds the use case to the list of requested use cases and
+     * then updates the camera pipeline. The pipeline selects the
+     * highest-priority use cases (up to [MAX_CONCURRENT_USE_CASES]) and binds
+     * them.
+     *
+     * For example, if `Preview` and `Record` are attached and `Analyzer` is
+     * requested, `Record` will be temporarily detached to make room for
+     * `Analyzer` due to its higher priority.
      *
      * It's safe to reattach previously attached useCase without calling
      * [detach] method
      *
-     * @param useCase The [UseCase] to attach to this lifecycle.
+     * @param id The [CameraTargetId] for the use case.
+     * @param useCase The [UseCase] to attach.
      */
     fun attach(id: CameraTargetId, useCase: UseCase) = synchronized(this) {
         useCases[id.ordinal] = useCase
-
-        if (!lifecycle.isStarted()) {
-            lifecycle.start()
-        }
-
-        lifecycle.bindUseCases(
-            selector = selector,
-            useCases = useCases,
-        )
+        updatePipeline()
     }
 
     /**
      * Detaches a [UseCase] from the pipeline.
      *
-     * If this is the last useCase, it stops the pipeline.
-     * Otherwise it removes the specified useCase id from the pipeline
+     * This method removes the use case from the list of requested use cases
+     * and updates the pipeline. If a higher-priority use case is detached,
+     * a lower-priority one that was previously excluded might be re-attached.
      *
-     * @param id The id of [UseCase] to detach.
+     * For example, if `Analyzer` is detached, a previously attached `Record`
+     * use case may be restored to the pipeline. If no use cases remain, the
+     * pipeline is stopped.
+     *
+     * @param id The [CameraTargetId] of the use case to detach.
      */
     fun detach(id: CameraTargetId) = synchronized(this) {
-        useCases[id.ordinal]?.let {
-            lifecycle.unbindUseCase(it)
-        }
-
         useCases[id.ordinal] = null
-
-        if (useCases.all { it == null }) {
-            lifecycle.stop()
-        }
+        updatePipeline()
     }
 
     /**
@@ -123,11 +129,7 @@ class CameraSource @Inject constructor(
         Log.i(TAG, "Camera id changed to: $id")
         selector = CameraSelector.Builder().requireCameraId(id).build()
         currId = id
-
-        lifecycle.bindUseCases(
-            selector = selector,
-            useCases = useCases,
-        )
+        updatePipeline()
     }
 
     @SuppressLint("RestrictedApi")
@@ -155,6 +157,42 @@ class CameraSource @Inject constructor(
             }
         }
     }
+
+    private fun updatePipeline() {
+        CameraTargetId.entries
+            .filter { useCases[it.ordinal] != null }
+            .sortedByDescending(::getTargetPriority)
+            .take(MAX_CONCURRENT_USE_CASES)
+            .forEachIndexed { i, id ->
+                pipelineUseCases[i] = useCases[id.ordinal]
+            }
+
+        val pipelineStarted = lifecycle.isStarted()
+
+        when {
+            pipelineStarted && pipelineUseCases.all { it == null } -> {
+                lifecycle.stop()
+            }
+            else -> {
+                if (!pipelineStarted) {
+                    lifecycle.start()
+                }
+
+                lifecycle.bindUseCases(
+                    selector = selector,
+                    useCases = pipelineUseCases,
+                )
+            }
+        }
+    }
+}
+
+private fun getTargetPriority(id: CameraTargetId): Int = when (id) {
+    CameraTargetId.Record -> 0
+    CameraTargetId.Analyzer -> 1
+    CameraTargetId.Preview -> 2
 }
 
 private const val TAG = "CameraSource"
+
+private const val MAX_CONCURRENT_USE_CASES = 2

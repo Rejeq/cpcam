@@ -10,4 +10,5 @@ package com.rejeq.cpcam.core.camera
 enum class CameraTargetId {
     Preview,
     Record,
+    Analyzer,
 }

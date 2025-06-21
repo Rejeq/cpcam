@@ -1,7 +1,6 @@
 package com.rejeq.cpcam.core.camera.target
 
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.UseCase
 import androidx.camera.mlkit.vision.MlKitAnalyzer
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -12,7 +11,6 @@ import com.rejeq.cpcam.core.camera.source.CameraSource
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -24,9 +22,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class QrAnalyzerCameraTarget @Inject constructor(
     private val source: CameraSource,
     @MainExecutor private val executor: Executor,
-    val scope: CoroutineScope,
 ) : CameraTarget<QrRequest> {
-    private val targetId = CameraTargetId.Record
+    private val targetId = CameraTargetId.Analyzer
 
     private val _request = MutableStateFlow<CameraRequestState<QrRequest>>(
         CameraRequestState.Stopped,
@@ -60,13 +57,7 @@ class QrAnalyzerCameraTarget @Inject constructor(
             )
         }
 
-    private var oldUseCase: UseCase? = null
-
     override fun start() {
-        if (source.isAttached(targetId)) {
-            oldUseCase = source.useCases[targetId.ordinal]
-        }
-
         source.attach(targetId, useCase)
     }
 
@@ -74,11 +65,6 @@ class QrAnalyzerCameraTarget @Inject constructor(
         source.detach(targetId)
         _request.value = CameraRequestState.Stopped
 
-        val prevUseCase = oldUseCase
-        if (prevUseCase != null) {
-            source.attach(targetId, prevUseCase)
-            oldUseCase = null
-        }
     }
 }
 
