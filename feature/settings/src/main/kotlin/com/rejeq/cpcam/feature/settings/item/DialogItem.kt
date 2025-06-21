@@ -13,6 +13,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
  * @param onItemClick A callback function invoked when the list item is
  *        clicked, typically to show the selection dialog.
  * @param onDismiss A callback function invoked when the dialog is dismissed.
+ *        Can be called twice in some cases, see implementation for details.
  * @param modifier Optional modifier for customizing the layout
  * @param enabled Whether the item is interactive
  * @param dismissButton Composable for the dialog's dismiss button
@@ -58,6 +60,22 @@ fun DialogItem(
     )
 
     if (isDialogShown) {
+        // HACK: This is workaround to resolve a bug when a composable that host
+        // this composable leaves from node tree and comes back again
+        // (with isDialogShown set to true). In this case, the user will see
+        // automatically appear/disappear without notice
+        //
+        // This will trigger onDismiss twice, when user really closes the
+        // dialog.
+        //
+        // The proper solution would be host dialog in SettingsComponent
+        // or RootComponent, but this will require a lot of refactoring.
+        DisposableEffect(Unit) {
+            onDispose {
+                onDismiss()
+            }
+        }
+
         AlertDialog(
             onDismissRequest = onDismiss,
             title = { Text(text = dialogTitle) },
@@ -81,6 +99,7 @@ fun DialogItem(
  *        currently visible.
  * @param onDialogDismiss A callback function invoked when the selection dialog
  *        is dismissed (closed).
+ *        Can be called twice in some cases, see [DialogItem] for details.
  * @param onItemClick A callback function invoked when the list item is
  *        clicked, typically to show the selection dialog.
  */
