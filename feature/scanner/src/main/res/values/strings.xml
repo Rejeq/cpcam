@@ -1,0 +1,4 @@
+<resources>
+    <string name="photo_picker_btn_desc">Open photo picker</string>
+    <string name="scanner_btn_desc">Scan QR code</string>
+</resources>

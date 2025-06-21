@@ -48,5 +48,6 @@ include(":core:ui")
 
 include(":feature:about")
 include(":feature:main")
+include(":feature:scanner")
 include(":feature:service")
 include(":feature:settings")

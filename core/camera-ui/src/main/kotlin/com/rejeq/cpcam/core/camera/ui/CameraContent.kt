@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
+import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.camera.target.lifecycleObserver
 import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
@@ -36,18 +37,7 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
         }
     }
 
-    val lifecycle = LocalLifecycleOwner.current
-    DisposableEffect(lifecycle) {
-        // Used lifecycle here, since the camera need to be disabled when the
-        // activity going to the STOP state (onDispose not called in this case)
-        val observer = component.target.lifecycleObserver()
-        lifecycle.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycle.lifecycle.removeObserver(observer)
-            component.target.stop()
-        }
-    }
+    HandleCameraTargetLifecycle(component.target)
 
     val permLauncher = rememberPermissionLauncher(
         permWasLaunched = component.isCameraPermissionWasLaunched
@@ -138,6 +128,22 @@ fun CameraPreviewContainer(
             FocusIndicator(
                 state = focus,
             )
+        }
+    }
+}
+
+@Composable
+fun HandleCameraTargetLifecycle(target: CameraTarget<*>) {
+    val lifecycle = LocalLifecycleOwner.current
+    DisposableEffect(lifecycle) {
+        // Used lifecycle here, since the camera need to be disabled when the
+        // activity going to the STOP state (onDispose not called in this case)
+        val observer = target.lifecycleObserver()
+        lifecycle.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.lifecycle.removeObserver(observer)
+            target.stop()
         }
     }
 }

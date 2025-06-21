@@ -17,6 +17,8 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.BuildConfig
 import com.rejeq.cpcam.core.common.ChildComponent
+import com.rejeq.cpcam.core.common.CodeVerifier
+import com.rejeq.cpcam.core.common.QrScannableComponent
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
@@ -27,6 +29,8 @@ import com.rejeq.cpcam.feature.about.LibraryComponent
 import com.rejeq.cpcam.feature.about.LibraryState
 import com.rejeq.cpcam.feature.main.DefaultMainComponent
 import com.rejeq.cpcam.feature.main.MainComponent
+import com.rejeq.cpcam.feature.scanner.qr.DefaultQrScannerComponent
+import com.rejeq.cpcam.feature.scanner.qr.QrScannerComponent
 import com.rejeq.cpcam.feature.service.ConnectionErrorComponent
 import com.rejeq.cpcam.feature.service.startEndpointService
 import com.rejeq.cpcam.feature.service.stopEndpointService
@@ -56,6 +60,7 @@ class RootComponent @AssistedInject constructor(
     private val mainFactory: DefaultMainComponent.Factory,
     private val settingsFactory: DefaultSettingsComponent.Factory,
     private val endpointSettingsFactory: DefaultEndpointComponent.Factory,
+    private val qrScannerFactory: DefaultQrScannerComponent.Factory,
 ) : ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
 
@@ -113,6 +118,10 @@ class RootComponent @AssistedInject constructor(
                 endpointComponent(context),
             )
 
+            is Config.QrScanner -> Child.QrScanner(
+                qrScannerComponent(context, config),
+            )
+
             is Config.Libraries -> Child.Libraries(librariesComponent(context))
             is Config.Library -> Child.Library(
                 libraryComponent(context, config),
@@ -143,6 +152,26 @@ class RootComponent @AssistedInject constructor(
             mainContext = mainContext,
             onFinished = { nav.pop() },
         )
+
+    private fun qrScannerComponent(
+        context: ComponentContext,
+        config: Config.QrScanner,
+    ) = qrScannerFactory.create(
+        componentContext = context,
+        mainContext = mainContext,
+        onFinished = {
+            it?.let { qrCodeValue ->
+                stack.value.backStack.reversed()
+                    .firstNotNullOfOrNull {
+                        it.instance.component as? QrScannableComponent
+                    }
+                    ?.handleQrCode(qrCodeValue)
+            }
+
+            nav.pop()
+        },
+        verifier = config.verifier,
+    )
 
     private fun librariesComponent(context: ComponentContext) =
         LibrariesComponent(
@@ -204,6 +233,11 @@ class RootComponent @AssistedInject constructor(
         data object EndpointSettings : Config
 
         @Serializable
+        data class QrScanner(
+            val verifier: CodeVerifier,
+        ) : Config
+
+        @Serializable
         data object Libraries : Config
 
         @Serializable
@@ -223,6 +257,7 @@ class RootComponent @AssistedInject constructor(
         class Settings(override val component: SettingsComponent) : Child
         class EndpointSettings(override val component: EndpointComponent) :
             Child
+        class QrScanner(override val component: QrScannerComponent) : Child
         class Libraries(override val component: LibrariesComponent) : Child
         class Library(override val component: LibraryComponent) : Child
     }

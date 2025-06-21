@@ -19,6 +19,7 @@ import com.rejeq.cpcam.core.ui.wantUseDarkMode
 import com.rejeq.cpcam.feature.about.LibrariesContent
 import com.rejeq.cpcam.feature.about.LibraryContent
 import com.rejeq.cpcam.feature.main.MainContent
+import com.rejeq.cpcam.feature.scanner.qr.QrScannerContent
 import com.rejeq.cpcam.feature.service.ConnectionErrorContent
 import com.rejeq.cpcam.feature.settings.SettingsContent
 import com.rejeq.cpcam.feature.settings.endpoint.EndpointContent
@@ -77,6 +78,10 @@ fun RootChildren(component: RootComponent, modifier: Modifier = Modifier) {
                 )
 
                 is RootComponent.Child.EndpointSettings -> EndpointContent(
+                    component = child.component,
+                )
+
+                is RootComponent.Child.QrScanner -> QrScannerContent(
                     component = child.component,
                 )
 

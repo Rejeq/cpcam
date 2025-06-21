@@ -50,6 +50,7 @@ dependencies {
     implementation(projects.feature.settings)
     implementation(projects.feature.about)
     implementation(projects.feature.service)
+    implementation(projects.feature.scanner)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
