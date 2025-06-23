@@ -25,12 +25,14 @@ import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.preference.AppearanceState
 import com.rejeq.cpcam.feature.settings.preference.AudioState
+import com.rejeq.cpcam.feature.settings.preference.BackgroundState
 import com.rejeq.cpcam.feature.settings.preference.CameraState
 import com.rejeq.cpcam.feature.settings.preference.PreferenceContent
 import com.rejeq.cpcam.feature.settings.preference.ScreenState
 import com.rejeq.cpcam.feature.settings.preference.StreamState
 import com.rejeq.cpcam.feature.settings.preference.appearancePreferences
 import com.rejeq.cpcam.feature.settings.preference.audioPreferences
+import com.rejeq.cpcam.feature.settings.preference.backgroundPreferences
 import com.rejeq.cpcam.feature.settings.preference.cameraPreferences
 import com.rejeq.cpcam.feature.settings.preference.screenPreferences
 import com.rejeq.cpcam.feature.settings.preference.streamPreferences
@@ -59,6 +61,9 @@ fun SettingsContent(
     val appearancePreferences =
         remember { makeAppearancePreferences(component) }
 
+    val bgTitle = stringResource(R.string.pref_group_background)
+    val bgPreferences = remember { makeBackgroundPreferences(component) }
+
     SettingsLayout(
         modifier = modifier,
         topBar = {
@@ -73,6 +78,7 @@ fun SettingsContent(
             preferenceGroup(audioTitle, audioPreferences)
             preferenceGroup(screenTitle, screenPreferences)
             preferenceGroup(appearanceTitle, appearancePreferences)
+            preferenceGroup(bgTitle, bgPreferences)
         },
         footer = {
             AboutApp(
@@ -150,6 +156,16 @@ fun makeAppearancePreferences(
     )
 
     return appearancePreferences(state)
+}
+
+fun makeBackgroundPreferences(
+    component: SettingsComponent,
+): List<PreferenceContent> {
+    val state = BackgroundState(
+        onDisableBOClick = component::onDisableBatteryOptimizationsClick,
+    )
+
+    return backgroundPreferences(state)
 }
 
 fun LazyListScope.preferenceGroup(

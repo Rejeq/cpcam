@@ -1,6 +1,7 @@
 package com.rejeq.cpcam.feature.settings
 
 import android.graphics.ImageFormat
+import android.os.Build
 import android.util.Log
 import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.ComponentContext
@@ -21,6 +22,7 @@ import com.rejeq.cpcam.core.data.source.EditResult
 import com.rejeq.cpcam.core.device.Locale
 import com.rejeq.cpcam.core.device.getCurrentAppLocale
 import com.rejeq.cpcam.core.device.setAppLocale
+import com.rejeq.cpcam.core.device.tryDisableBatteryOptimizations
 import com.rejeq.cpcam.core.ui.SnackbarDispatcher
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -61,6 +63,7 @@ interface SettingsComponent : ChildComponent {
     fun onCameraFramerateChange(framerate: Framerate?)
     fun onKeepScreenAwakeChange(enabled: Boolean)
     fun onDimScreenDelayChange(time: TextFieldValue)
+    fun onDisableBatteryOptimizationsClick()
 
     fun onFinished()
     fun onLibraryLicensesClick()
@@ -223,6 +226,22 @@ class DefaultSettingsComponent @AssistedInject constructor(
             screenRepo.setDimScreenDelay(
                 delay?.toDuration(DurationUnit.SECONDS),
             )
+        }
+    }
+
+    override fun onDisableBatteryOptimizationsClick() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            Log.e(TAG, "Unable to disable battery optimizations: API < 23")
+            return
+        }
+
+        scope.launch {
+            val err = context.tryDisableBatteryOptimizations()
+
+            err?.toSnackbarState()
+                ?.let { state ->
+                    snackbarDispatcher.show(state)
+                }
         }
     }
 

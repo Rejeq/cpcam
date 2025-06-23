@@ -22,6 +22,7 @@
     <string name="pref_group_audio">Microphone</string>
     <string name="pref_group_screen">Screen</string>
     <string name="pref_group_appearance">Appearance</string>
+    <string name="pref_group_background">Background Activity</string>
 
     <string name="pref_theme_title">Theme</string>
     <string name="pref_theme_desc">Set the app theme</string>
@@ -54,4 +55,14 @@
 
     <string name="pref_stream_service_title">Service</string>
     <string name="pref_stream_service_desc">Choose way how the app connect to the remote endpoint.</string>
+
+    <string name="pref_disable_bo_title">Disable Battery Optimization</string>
+    <string name="pref_disable_bo_desc">Turn off battery optimizations for this app, can help keep your stream active while in the background.</string>
+
+    <string name="pref_snackbar_bo_already_disabled_message">Battery optimizations are already disabled</string>
+    <string name="pref_snackbar_bo_no_activity_found_message">Failed to disable battery optimizations: No activity found</string>
+    <string name="pref_snackbar_bo_unknown_error_message">Failed to disable battery optimizations: Unknown error</string>
+
+    <string name="pref_dont_kill_my_app_title">Keep App Alive</string>
+    <string name="pref_dont_kill_my_app_desc">Read on Don’t Kill My App why Android may kill app, and learn how to whitelist this app so it can run even in the background.</string>
 </resources>

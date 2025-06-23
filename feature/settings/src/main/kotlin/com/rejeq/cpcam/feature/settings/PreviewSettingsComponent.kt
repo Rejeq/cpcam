@@ -62,6 +62,9 @@ class PreviewSettingsComponent : SettingsComponent {
         dimScreenDelay.value = time
     }
 
+    override fun onDisableBatteryOptimizationsClick() {
+    }
+
     override fun onFinished() { }
 
     override fun onLibraryLicensesClick() { }
