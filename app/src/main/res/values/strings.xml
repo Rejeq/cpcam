@@ -1,3 +1,7 @@
 <resources>
     <string name="snackbar_data_source_error">Data source error</string>
+
+    <string name="dialog_confirm_restart_app_title">Are You Sure You Want to Restart?</string>
+    <string name="dialog_confirm_restart_app_desc">Restarting the app will close all current activities. Unsaved changes may be lost.</string>
+    <string name="dialog_confirm_restart_app_button">Yes, Restart</string>"
 </resources>

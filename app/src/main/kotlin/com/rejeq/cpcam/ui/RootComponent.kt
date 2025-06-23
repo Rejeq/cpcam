@@ -93,6 +93,12 @@ class RootComponent @AssistedInject constructor(
                         },
                     ),
                 )
+            is DialogConfig.ConfirmAppRestart ->
+                DialogChild.ConfirmAppRestart(
+                    ConfirmAppRestartComponent(
+                        onFinished = dialogNavigation::dismiss,
+                    ),
+                )
         }
     }
 
@@ -164,6 +170,7 @@ class RootComponent @AssistedInject constructor(
             onFinished = { nav.pop() },
             onLibraryLicensesClick = { nav.pushNew(Config.Libraries) },
             onEndpointClick = { nav.pushNew(Config.EndpointSettings) },
+            onAppRestart = ::onAppRestart,
         )
 
     private fun endpointComponent(context: ComponentContext) =
@@ -242,6 +249,19 @@ class RootComponent @AssistedInject constructor(
         dialogNavigation.activate(DialogConfig.ConnectionError(reason))
     }
 
+    private fun onAppRestart() {
+        scope.launch {
+            when (endpoint.state.first()) {
+                is EndpointState.Stopped -> {
+                    restartApp(context)
+                }
+                else -> {
+                    dialogNavigation.activate(DialogConfig.ConfirmAppRestart)
+                }
+            }
+        }
+    }
+
     @Serializable
     private sealed interface Config {
         @Serializable
@@ -270,6 +290,9 @@ class RootComponent @AssistedInject constructor(
     private sealed interface DialogConfig {
         @Serializable
         data class ConnectionError(val reason: EndpointErrorKind) : DialogConfig
+
+        @Serializable
+        data object ConfirmAppRestart : DialogConfig
     }
 
     sealed interface Child {
@@ -286,6 +309,9 @@ class RootComponent @AssistedInject constructor(
 
     sealed interface DialogChild {
         class ConnectionError(val component: ConnectionErrorComponent) :
+            DialogChild
+
+        class ConfirmAppRestart(val component: ConfirmAppRestartComponent) :
             DialogChild
     }
 

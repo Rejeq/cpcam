@@ -11,6 +11,12 @@
     <string name="about_app_version">App version: %s</string>
     <string name="open_source_licenses">Open source licenses</string>
 
+    <string name="pref_snackbar_fail_write_message">Failed to submit preferences</string>
+    <string name="pref_snackbar_fail_write_action">Retry</string>
+
+    <string name="pref_snackbar_too_many_errors_message">Unable to submit preferences. Restart the app</string>
+    <string name="pref_snackbar_too_many_errors_action">Restart</string>
+
     <string name="pref_group_stream">Stream</string>
     <string name="pref_group_camera">Camera</string>
     <string name="pref_group_audio">Microphone</string>

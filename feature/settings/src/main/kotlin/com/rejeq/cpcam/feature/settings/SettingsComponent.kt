@@ -17,9 +17,11 @@ import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.data.repository.CameraRepository
 import com.rejeq.cpcam.core.data.repository.ScreenRepository
+import com.rejeq.cpcam.core.data.source.EditResult
 import com.rejeq.cpcam.core.device.Locale
 import com.rejeq.cpcam.core.device.getCurrentAppLocale
 import com.rejeq.cpcam.core.device.setAppLocale
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -28,6 +30,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,13 +72,14 @@ class DefaultSettingsComponent @AssistedInject constructor(
     private val cameraRepo: CameraRepository,
     private val screenRepo: ScreenRepository,
     @ApplicationScope private val externalScope: CoroutineScope,
+    private val snackbarDispatcher: SnackbarDispatcher,
     camOpExecutor: CameraOpExecutor,
-
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
     @Assisted("onFinished") val onFinished: () -> Unit,
     @Assisted("onLibraryLicensesClick") val onLibraryLicensesClick: () -> Unit,
     @Assisted("onEndpointClick") val onEndpointClick: () -> Unit,
+    @Assisted("onAppRestart") val onAppRestart: () -> Unit,
     @Assisted override val versionName: String,
 ) : SettingsComponent,
     ComponentContext by componentContext,
@@ -148,6 +152,7 @@ class DefaultSettingsComponent @AssistedInject constructor(
         null,
     )
 
+    private var dimScreenDelayChangeJob: Job? = null
     private val _dimScreenDelay = MutableStateFlow(TextFieldValue())
     override val dimScreenDelay = _dimScreenDelay.asStateFlow()
 
@@ -161,13 +166,13 @@ class DefaultSettingsComponent @AssistedInject constructor(
     }
 
     override fun onThemeConfigChange(themeConfig: ThemeConfig) {
-        externalScope.launch {
+        safePrefWriteLaunch {
             appearanceRepo.setThemeConfig(themeConfig)
         }
     }
 
     override fun onUseDynamicColorChange(needUse: Boolean) {
-        externalScope.launch {
+        safePrefWriteLaunch {
             appearanceRepo.setUseDynamicColor(needUse)
         }
     }
@@ -180,11 +185,11 @@ class DefaultSettingsComponent @AssistedInject constructor(
     }
 
     override fun onCameraResolutionChange(resolution: Resolution?) {
-        externalScope.launch {
+        safePrefWriteLaunch {
             val camId = cameraId.value
             if (camId == null) {
                 Log.e(TAG, "Unable to set camera resolution: Camera id is null")
-                return@launch
+                return@safePrefWriteLaunch EditResult.FailWrite
             }
 
             cameraRepo.setResolution(camId, resolution)
@@ -192,11 +197,11 @@ class DefaultSettingsComponent @AssistedInject constructor(
     }
 
     override fun onCameraFramerateChange(framerate: Framerate?) {
-        externalScope.launch {
+        safePrefWriteLaunch {
             val camId = cameraId.value
             if (camId == null) {
                 Log.e(TAG, "Unable to set camera resolution: Camera id is null")
-                return@launch
+                return@safePrefWriteLaunch EditResult.FailWrite
             }
 
             cameraRepo.setFramerate(camId, framerate)
@@ -204,7 +209,7 @@ class DefaultSettingsComponent @AssistedInject constructor(
     }
 
     override fun onKeepScreenAwakeChange(enabled: Boolean) {
-        externalScope.launch {
+        safePrefWriteLaunch {
             screenRepo.setKeepScreenAwake(enabled)
         }
     }
@@ -212,7 +217,8 @@ class DefaultSettingsComponent @AssistedInject constructor(
     override fun onDimScreenDelayChange(time: TextFieldValue) {
         _dimScreenDelay.value = time
 
-        externalScope.launch {
+        dimScreenDelayChangeJob?.cancel()
+        dimScreenDelayChangeJob = safePrefWriteLaunch {
             val delay = time.text.trim().toLongOrNull()
             screenRepo.setDimScreenDelay(
                 delay?.toDuration(DurationUnit.SECONDS),
@@ -223,6 +229,46 @@ class DefaultSettingsComponent @AssistedInject constructor(
     override fun onFinished() = onFinished.invoke()
     override fun onLibraryLicensesClick() = onLibraryLicensesClick.invoke()
     override fun onEndpointClick() = onEndpointClick.invoke()
+
+    private fun safePrefWriteLaunch(
+        retryCount: Int = 0,
+        block: suspend () -> EditResult,
+    ): Job = externalScope.launch {
+        when (block()) {
+            is EditResult.Success -> { /* Do nothing on success */ }
+            is EditResult.FailWrite -> handlePreferenceWriteFailure(
+                retryCount,
+                block,
+            )
+        }
+    }
+
+    private suspend fun handlePreferenceWriteFailure(
+        retryCount: Int,
+        block: suspend () -> EditResult,
+    ) {
+        Log.e(TAG, "Failed to write preferences")
+
+        val onRestartPref: suspend () -> Unit = {
+            externalScope.launch {
+                Log.i(TAG, "Trying to write preferences again")
+
+                safePrefWriteLaunch(
+                    retryCount + 1,
+                    block,
+                )
+            }
+        }
+
+        val tooManyFailures = retryCount >= MAX_PREF_RETRY_COUNT
+        snackbarDispatcher.show(
+            if (tooManyFailures) {
+                prefTooManyErrorsSnackbar(onAppRestart)
+            } else {
+                prefFailWriteSnackbar(onRestartPref)
+            },
+        )
+    }
 
     @AssistedFactory
     interface Factory {
@@ -236,8 +282,11 @@ class DefaultSettingsComponent @AssistedInject constructor(
             onLibraryLicensesClick: () -> Unit,
             @Assisted("onEndpointClick")
             onEndpointClick: () -> Unit,
+            @Assisted("onAppRestart")
+            onAppRestart: () -> Unit,
         ): DefaultSettingsComponent
     }
 }
 
 private const val TAG = "SettingsComponent"
+private const val MAX_PREF_RETRY_COUNT: Int = 3

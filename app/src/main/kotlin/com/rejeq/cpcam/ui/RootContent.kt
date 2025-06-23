@@ -56,18 +56,20 @@ fun RootChildren(component: RootComponent, modifier: Modifier = Modifier) {
             fallbackAnimation = stackAnimation(slide()),
             onBack = component::onBackClicked,
         ),
-    ) {
+    ) { child ->
         val dialog = component.dialog.subscribeAsState().value
         val dialogInstance = dialog.child?.instance
         dialogInstance?.let {
             when (it) {
                 is RootComponent.DialogChild.ConnectionError ->
                     ConnectionErrorContent(it.component)
+                is RootComponent.DialogChild.ConfirmAppRestart ->
+                    ConfirmAppRestartDialogContent(it.component)
             }
         }
 
         Surface(modifier = Modifier.fillMaxSize()) {
-            when (val child = it.instance) {
+            when (val child = child.instance) {
                 is RootComponent.Child.Main -> MainContent(
                     component = child.component,
                     dimScreenAllowed = dialogInstance == null,
