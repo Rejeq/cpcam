@@ -22,9 +22,15 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
 import com.rejeq.cpcam.core.ui.R as CoreR
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
+import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 
 @Composable
-fun LibraryContent(component: LibraryComponent, modifier: Modifier = Modifier) {
+fun LibraryContent(
+    component: LibraryComponent,
+    modifier: Modifier = Modifier,
+    snackbarDispatcher: SnackbarDispatcher? = null,
+) {
     val uriHandler = LocalUriHandler.current
 
     val state = component.state
@@ -44,6 +50,9 @@ fun LibraryContent(component: LibraryComponent, modifier: Modifier = Modifier) {
                     )
                 },
             )
+        },
+        snackbarHost = {
+            SnackbarDispatcherContent(snackbarDispatcher)
         },
     ) { padding ->
         LazyColumn(

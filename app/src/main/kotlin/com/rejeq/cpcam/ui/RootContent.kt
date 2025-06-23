@@ -71,26 +71,32 @@ fun RootChildren(component: RootComponent, modifier: Modifier = Modifier) {
                 is RootComponent.Child.Main -> MainContent(
                     component = child.component,
                     dimScreenAllowed = dialogInstance == null,
+                    snackbarDispatcher = component.snackbarDispatcher,
                 )
 
                 is RootComponent.Child.Settings -> SettingsContent(
                     component = child.component,
+                    snackbarDispatcher = component.snackbarDispatcher,
                 )
 
                 is RootComponent.Child.EndpointSettings -> EndpointContent(
                     component = child.component,
+                    snackbarDispatcher = component.snackbarDispatcher,
                 )
 
                 is RootComponent.Child.QrScanner -> QrScannerContent(
                     component = child.component,
+                    snackbarDispatcher = component.snackbarDispatcher,
                 )
 
                 is RootComponent.Child.Libraries -> LibrariesContent(
                     component = child.component,
+                    snackbarDispatcher = component.snackbarDispatcher,
                 )
 
                 is RootComponent.Child.Library -> LibraryContent(
                     component = child.component,
+                    snackbarDispatcher = component.snackbarDispatcher,
                 )
             }
         }

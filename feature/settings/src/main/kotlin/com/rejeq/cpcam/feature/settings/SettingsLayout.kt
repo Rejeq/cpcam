@@ -14,9 +14,11 @@ fun SettingsLayout(
     content: LazyListScope.() -> Unit,
     modifier: Modifier = Modifier,
     footer: (@Composable LazyItemScope.() -> Unit)? = null,
+    snackbarHost: @Composable () -> Unit = {},
 ) {
     Scaffold(
         topBar = topBar,
+        snackbarHost = snackbarHost,
         modifier = modifier,
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {

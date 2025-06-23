@@ -24,6 +24,7 @@ import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
 import com.rejeq.cpcam.feature.about.LibrariesComponent
 import com.rejeq.cpcam.feature.about.LibraryComponent
 import com.rejeq.cpcam.feature.about.LibraryState
@@ -56,6 +57,7 @@ class RootComponent @AssistedInject constructor(
     @Assisted val mainContext: CoroutineContext,
     @ApplicationContext private val context: Context,
     appearanceRepo: AppearanceRepository,
+    val snackbarDispatcher: SnackbarDispatcher,
     private val endpoint: EndpointHandler,
     private val mainFactory: DefaultMainComponent.Factory,
     private val settingsFactory: DefaultSettingsComponent.Factory,

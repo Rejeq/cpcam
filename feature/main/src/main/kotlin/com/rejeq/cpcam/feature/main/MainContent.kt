@@ -36,6 +36,8 @@ import com.rejeq.cpcam.core.ui.MorphIconButton
 import com.rejeq.cpcam.core.ui.MorphIconTarget
 import com.rejeq.cpcam.core.ui.PermissionBlockedContent
 import com.rejeq.cpcam.core.ui.SlideFromEdge
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
+import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 import com.rejeq.cpcam.core.ui.modifier.DeviceOrientation
 import com.rejeq.cpcam.core.ui.modifier.ProvideDeviceOrientation
 import com.rejeq.cpcam.core.ui.modifier.adaptiveRotation
@@ -49,6 +51,7 @@ fun MainContent(
     component: MainComponent,
     modifier: Modifier = Modifier,
     dimScreenAllowed: Boolean = true,
+    snackbarDispatcher: SnackbarDispatcher? = null,
 ) {
     val dialog = component.nav.dialog.subscribeAsState().value
     val dialogInstance = dialog.child?.instance
@@ -117,6 +120,9 @@ fun MainContent(
                 modifier = bottomModifier.fillMaxWidth(),
             )
         },
+        snackbar = {
+            SnackbarDispatcherContent(snackbarDispatcher)
+        },
     )
 }
 
@@ -125,6 +131,7 @@ fun MainScreenLayout(
     background: @Composable () -> Unit,
     top: @Composable () -> Unit,
     bottom: @Composable (Modifier) -> Unit,
+    snackbar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     keepScreenAwake: Boolean = false,
     dimScreenDelay: Long? = null,
@@ -166,7 +173,10 @@ fun MainScreenLayout(
             ) {
                 top()
 
-                bottom(Modifier.padding(bottom = actionBarPadding))
+                Column {
+                    snackbar()
+                    bottom(Modifier.padding(bottom = actionBarPadding))
+                }
             }
         }
     }

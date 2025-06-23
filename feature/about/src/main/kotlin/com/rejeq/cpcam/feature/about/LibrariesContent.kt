@@ -7,11 +7,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.rejeq.cpcam.core.ui.CpcamTopBar
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
+import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 
 @Composable
 fun LibrariesContent(
     component: LibrariesComponent,
     modifier: Modifier = Modifier,
+    snackbarDispatcher: SnackbarDispatcher? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -20,6 +23,9 @@ fun LibrariesContent(
                 title = stringResource(R.string.licenses_screen_title),
                 onBackClick = component.onFinished,
             )
+        },
+        snackbarHost = {
+            SnackbarDispatcherContent(snackbarDispatcher)
         },
     ) { padding ->
         LibrariesContainer(

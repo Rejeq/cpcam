@@ -17,6 +17,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
+import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 import com.rejeq.cpcam.core.ui.modifier.clearFocusOnTap
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.R
@@ -27,6 +29,7 @@ import com.rejeq.cpcam.feature.settings.endpoint.form.EndpointFormState
 fun EndpointContent(
     component: EndpointComponent,
     modifier: Modifier = Modifier,
+    snackbarDispatcher: SnackbarDispatcher? = null,
 ) {
     EndpointSettingsLayout(
         modifier = modifier,
@@ -35,6 +38,9 @@ fun EndpointContent(
                 title = stringResource(R.string.pref_stream_service_title),
                 onBackClick = component::onFinished,
             )
+        },
+        snackbar = {
+            SnackbarDispatcherContent(snackbarDispatcher)
         },
     ) {
         EndpointSettingsContent(
@@ -47,11 +53,13 @@ fun EndpointContent(
 @Composable
 private fun EndpointSettingsLayout(
     topBar: @Composable () -> Unit,
+    snackbar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
         topBar = topBar,
+        snackbarHost = snackbar,
         modifier = modifier.clearFocusOnTap(),
     ) { padding ->
         Column(

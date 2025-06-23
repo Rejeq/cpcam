@@ -20,6 +20,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.rejeq.cpcam.core.ui.CpcamTopBar
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
+import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.feature.settings.preference.AppearanceState
 import com.rejeq.cpcam.feature.settings.preference.AudioState
@@ -37,6 +39,7 @@ import com.rejeq.cpcam.feature.settings.preference.streamPreferences
 fun SettingsContent(
     component: SettingsComponent,
     modifier: Modifier = Modifier,
+    snackbarDispatcher: SnackbarDispatcher? = null,
 ) {
     val streamTitle = stringResource(R.string.pref_group_stream)
     val streamPreferences = remember {
@@ -79,6 +82,9 @@ fun SettingsContent(
             )
 
             Spacer(modifier = Modifier.height(4.dp))
+        },
+        snackbarHost = {
+            SnackbarDispatcherContent(snackbarDispatcher)
         },
     )
 }

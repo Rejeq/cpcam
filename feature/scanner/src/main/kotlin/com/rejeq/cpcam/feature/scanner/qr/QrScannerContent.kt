@@ -39,6 +39,8 @@ import com.rejeq.cpcam.core.common.decodeBitmapFromUri
 import com.rejeq.cpcam.core.ui.Edge
 import com.rejeq.cpcam.core.ui.PermissionBlockedContent
 import com.rejeq.cpcam.core.ui.SlideFromEdge
+import com.rejeq.cpcam.core.ui.SnackbarDispatcher
+import com.rejeq.cpcam.core.ui.SnackbarDispatcherContent
 import com.rejeq.cpcam.core.ui.modifier.DeviceOrientation
 import com.rejeq.cpcam.core.ui.modifier.ProvideDeviceOrientation
 import com.rejeq.cpcam.core.ui.modifier.adaptiveRotation
@@ -49,6 +51,7 @@ import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 fun QrScannerContent(
     component: QrScannerComponent,
     modifier: Modifier = Modifier,
+    snackbarDispatcher: SnackbarDispatcher? = null,
     showPhotoPickerButton: MutableState<Boolean> =
         remember { mutableStateOf(false) },
 ) {
@@ -119,6 +122,9 @@ fun QrScannerContent(
                 modifier = bottomModifier.fillMaxWidth(),
             )
         },
+        snackbar = {
+            SnackbarDispatcherContent(snackbarDispatcher)
+        },
     )
 }
 
@@ -127,6 +133,7 @@ fun QrScannerScreenLayout(
     background: @Composable () -> Unit,
     top: @Composable () -> Unit,
     bottom: @Composable (Modifier) -> Unit,
+    snackbar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val actionBarPadding = 56.dp
@@ -149,7 +156,10 @@ fun QrScannerScreenLayout(
             ) {
                 top()
 
-                bottom(Modifier.padding(bottom = actionBarPadding))
+                Column {
+                    snackbar()
+                    bottom(Modifier.padding(bottom = actionBarPadding))
+                }
             }
         }
     }
