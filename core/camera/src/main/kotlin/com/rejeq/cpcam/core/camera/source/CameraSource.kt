@@ -159,6 +159,8 @@ class CameraSource @Inject constructor(
     }
 
     private fun updatePipeline() {
+        pipelineUseCases.fill(null)
+
         CameraTargetId.entries
             .filter { useCases[it.ordinal] != null }
             .sortedByDescending(::getTargetPriority)
