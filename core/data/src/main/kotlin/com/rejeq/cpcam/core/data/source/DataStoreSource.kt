@@ -9,6 +9,7 @@ import java.io.IOException
 import kotlin.math.pow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.shareIn
@@ -26,6 +27,10 @@ class DataStoreSource(val scope: CoroutineScope, produceFile: () -> File) {
         produceFile = produceFile,
     )
 
+    internal val errors = MutableSharedFlow<DataSourceError?>(
+        replay = 1,
+    )
+
     /**
      * Shared flow of app preferences with error handling.
      * Catches IOExceptions and logs them while propagating other exceptions.
@@ -35,10 +40,9 @@ class DataStoreSource(val scope: CoroutineScope, produceFile: () -> File) {
             Log.e(TAG, "Exception caught: $exception")
 
             when (exception) {
-                is IOException -> {
-                    // TODO: Notify user about error
-                    Log.w(TAG, "Ignoring IOException on dataStore")
-                }
+                is IOException -> errors.emit(
+                    DataSourceError(exception),
+                )
                 else -> throw exception
             }
         }
@@ -79,6 +83,8 @@ sealed interface EditResult {
     /** Failed to write preferences to disk after retries */
     object FailWrite : EditResult
 }
+
+class DataSourceError(val throwable: Throwable)
 
 private const val RETRY_COUNT: Int = 3
 private const val BASE_DELAY: Long = 500

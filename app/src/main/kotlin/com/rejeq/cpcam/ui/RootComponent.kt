@@ -21,6 +21,7 @@ import com.rejeq.cpcam.core.common.CodeVerifier
 import com.rejeq.cpcam.core.common.QrScannableComponent
 import com.rejeq.cpcam.core.data.model.ThemeConfig
 import com.rejeq.cpcam.core.data.repository.AppearanceRepository
+import com.rejeq.cpcam.core.data.repository.DataSourceRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
@@ -48,6 +49,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -57,6 +63,7 @@ class RootComponent @AssistedInject constructor(
     @Assisted val mainContext: CoroutineContext,
     @ApplicationContext private val context: Context,
     appearanceRepo: AppearanceRepository,
+    dataSourceRepo: DataSourceRepository,
     val snackbarDispatcher: SnackbarDispatcher,
     private val endpoint: EndpointHandler,
     private val mainFactory: DefaultMainComponent.Factory,
@@ -98,6 +105,17 @@ class RootComponent @AssistedInject constructor(
     )
 
     val stack: Value<ChildStack<*, Child>> = _stack
+
+    init {
+        dataSourceRepo.errors
+            .filterNotNull()
+            .map { error ->
+                Log.e(TAG, "Data source error: ", error.throwable)
+                error.toSnackbarState()
+            }
+            .onEach(snackbarDispatcher::show)
+            .launchIn(scope)
+    }
 
     val useDarkMode = appearanceRepo.themeConfig
         .stateIn(scope, SharingStarted.Eagerly, ThemeConfig.FOLLOW_SYSTEM)
