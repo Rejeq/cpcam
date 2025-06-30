@@ -1,8 +1,9 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
+import org.gradle.kotlin.dsl.add
 
 plugins {
-    id("io.gitlab.arturbosch.detekt")
+    alias(libs.plugins.detekt)
 }
 
 detekt {
@@ -31,9 +32,3 @@ tasks.withType<DetektCreateBaselineTask> {
     jvmTarget = ProjectConfig.JVM_TARGET
 }
 
-dependencies {
-    add(
-        "detektPlugins",
-        libs.findLibrary("detekt.rules.compose").get(),
-    )
-}

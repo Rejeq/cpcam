@@ -1,19 +1,18 @@
 plugins {
     id("cpcam.detekt")
 
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 pluginManager.withPlugin("com.android.base") {
     dependencies {
-        add("ksp", libs.findLibrary("hilt.android.compiler").get())
-        add("implementation", libs.findLibrary("hilt.android").get())
-        add("implementation", libs.findLibrary("kotlin.result").get())
+        add("detektPlugins", libs.detekt.rules.compose)
 
-        add(
-            "androidTestImplementation",
-            libs.findLibrary("hilt.android.testing").get(),
-        )
+        add("ksp", libs.hilt.android.compiler)
+        add("implementation", libs.hilt.android)
+        add("implementation", libs.kotlin.result)
+        add("androidTestImplementation", libs.hilt.android.testing)
     }
 }

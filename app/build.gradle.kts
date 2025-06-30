@@ -3,8 +3,6 @@ plugins {
     id("cpcam.android.app")
     id("cpcam.compose")
 
-    id("kotlin-parcelize")
-    alias(libs.plugins.android.application)
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.about.libraries)
 }

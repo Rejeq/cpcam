@@ -5,12 +5,10 @@ dependencyResolutionManagement {
         google()
         maven(url = "https://www.jitpack.io")
     }
+}
 
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
+plugins {
+    id("dev.panuszewski.typesafe-conventions") version "0.7.3"
 }
 
 rootProject.name = "build-logic"

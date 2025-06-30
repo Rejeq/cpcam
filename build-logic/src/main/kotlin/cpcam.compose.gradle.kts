@@ -1,6 +1,6 @@
 plugins {
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 composeCompiler {
@@ -8,23 +8,12 @@ composeCompiler {
     metricsDestination = layout.buildDirectory.dir("reports/compose_compiler")
 }
 
-pluginManager.withPlugin("org.jetbrains.kotlin.plugin.compose") {
+pluginManager.withPlugin("com.android.base") {
     dependencies {
-        add("implementation", platform(libs.findLibrary("compose.bom").get()))
+        add("implementation", platform(libs.compose.bom))
+        add("implementation", libs.compose.material3)
 
-        add(
-            "implementation",
-            libs.findLibrary("compose.material3").get(),
-        )
-
-        add(
-            "debugImplementation",
-            libs.findLibrary("compose.ui.tooling").get(),
-        )
-
-        add(
-            "implementation",
-            libs.findLibrary("compose.ui.tooling.preview").get(),
-        )
+        add("debugImplementation", libs.compose.ui.tooling)
+        add("implementation", libs.compose.ui.tooling.preview)
     }
 }

@@ -1,6 +1,6 @@
-pluginManagement {
-    includeBuild("build-logic")
+includeBuild("build-logic")
 
+pluginManagement {
     repositories {
         // Chinese mirrors. Uncomment to speed up downloading or if you're in a
         // restricted region where the main repos are blocked

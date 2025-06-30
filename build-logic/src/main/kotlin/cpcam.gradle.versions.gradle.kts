@@ -1,7 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    id("com.github.ben-manes.versions")
+    alias(libs.plugins.gradle.versions)
 }
 
 fun String.isNonStable(): Boolean {
