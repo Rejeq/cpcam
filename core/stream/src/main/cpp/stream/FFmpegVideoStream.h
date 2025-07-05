@@ -14,12 +14,16 @@ extern "C" {
 class FFmpegVideoStream {
    public:
     FFmpegVideoStream(AVFormatContext *octx, AVCodecContext *cctx,
-                      AVPacket *packet, AVFrame *frame)
-        : m_octx(octx), m_cctx(cctx), m_packet(packet), m_frame(frame) {}
+                      AVPacket *packet, AVFrame *frame, int stream_index)
+        : m_octx(octx),
+          m_cctx(cctx),
+          m_packet(packet),
+          m_frame(frame),
+          m_stream_index(stream_index) {}
     ~FFmpegVideoStream();
 
-    static FFmpegVideoStream *build(AVFormatContext *octx,
-                                    AVCodecContext *cctx);
+    static FFmpegVideoStream *build(AVFormatContext *octx, AVCodecContext *cctx,
+                                    int stream_index);
 
     void send_frame(const FrameData &data);
     void set_pixel_format(PixFmt pix_fmt);
@@ -68,6 +72,7 @@ class FFmpegVideoStream {
     int64_t m_start_pts = -1;
 
     AVPixelFormat m_pix_fmt = AV_PIX_FMT_NONE;
+    int m_stream_index = 0;
     int m_frame_width = 0;
     int m_frame_height = 0;
     int m_pix_fmt_plane_count = 0;

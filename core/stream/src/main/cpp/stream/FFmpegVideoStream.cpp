@@ -24,7 +24,8 @@ FFmpegVideoStream::~FFmpegVideoStream() {
 }
 
 FFmpegVideoStream *FFmpegVideoStream::build(AVFormatContext *octx,
-                                            AVCodecContext *cctx) {
+                                            AVCodecContext *cctx,
+                                            int stream_index) {
     LOG_DEBUG("Building stream with size: (%d, %d)", cctx->width, cctx->height);
 
     AVPacket *packet = av_packet_alloc();
@@ -40,7 +41,7 @@ FFmpegVideoStream *FFmpegVideoStream::build(AVFormatContext *octx,
         return nullptr;
     }
 
-    return new FFmpegVideoStream(octx, cctx, packet, frame);
+    return new FFmpegVideoStream(octx, cctx, packet, frame, stream_index);
 }
 
 void FFmpegVideoStream::send_frame(const FrameData &data) {
@@ -136,6 +137,8 @@ void FFmpegVideoStream::write_to_encoder(AVFrame *frame) {
             break;
         }
 
+        m_packet->duration = frame->duration;
+
         LOG_PACKET_INFO(m_octx, m_packet);
         res = av_write_frame(m_octx, m_packet);
         av_packet_unref(m_packet);
@@ -170,8 +173,12 @@ void FFmpegVideoStream::as_av_frame(const FrameData &data, AVFrame *out) {
 
     int64_t time_diff = data.ts - m_start_pts;
     out->pts = av_rescale_q(time_diff,
-                           AVRational{1, 1'000'000'000},  // from nanoseconds
-                           m_cctx->time_base);
+                            AVRational{1, 1'000'000'000},  // from nanoseconds
+                            m_octx->streams[m_stream_index]->time_base);
+
+    // 1 frame to stream time base
+    out->duration = av_rescale_q(1, AVRational{1, m_cctx->framerate.num},
+                                 m_octx->streams[m_stream_index]->time_base);
 }
 
 void FFmpegVideoStream::make_sws_scale(AVFrame *input, AVFrame *output) {

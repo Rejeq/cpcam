@@ -61,7 +61,14 @@ StreamError FFmpegOutput::open() {
         }
     }
 
-    res = avformat_write_header(m_octx, nullptr);
+    // TODO: Do not hardcode
+    AVDictionary *muxer_opts = nullptr;
+    if (strcmp(fmt->name, "hls") == 0) {
+        LOG_INFO("Setting muxer options for HLS");
+        av_dict_set(&muxer_opts, "hls_flags", "delete_segments", 0);
+    }
+
+    res = avformat_write_header(m_octx, &muxer_opts);
     if (res < 0) {
         LOG_ERROR("Unable to write header: %s", av_err_to_string(res).data());
         return StreamError::FFmpegWriteFailed;
@@ -154,7 +161,7 @@ FFmpegVideoStream *FFmpegOutput::make_video_stream(const VideoConfig &config) {
         return nullptr;
     }
 
-    auto *stream = FFmpegVideoStream::build(m_octx, cctx);
+    auto *stream = FFmpegVideoStream::build(m_octx, cctx, st->index);
     if (!stream) {
         LOG_ERROR("Unable to allocate video stream");
         avcodec_free_context(&cctx);
