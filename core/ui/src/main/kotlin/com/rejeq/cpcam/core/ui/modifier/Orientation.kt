@@ -1,18 +1,16 @@
 package com.rejeq.cpcam.core.ui.modifier
 
-import android.view.OrientationEventListener
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
+import com.rejeq.cpcam.core.ui.OrientationSideEffect
 
 @Composable
 fun Modifier.adaptiveRotation(): Modifier {
@@ -40,21 +38,10 @@ fun ProvideDeviceOrientation(
     orientation: DeviceOrientation,
     content: @Composable () -> Unit,
 ) {
-    val appContext = LocalContext.current.applicationContext
     var orientation = remember { mutableStateOf(orientation) }
 
-    DisposableEffect(Unit) {
-        val listener = object : OrientationEventListener(appContext) {
-            override fun onOrientationChanged(degrees: Int) {
-                orientation.value = degrees.toDeviceOrientation()
-            }
-        }
-
-        listener.enable()
-
-        onDispose {
-            listener.disable()
-        }
+    OrientationSideEffect(Unit) { degrees ->
+        orientation.value = degrees.toDeviceOrientation()
     }
 
     CompositionLocalProvider(
