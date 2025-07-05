@@ -1,6 +1,7 @@
 <resources>
     <string name="locale_current">Русский</string>
 
+    <string name="locale_system_default">Cистемный</string>
     <string name="locale_en">English</string>
     <string name="locale_ru">Русский</string>
 </resources>

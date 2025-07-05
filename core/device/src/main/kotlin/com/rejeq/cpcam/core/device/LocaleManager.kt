@@ -14,8 +14,9 @@ import androidx.core.os.LocaleListCompat
  * see [AppCompatDelegate.setApplicationLocales] for details.
  *
  * @param locale The language tag to set as the application's locale.
+ *        If null, the system default locale will be used.
  */
-fun setAppLocale(locale: String) {
+fun setAppLocale(locale: String?) {
     AppCompatDelegate.setApplicationLocales(
         LocaleListCompat.forLanguageTags(locale),
     )
@@ -47,8 +48,9 @@ fun getCurrentAppLocale(): Locale? {
  */
 val APPLICATION_LOCALES: Array<Locale> by lazy {
     arrayOf(
-        // NOTE: First entry must be keep in sync with unqualifiedResLocale in
-        // resources.properties file
+        // NOTE: First element must be system default,
+        // since [getCurrentAppLocale] returns first entry by default.
+        Locale(null, R.string.locale_system_default),
         Locale("en", R.string.locale_en),
         Locale("ru", R.string.locale_ru),
     )
@@ -58,6 +60,7 @@ val APPLICATION_LOCALES: Array<Locale> by lazy {
  * Represents a supported application locale.
  *
  * @property tag A BCP 47 language tag (e.g., "en", "ru").
+ *        If null, it represents the system default locale.
  * @property labelId A string resource ID that corresponds to the locale label.
  */
-class Locale(val tag: String, val labelId: Int)
+class Locale(val tag: String?, val labelId: Int)
