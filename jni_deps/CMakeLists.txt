@@ -28,4 +28,5 @@ list(APPEND EXTRA_PROJECT_ARGS DOWNLOAD_DIR ${DOWNLOAD_DIR})
 message(STATUS "Using jobs: '${TOTAL_JOBS}'")
 
 include(ExternalProject)
+include(BuildMbedTLS)
 include(BuildFFmpeg)

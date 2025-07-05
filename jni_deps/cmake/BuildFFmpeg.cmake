@@ -1,7 +1,7 @@
 set(FFMPEG_SOURCE_DIR "${DOWNLOAD_DIR}/ffmpeg")
 
-set(FFMPEG_C_FLAGS "--target=${ANDROID_LLVM_TRIPLE}")
-set(FFMPEG_LD_FLAGS "--target=${ANDROID_LLVM_TRIPLE}")
+set(FFMPEG_C_FLAGS "--target=${ANDROID_LLVM_TRIPLE} -I${CMAKE_INSTALL_PREFIX}/mbedtls/include")
+set(FFMPEG_LD_FLAGS "--target=${ANDROID_LLVM_TRIPLE} -L${CMAKE_INSTALL_PREFIX}/mbedtls/lib")
 set(FFMPEG_EXTRA_CONFIG "")
 
 if(${CMAKE_ANDROID_ARCH_ABI} STREQUAL x86)
@@ -60,6 +60,7 @@ set(CONFIGURE_COMMAND ${FFMPEG_SOURCE_DIR}/src/ffmpeg/configure
     --disable-everything
     --disable-swscale-alpha
     --enable-jni
+    --enable-version3
 
     --enable-mediacodec
 
@@ -89,13 +90,21 @@ set(CONFIGURE_COMMAND ${FFMPEG_SOURCE_DIR}/src/ffmpeg/configure
     --enable-muxer=rtp_mpegts
     --enable-muxer=hls
 
+    --enable-mbedtls
+
     --enable-protocol=tcp
     --enable-protocol=udp
+    --enable-protocol=tls
     --enable-protocol=http
+    --enable-protocol=https
     --enable-protocol=rtmp
     --enable-protocol=rtp
     --enable-protocol=srtp
     --enable-protocol=hls
+    --enable-protocol=file
+    --enable-protocol=ftp
+    --enable-protocol=gopher
+    --enable-protocol=gophers
 
     ${FFMPEG_EXTRA_CONFIG}
 )
@@ -113,6 +122,8 @@ endif()
 ExternalProject_Add(ffmpeg
     URL "https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.gz"
     URL_HASH SHA256=9a6e57a446b671012612aaeb9df5126794d5ac8f2015ca220934f99a6a4e0601
+
+    DEPENDS mbedtls
 
     CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} clean && ${CMAKE_MAKE_PROGRAM} -j${TOTAL_JOBS}
