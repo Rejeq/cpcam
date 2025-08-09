@@ -1,6 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
-import org.gradle.kotlin.dsl.add
 
 plugins {
     alias(libs.plugins.detekt)
@@ -11,7 +10,7 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = ProjectConfig.JVM_TARGET
+    jvmTarget = ProjectConfig.JVM_TARGET.target
 
     reports {
         val detektDir = layout.buildDirectory.dir("reports/detekt")
@@ -29,6 +28,5 @@ tasks.withType<Detekt>().configureEach {
 }
 
 tasks.withType<DetektCreateBaselineTask> {
-    jvmTarget = ProjectConfig.JVM_TARGET
+    jvmTarget = ProjectConfig.JVM_TARGET.target
 }
-

@@ -11,12 +11,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = ProjectConfig.JVM_TARGET
-    }
-
     defaultConfig {
         minSdk = ProjectConfig.MIN_SDK
         targetSdk = ProjectConfig.TARGET_SDK
+    }
+}
+
+kotlin {
+    jvmToolchain(ProjectConfig.JVM_TOOLCHAIN)
+
+    compilerOptions {
+        jvmTarget = ProjectConfig.JVM_TARGET
     }
 }

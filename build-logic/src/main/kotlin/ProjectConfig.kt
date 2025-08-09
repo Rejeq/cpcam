@@ -1,9 +1,11 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 object ProjectConfig {
     const val COMPILE_SDK = 36
     const val TARGET_SDK = 36
     const val MIN_SDK = 21
 
-    const val JVM_TARGET = "17"
+    val JVM_TARGET = JvmTarget.JVM_17
     const val JVM_TOOLCHAIN = 17
 
     // FIXME: Sync this property with ndk version of jni dependencies

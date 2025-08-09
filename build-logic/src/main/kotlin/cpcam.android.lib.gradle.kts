@@ -19,12 +19,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = ProjectConfig.JVM_TARGET
-    }
 }
 
 kotlin {
     jvmToolchain(ProjectConfig.JVM_TOOLCHAIN)
+
+    compilerOptions {
+        jvmTarget = ProjectConfig.JVM_TARGET
+    }
 }

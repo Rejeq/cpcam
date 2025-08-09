@@ -95,7 +95,6 @@ android {
     }
 
     androidResources.localeFilters += listOf("en", "ru")
-    kotlinOptions.jvmTarget = ProjectConfig.JVM_TARGET
     buildFeatures.compose = true
     buildFeatures.buildConfig = true
 }
@@ -104,6 +103,7 @@ kotlin {
     jvmToolchain(ProjectConfig.JVM_TOOLCHAIN)
 
     compilerOptions {
+        jvmTarget = ProjectConfig.JVM_TARGET
         freeCompilerArgs.add("-Xwhen-guards")
     }
 }
