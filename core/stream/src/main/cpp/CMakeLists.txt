@@ -24,6 +24,7 @@ endif()
 
 find_library(log-lib log)
 find_package(FFmpeg)
+find_package(MbedTLS)
 
 add_library(cpcam_jni SHARED
     FFmpegUtils.cpp
@@ -65,4 +66,8 @@ target_link_libraries(cpcam_jni PUBLIC
     FFmpeg::libavformat
     FFmpeg::libavutil
     FFmpeg::libswscale
+
+    MbedTLS::libmbedtls
+    MbedTLS::libmbedcrypto
+    MbedTLS::libmbedx509
 )
