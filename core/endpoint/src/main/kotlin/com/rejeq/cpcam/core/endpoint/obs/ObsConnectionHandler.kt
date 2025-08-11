@@ -41,8 +41,8 @@ class ObsConnectionHandler(
         }
 
         _state.value = result.mapBoth(
-            { ConnectionState.Started },
-            { err -> ConnectionState.Stopped(err) },
+            success = { ConnectionState.Started },
+            failure = { err -> ConnectionState.Stopped(err) },
         )
 
         return _state.value

@@ -38,8 +38,8 @@ class ObsStreamHandler @Inject constructor(
         }
 
         _state.value = handler.start().mapBoth(
-            { StreamHandlerState.Started },
-            { err -> StreamHandlerState.Stopped(err.toObsStreamError()) },
+            success = { StreamHandlerState.Started },
+            failure = { StreamHandlerState.Stopped(it.toObsStreamError()) },
         )
 
         return _state.value

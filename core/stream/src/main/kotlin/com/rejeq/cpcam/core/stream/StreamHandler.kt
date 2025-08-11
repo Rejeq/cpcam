@@ -32,7 +32,7 @@ class StreamHandler(
         videoStreamConfig
             .toResultOr { StreamError.InvalidArgument }
             .flatMap { config -> output.makeVideoStream(config.data) }
-            .onFailure { Log.e(TAG, "Unable to make video stream") }
+            .onFailure { Log.e(TAG, "Unable to make video stream: $it") }
     }
 
     fun setVideoRelayConfig(
@@ -71,7 +71,7 @@ class StreamHandler(
 
         val framerate = config.framerate
         if (framerate != null) {
-            target.setFramerate(Range<Int>(framerate, framerate))
+            target.setFramerate(Range(framerate, framerate))
         }
 
         oldVideoRelayConfig = config

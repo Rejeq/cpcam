@@ -36,14 +36,16 @@ internal class FFmpegVideoRelay(
 
         imageReader.setOnImageAvailableListener({ reader ->
             val image = reader.acquireLatestImage()
-            image?.let { frame ->
+            if (image != null) {
                 val planes = image.planes
                 val len = planes.size
 
                 for (i in planes.indices) {
-                    buffers[i] = planes[i].buffer
-                    strides[i] = planes[i].rowStride
-                    pixelStrides[i] = planes[i].pixelStride
+                    val plane = planes[i]
+
+                    buffers[i] = plane.buffer
+                    strides[i] = plane.rowStride
+                    pixelStrides[i] = plane.pixelStride
                 }
 
                 stream.send(
@@ -57,7 +59,7 @@ internal class FFmpegVideoRelay(
                     pixelStrides,
                 )
 
-                frame.close()
+                image.close()
             }
         }, bgHandler)
     }
