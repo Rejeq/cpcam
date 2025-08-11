@@ -33,4 +33,4 @@ MakeFFmpegLib(libpostproc)
 
 
 # zlib - part of NDK api
-target_link_libraries(ffmpeg_libavformat INTERFACE z)
+# target_link_libraries(ffmpeg_libavformat INTERFACE z)

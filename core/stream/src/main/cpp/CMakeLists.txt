@@ -19,7 +19,11 @@ if (${IS_RELEASE})
     set(CMAKE_CXX_VISIBILITY_PRESET hidden)
     set(CMAKE_C_VISIBILITY_PRESET hidden)
     add_compile_options("-flto")
-    add_link_options("-flto")
+    add_link_options(
+        "-flto"
+        "-s"
+        "-Wl,--version-script=${CMAKE_CURRENT_LIST_DIR}/cmake/export.map"
+    )
 endif()
 
 find_library(log-lib log)
@@ -57,7 +61,7 @@ target_compile_options(cpcam_jni PRIVATE
         -Werror=switch>
 )
 
-target_link_libraries(cpcam_jni PUBLIC
+target_link_libraries(cpcam_jni PRIVATE
     ${log-lib}
     android
     mediandk
