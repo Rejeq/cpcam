@@ -69,4 +69,8 @@ internal class FFmpegVideoRelay(
     override fun stop() {
         stream.stop()
     }
+
+    override fun destroy() {
+        bgThread.quitSafely()
+    }
 }

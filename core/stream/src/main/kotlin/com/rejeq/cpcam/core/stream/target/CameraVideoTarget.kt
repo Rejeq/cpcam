@@ -42,6 +42,7 @@ class CameraVideoTarget @Inject constructor(
             else -> {}
         }
 
+        this.relay?.destroy()
         this.relay = relay
     }
 

@@ -10,6 +10,7 @@ import com.github.michaelbull.result.flatMap
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getError
 import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onSuccess
 import com.github.michaelbull.result.toResultOr
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.StreamProtocol
@@ -90,7 +91,8 @@ class StreamHandler(
         return output.close()
     }
 
-    fun destroy() = synchronized(this) {
+    fun destroy(): Unit = synchronized(this) {
+        videoStream.onSuccess { it.destroy() }
         output.destroy()
     }
 

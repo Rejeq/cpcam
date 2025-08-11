@@ -138,6 +138,14 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_send(
 }
 
 JNIEXPORT void JNICALL
+Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_destroy(
+        JNIEnv * /* env */, jobject /* obj */, jlong rawStream) {
+    auto *stream = (FFmpegVideoStream *)rawStream;
+
+    delete stream;
+}
+
+JNIEXPORT void JNICALL
 Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_setResolution(
     JNIEnv * /* env */, jobject /* obj */, jlong rawStream, jint width,
     jint height) {

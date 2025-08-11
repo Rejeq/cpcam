@@ -30,6 +30,8 @@ internal class FFmpegVideoStreamJni(val handle: Long) {
         pixelStrides,
     )
 
+    fun destroy() = destroy(handle)
+
     fun setResolution(width: Int, height: Int) =
         setResolution(handle, width, height)
 
@@ -48,6 +50,8 @@ internal class FFmpegVideoStreamJni(val handle: Long) {
         strides: IntArray,
         pixelStrides: IntArray,
     )
+
+    private external fun destroy(handle: Long)
 
     private external fun setResolution(handle: Long, width: Int, height: Int)
 

@@ -16,4 +16,6 @@ interface VideoRelay {
 
     fun start()
     fun stop()
+
+    fun destroy()
 }
