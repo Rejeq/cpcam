@@ -4,33 +4,93 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
+import androidx.compose.ui.node.LayoutModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.currentValueOf
+import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.unit.Constraints
 import com.rejeq.cpcam.core.ui.OrientationSideEffect
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 
-@Composable
-fun Modifier.adaptiveRotation(): Modifier {
-    val orientation = LocalDeviceOrientation.current
-    val rotationAngle = remember { Animatable(0f) }
+fun Modifier.adaptiveRotation(): Modifier = this then AdaptiveRotationElement
 
-    LaunchedEffect(orientation) {
-        val current = rotationAngle.value
+private data object AdaptiveRotationElement :
+    ModifierNodeElement<AdaptiveRotationNode>() {
+    override fun create(): AdaptiveRotationNode = AdaptiveRotationNode()
+    override fun update(node: AdaptiveRotationNode) {}
 
-        val targetAngle = orientation.toRotationAngle()
-        val normalizedCurrent = current.normalizedAngle()
-        val delta = shortestAngleDelta(normalizedCurrent, targetAngle)
+    override fun InspectorInfo.inspectableProperties() {
+        name = "adaptiveRotation"
+    }
+}
 
-        rotationAngle.animateTo(
-            targetValue = current + delta,
-            animationSpec = tween(durationMillis = 500),
-        )
+private class AdaptiveRotationNode :
+    Modifier.Node(),
+    LayoutModifierNode,
+    CompositionLocalConsumerModifierNode {
+    private val rotationAngle = Animatable(0f)
+    private var lastOrientation: DeviceOrientation? = null
+    private var job: Job? = null
+
+    override fun onAttach() {
+        tryUpdateOrientation()
     }
 
-    return this.graphicsLayer { rotationZ = rotationAngle.value }
+    override fun onDetach() {
+        job?.cancelChildren()
+    }
+
+    override fun onReset() {
+        lastOrientation = null
+    }
+
+    override fun MeasureScope.measure(
+        measurable: Measurable,
+        constraints: Constraints,
+    ): MeasureResult {
+        val placeable = measurable.measure(constraints)
+        return layout(placeable.width, placeable.height) {
+            placeable.placeWithLayer(0, 0) {
+                tryUpdateOrientation()
+
+                rotationZ = rotationAngle.value
+            }
+        }
+    }
+
+    private fun tryUpdateOrientation() {
+        val orientation = currentValueOf(LocalDeviceOrientation)
+        if (orientation != lastOrientation) {
+            launchAnimationTo(orientation)
+            lastOrientation = orientation
+        }
+    }
+
+    private fun launchAnimationTo(orientation: DeviceOrientation) {
+        job?.cancel()
+        job = coroutineScope.launch {
+            val current = rotationAngle.value
+
+            val targetAngle = orientation.toRotationAngle()
+            val normalizedCurrent = current.normalizedAngle()
+            val delta = shortestAngleDelta(normalizedCurrent, targetAngle)
+
+            rotationAngle.animateTo(
+                targetValue = current + delta,
+                animationSpec = tween(durationMillis = 500),
+            )
+        }
+    }
 }
 
 @Composable
@@ -38,7 +98,7 @@ fun ProvideDeviceOrientation(
     orientation: DeviceOrientation,
     content: @Composable () -> Unit,
 ) {
-    var orientation = remember { mutableStateOf(orientation) }
+    val orientation = remember { mutableStateOf(orientation) }
 
     OrientationSideEffect(Unit) { degrees ->
         orientation.value = degrees.toDeviceOrientation()
