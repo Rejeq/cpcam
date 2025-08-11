@@ -22,9 +22,7 @@ class ObsEndpoint @AssistedInject constructor(
     @WebsocketClient wbClientLazy: Lazy<HttpClient>,
     @Assisted override val config: ObsConfig,
 ) : Endpoint {
-    private val wbClient by wbClientLazy
-
-    private val connHandler = ObsConnectionHandler(config, wbClient)
+    private val connHandler = ObsConnectionHandler(config, wbClientLazy)
 
     override val state = combine(
         connHandler.state,

@@ -16,8 +16,10 @@ sealed interface ConnectionState {
 
 class ObsConnectionHandler(
     private val config: ObsConfig,
-    private val wbClient: HttpClient,
+    wbClientLazy: Lazy<HttpClient>,
 ) {
+    private val wbClient by wbClientLazy
+
     private val _state =
         MutableStateFlow<ConnectionState>(ConnectionState.Stopped(null))
     val state = _state.asStateFlow()
