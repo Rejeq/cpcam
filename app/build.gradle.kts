@@ -66,4 +66,5 @@ dependencies {
 //    "baselineProfile"(project(":benchmarks"))
 
     debugImplementation(libs.leakcanary)
+    debugImplementation(libs.anr.watchdog)
 }
