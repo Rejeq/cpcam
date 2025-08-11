@@ -30,7 +30,7 @@ data class StreamConfig(
  * @property target The video source from which frames originate.
  * @property data The encoding settings applied to the video stream.
  */
-class VideoStreamConfig(val target: VideoTarget, val data: VideoConfig)
+data class VideoStreamConfig(val target: VideoTarget, val data: VideoConfig)
 
 /**
  * Defines the configuration settings for a video relay.
