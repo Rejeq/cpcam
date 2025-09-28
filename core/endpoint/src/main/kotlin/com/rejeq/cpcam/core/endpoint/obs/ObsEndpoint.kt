@@ -1,20 +1,23 @@
 package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.mapError
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.data.model.StreamProtocol
 import com.rejeq.cpcam.core.data.repository.StreamRepository
 import com.rejeq.cpcam.core.endpoint.Endpoint
+import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.endpoint.di.WebsocketClient
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class ObsEndpoint @AssistedInject constructor(
     private val streamRepo: StreamRepository,
@@ -30,25 +33,21 @@ class ObsEndpoint @AssistedInject constructor(
         transform = ::getState,
     )
 
-    override suspend fun connect(): EndpointState = coroutineScope {
-        val data = streamRepo.obsData.first()
+    override suspend fun connect(): Result<Unit, EndpointErrorKind> =
+        coroutineScope {
+            val data = streamRepo.obsData.firstOrNull()
 
-        val connJob = async {
-            connHandler.start(data)
+            launch {
+                connHandler.start(data)
+            }
+
+            val result = streamHandler.start(data)
+            result.mapError { it.toEndpointError() }
         }
 
-        val streamJob = async {
-            streamHandler.start(data)
-        }
-
-        getState(connJob.await(), streamJob.await())
-    }
-
-    override suspend fun disconnect(): EndpointState {
-        val streamState = streamHandler.stop()
-        val connState = connHandler.stop()
-
-        return getState(connState, streamState)
+    override suspend fun disconnect() {
+        streamHandler.stop()
+        connHandler.stop()
     }
 
     private fun getState(
@@ -58,8 +57,7 @@ class ObsEndpoint @AssistedInject constructor(
         Log.d(TAG, "getState: conn=$conn, stream=$stream")
 
         val newState = if (stream == StreamHandlerState.Started &&
-            conn is ConnectionState.Stopped &&
-            conn.reason != null
+            conn is ConnectionState.Failed
         ) {
             EndpointState.Started(conn.reason.toEndpointError())
         } else {

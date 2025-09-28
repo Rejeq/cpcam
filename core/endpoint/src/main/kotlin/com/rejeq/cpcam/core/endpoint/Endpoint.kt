@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.core.endpoint
 
+import com.github.michaelbull.result.Result
 import com.rejeq.cpcam.core.data.model.EndpointConfig
 import kotlinx.coroutines.flow.Flow
 
@@ -8,13 +9,15 @@ import kotlinx.coroutines.flow.Flow
  */
 sealed interface EndpointState {
     /** Endpoint is not active */
-    data class Stopped(val reason: EndpointErrorKind? = null) : EndpointState
+    data object Stopped : EndpointState
 
     /** Endpoint is establishing connection */
     data object Connecting : EndpointState
 
     /** Endpoint is active and transmitting */
     data class Started(val warning: EndpointErrorKind? = null) : EndpointState
+
+    data class Failed(val reason: EndpointErrorKind) : EndpointState
 }
 
 interface Endpoint {
@@ -27,15 +30,8 @@ interface Endpoint {
 
     /**
      * Establishes a connection to the remote endpoint.
-     *
-     * @return New state of the endpoint after this operation.
      */
-    suspend fun connect(): EndpointState
+    suspend fun connect(): Result<Unit, EndpointErrorKind>
 
-    /**
-     * Disconnects from the endpoint.
-     *
-     * @return New state of the endpoint after this operation
-     */
-    suspend fun disconnect(): EndpointState
+    suspend fun disconnect()
 }

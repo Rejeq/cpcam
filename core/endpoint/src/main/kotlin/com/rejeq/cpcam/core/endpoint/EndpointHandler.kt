@@ -1,6 +1,7 @@
 package com.rejeq.cpcam.core.endpoint
 
 import android.util.Log
+import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.mapError
 import com.rejeq.cpcam.core.data.model.EndpointConfig
@@ -14,18 +15,20 @@ import com.rejeq.cpcam.core.endpoint.di.WebsocketClient
 import com.rejeq.cpcam.core.endpoint.obs.ObsEndpoint
 import com.rejeq.cpcam.core.endpoint.obs.checkObsConnection
 import com.rejeq.cpcam.core.endpoint.obs.toEndpointError
-import com.rejeq.cpcam.core.stream.StreamHandler
+import com.rejeq.cpcam.core.stream.SessionRunner
 import io.ktor.client.HttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 @Singleton
 class EndpointHandler @Inject constructor(
@@ -42,25 +45,18 @@ class EndpointHandler @Inject constructor(
         it?.state ?: flowOf(DEFAULT_ENDPOINT_STATE)
     }
 
-    suspend fun connect(): EndpointState {
+    suspend fun connect(): Result<Unit, EndpointErrorKind> {
         val endpoint = retrieveLatestEndpoint()
         if (endpoint == null) {
             Log.w(TAG, "Unable to connect: Fails retrieve endpoint")
-            return DEFAULT_ENDPOINT_STATE
+            return Err(EndpointErrorKind.FailedRetrieveEndpoint)
         }
 
         return endpoint.connect()
     }
 
-    suspend fun disconnect(): EndpointState {
-        val endpoint = currEndpoint.value
-        if (endpoint == null) {
-            Log.w(TAG, "Unable to disconnect: Not started")
-            return DEFAULT_ENDPOINT_STATE
-        }
-
-        val newState = endpoint.disconnect()
-        return newState
+    suspend fun disconnect() {
+        currEndpoint.value?.disconnect()
     }
 
     suspend fun checkConnection(
@@ -82,16 +78,20 @@ class EndpointHandler @Inject constructor(
         }
 
     fun getSupportedCodecs(): List<VideoCodec> =
-        StreamHandler.getSupportedCodecs()
+        SessionRunner.getSupportedCodecs()
 
     fun getSupportedFormats(codec: VideoCodec): List<PixFmt> =
-        StreamHandler.getSupportedFormats(codec)
+        SessionRunner.getSupportedFormats(codec)
 
     private suspend fun retrieveLatestEndpoint(): Endpoint? {
-        val newConfig = endpointRepo.endpointConfig.first()
+        val newConfig = endpointRepo.endpointConfig.firstOrNull()
         val currentEndpoint = currEndpoint.value
 
         return when {
+            newConfig == null -> {
+                Log.e(TAG, "Unable to retrieve endpoint: No config found")
+                null
+            }
             currentEndpoint == null -> {
                 makeEndpoint(newConfig).also {
                     currEndpoint.value = it
@@ -112,8 +112,6 @@ class EndpointHandler @Inject constructor(
     }
 }
 
-private val DEFAULT_ENDPOINT_STATE = EndpointState.Stopped(
-    EndpointErrorKind.EndpointNotConfigured,
-)
+private val DEFAULT_ENDPOINT_STATE = EndpointState.Stopped
 
 private const val TAG = "EndpointHandler"

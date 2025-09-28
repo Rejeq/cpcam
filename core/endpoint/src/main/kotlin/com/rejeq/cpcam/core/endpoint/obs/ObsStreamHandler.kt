@@ -2,73 +2,102 @@ package com.rejeq.cpcam.core.endpoint.obs
 
 import android.util.Log
 import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
+import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import com.rejeq.cpcam.core.endpoint.EndpointState
-import com.rejeq.cpcam.core.stream.StreamConfig
-import com.rejeq.cpcam.core.stream.StreamHandler
-import com.rejeq.cpcam.core.stream.StreamHolder
+import com.rejeq.cpcam.core.stream.SessionConfig
+import com.rejeq.cpcam.core.stream.SessionHolder
+import com.rejeq.cpcam.core.stream.SessionRunner
 import com.rejeq.cpcam.core.stream.VideoStreamConfig
 import com.rejeq.cpcam.core.stream.target.CameraVideoTarget
 import com.rejeq.cpcam.core.stream.target.VideoTarget
 import javax.inject.Inject
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class ObsStreamHandler @Inject constructor(
+    @ApplicationScope private val appScope: CoroutineScope,
     private val videoTarget: CameraVideoTarget,
 ) {
-    private val streamHolder = StreamHolder()
+    private val sessionHolder = SessionHolder()
+    private var streamJob: Job? = null
 
     private val _state =
-        MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped())
+        MutableStateFlow<StreamHandlerState>(StreamHandlerState.Stopped)
     val state = _state.asStateFlow()
 
-    fun start(streamData: ObsStreamData?): StreamHandlerState {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    suspend fun start(
+        config: ObsStreamData?,
+    ): Result<Unit, ObsStreamErrorKind> {
         _state.value = StreamHandlerState.Connecting
 
-        val handler = getConfiguredStreamHandler(streamData).getOrElse { err ->
+        val runner = getConfiguredRunner(config).getOrElse { err ->
             Log.w(TAG, "Unable to start stream handler: $err")
 
-            _state.value = StreamHandlerState.Stopped(err)
-            return _state.value
+            _state.value = StreamHandlerState.Failed(err)
+            return Err(err)
         }
 
-        _state.value = handler.start().mapBoth(
-            success = { StreamHandlerState.Started },
-            failure = { StreamHandlerState.Stopped(it.toObsStreamError()) },
-        )
+        val startResult =
+            CompletableDeferred<Result<Unit, ObsStreamErrorKind>>()
 
-        return _state.value
+        streamJob?.cancel()
+        streamJob = appScope.launch {
+            var runnerResult: Result<Unit, ObsStreamErrorKind>? = null
+
+            try {
+                runnerResult = runner.use {
+                    _state.value = StreamHandlerState.Started
+                    startResult.complete(Ok(Unit))
+
+                    awaitCancellation()
+                }.mapError { it.toObsStreamError() }
+
+                startResult.complete(runnerResult)
+            } finally {
+                _state.value = runnerResult?.mapBoth(
+                    success = { StreamHandlerState.Stopped },
+                    failure = { StreamHandlerState.Failed(it) },
+                ) ?: StreamHandlerState.Stopped
+            }
+        }
+
+        return startResult.await()
     }
 
-    fun stop(): StreamHandlerState {
-        streamHolder.current?.stop()
-        _state.value = StreamHandlerState.Stopped()
-
-        return _state.value
+    fun stop() {
+        streamJob?.cancel()
     }
 
-    private fun getConfiguredStreamHandler(
+    private fun getConfiguredRunner(
         data: ObsStreamData?,
-    ): Result<StreamHandler, ObsStreamErrorKind> {
+    ): Result<SessionRunner, ObsStreamErrorKind> {
         if (data == null) {
             return Err(ObsStreamErrorKind.NoStreamData)
         }
 
-        val handler = streamHolder.getConfigured(
+        val runner = sessionHolder.getConfigured(
             data.toStreamConfig(videoTarget),
         )
 
-        return handler.mapError { it.toObsStreamError() }
+        return runner.mapError { it.toObsStreamError() }
     }
 }
 
-fun ObsStreamData.toStreamConfig(target: VideoTarget): StreamConfig =
-    StreamConfig(
+fun ObsStreamData.toStreamConfig(target: VideoTarget): SessionConfig =
+    SessionConfig(
         protocol = this.protocol,
         host = this.host,
         videoStreamConfig = VideoStreamConfig(
@@ -78,18 +107,19 @@ fun ObsStreamData.toStreamConfig(target: VideoTarget): StreamConfig =
     )
 
 sealed interface StreamHandlerState {
-    data class Stopped(val reason: ObsStreamErrorKind? = null) :
-        StreamHandlerState
+    data object Stopped : StreamHandlerState
     data object Connecting : StreamHandlerState
     data object Started : StreamHandlerState
+    data class Failed(val reason: ObsStreamErrorKind) : StreamHandlerState
 }
 
 fun StreamHandlerState.toEndpointState() = when (this) {
-    is StreamHandlerState.Stopped -> EndpointState.Stopped(
-        this.reason?.toEndpointError(),
-    )
+    is StreamHandlerState.Stopped -> EndpointState.Stopped
     is StreamHandlerState.Connecting -> EndpointState.Connecting
     is StreamHandlerState.Started -> EndpointState.Started(null)
+    is StreamHandlerState.Failed -> EndpointState.Failed(
+        this.reason.toEndpointError(),
+    )
 }
 
 private const val TAG = "ObsStreamHandler"

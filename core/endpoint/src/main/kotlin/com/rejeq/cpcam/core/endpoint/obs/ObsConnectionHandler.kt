@@ -5,13 +5,15 @@ import com.github.michaelbull.result.mapBoth
 import com.rejeq.cpcam.core.data.model.ObsConfig
 import com.rejeq.cpcam.core.data.model.ObsStreamData
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface ConnectionState {
     data object Started : ConnectionState
     data object Connecting : ConnectionState
-    data class Stopped(val reason: ObsErrorKind?) : ConnectionState
+    data object Stopped : ConnectionState
+    data class Failed(val reason: ObsErrorKind) : ConnectionState
 }
 
 class ObsConnectionHandler(
@@ -21,14 +23,14 @@ class ObsConnectionHandler(
     private val wbClient by wbClientLazy
 
     private val _state =
-        MutableStateFlow<ConnectionState>(ConnectionState.Stopped(null))
+        MutableStateFlow<ConnectionState>(ConnectionState.Stopped)
     val state = _state.asStateFlow()
 
     suspend fun start(streamData: ObsStreamData?): ConnectionState {
         if (streamData == null) {
             Log.w(TAG, "Does not have stream data")
 
-            _state.value = ConnectionState.Stopped(ObsErrorKind.NotHaveData)
+            _state.value = ConnectionState.Failed(ObsErrorKind.NotHaveData)
             return _state.value
         }
 
@@ -42,14 +44,14 @@ class ObsConnectionHandler(
 
         _state.value = result.mapBoth(
             success = { ConnectionState.Started },
-            failure = { err -> ConnectionState.Stopped(err) },
+            failure = { err -> ConnectionState.Failed(err) },
         )
 
         return _state.value
     }
 
     fun stop(): ConnectionState {
-        _state.value = ConnectionState.Stopped(null)
+        _state.value = ConnectionState.Stopped
         // TODO: Maybe make obs input invisible?
 
         return _state.value
