@@ -2,7 +2,7 @@ package com.rejeq.cpcam.core.common
 
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 /**
  * Convenient way to check if the application has a specific permission.
@@ -11,8 +11,8 @@ import androidx.core.app.ActivityCompat
  *        (e.g., `android.Manifest.permission.CAMERA`).
  * @return `true` if the permission is granted, `false` otherwise.
  *
- * @see ActivityCompat.checkSelfPermission
+ * @see ContextCompat.checkSelfPermission
  */
 fun Context.hasPermission(permission: String): Boolean =
-    ActivityCompat.checkSelfPermission(this, permission) ==
+    ContextCompat.checkSelfPermission(this, permission) ==
         PackageManager.PERMISSION_GRANTED
