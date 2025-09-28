@@ -1,6 +1,8 @@
 jni_deps/downloads
 jni_deps/targets
 
+.env
+
 # Application signing properties
 keystore.properties
 

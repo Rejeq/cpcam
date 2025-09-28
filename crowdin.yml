@@ -1,0 +1,21 @@
+"preserve_hierarchy": true
+
+#
+# Files configuration.
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+files: [
+  {
+    "source": "/**/res/values/string*.xml",
+    "translation": "/**/res/values-%android_code%/%original_file_name%",
+    "ignore": [
+         "/**/build",
+    ],
+
+    "languages_mapping" : {
+      "android_code" : {
+          "ru" : "ru",
+      }
+    }
+  }
+]
