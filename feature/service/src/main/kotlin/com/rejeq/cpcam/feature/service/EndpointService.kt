@@ -2,37 +2,27 @@ package com.rejeq.cpcam.feature.service
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationManager.IMPORTANCE_DEFAULT
-import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
-import android.net.wifi.WifiManager
 import android.os.Build
-import android.os.IBinder
-import android.os.PowerManager
 import android.util.Log
-import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
-import androidx.core.app.TaskStackBuilder
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
+import com.github.michaelbull.result.onFailure
 import com.rejeq.cpcam.core.common.MainActivityContract
 import com.rejeq.cpcam.core.common.hasPermission
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 
 /**
  * Foreground service managing [EndpointHandler] lifecycle.
@@ -42,30 +32,21 @@ import kotlinx.coroutines.launch
  * lifecycle and handles proper cleanup when stopped.
  */
 @AndroidEntryPoint
-class EndpointService : Service() {
+class EndpointService : LifecycleService() {
     @Inject
     lateinit var endpoint: EndpointHandler
 
     @Inject
     lateinit var mainActivityContract: MainActivityContract
 
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.Default + job)
-
-    private var wakeLock: PowerManager.WakeLock? = null
-    private var wifiLock: WifiManager.WifiLock? = null
-
-    // endpoint created in onCreate(), so using lazy here
-    private val endpointState by lazy {
-        endpoint.infoNotificationData.onEach {
-            updateNotification(it)
-        }.stateIn(scope, SharingStarted.Eagerly, EndpointState.Stopped())
-    }
+    private var prevEndpointState: EndpointState = EndpointState.Stopped
+    private lateinit var endpointLauncher: EndpointLauncher
 
     override fun onCreate() {
         super.onCreate()
 
         this.createServiceNotificationChannel()
+        endpointLauncher = EndpointLauncher(endpoint, this)
     }
 
     override fun onStartCommand(
@@ -73,6 +54,8 @@ class EndpointService : Service() {
         flags: Int,
         startId: Int,
     ): Int {
+        super.onStartCommand(intent, flags, startId)
+
         // Starting as foreground every time because this method can called
         // after stopSelf(), which removes service from foreground state
         if (runAsForeground()) {
@@ -93,20 +76,8 @@ class EndpointService : Service() {
 
     override fun onDestroy() {
         Log.d(TAG, "Destroying service")
-
-        releaseWifiLock()
-        releaseWakeLock()
-
-        scope.launch {
-            endpoint.disconnect()
-        }.invokeOnCompletion {
-            job.cancel()
-        }
-
         super.onDestroy()
     }
-
-    override fun onBind(i: Intent?): IBinder? = null
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -119,152 +90,71 @@ class EndpointService : Service() {
         }
 
         Log.d(TAG, "Language changed: $locale")
-        updateNotification(endpointState.value)
+        this.createServiceNotificationChannel()
+        updateNotification(prevEndpointState)
     }
 
-    /**
-     * Starts the service in foreground mode with proper notification.
-     *
-     * Configures foreground service type based on permissions and
-     * creates the required notification.
-     *
-     * @return `true` if starting in foreground failed, `false` on success
-     */
     private fun runAsForeground(): Boolean {
         // NOTE: Notification channel must already be registered at the time of
         // the service creation
         ServiceCompat.startForeground(
             this,
             STREAM_SERVICE_ID,
-            buildNotification(endpointState.value),
+            buildEndpointNotification(prevEndpointState, mainActivityContract),
             getForegroundType(this),
         )
 
         return false
     }
 
-    /**
-     * Initializes streaming endpoint connection.
-     *
-     * @return Service start mode (START_STICKY)
-     */
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private fun startEndpoint(): Int {
-        acquireWakeLock()
-        acquireWifiLock()
+        endpointLauncher.launch(lifecycleScope) { result ->
+            result.onFailure { err ->
+                Log.e(
+                    TAG,
+                    "endpointLauncher failed with error, " +
+                        "stopping service: $err",
+                )
+
+                stopEndpoint()
+            }
+
+            endpoint.state
+                .debounce(NOTIFICATION_DEBOUNCE_DELAY)
+                .collect(::updateNotification)
+
+            assert(false) {
+                "Unreachable state: " +
+                    "'endpoint.state' should never stops collecting"
+            }
+        }
 
         return START_STICKY
     }
 
-    /**
-     * Stops the streaming service.
-     *
-     * @return Service start mode (START_NOT_STICKY)
-     */
     private fun stopEndpoint(): Int {
         stopSelf()
         return START_NOT_STICKY
     }
 
-    /**
-     * Updates old notification with new data
-     */
     private fun updateNotification(state: EndpointState) {
         val manager = NotificationManagerCompat.from(this@EndpointService)
+        prevEndpointState = state
 
         if (this.hasPermission(Manifest.permission.POST_NOTIFICATIONS)) {
             manager.notify(
                 STREAM_SERVICE_ID,
-                buildNotification(state),
+                buildEndpointNotification(state, mainActivityContract),
             )
-        }
-    }
-
-    /**
-     * Creates the service notification with current stream state.
-     *
-     * @return Configured notification for the foreground service
-     */
-    private fun buildNotification(state: EndpointState): Notification {
-        val closeIntent = Intent(this, EndpointService::class.java)
-            .setAction(ACTION_STOP_ENDPOINT)
-
-        val onClose = PendingIntent.getService(
-            this,
-            0,
-            closeIntent,
-            PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        val openMainActivity = mainActivityContract.createIntent(this)
-
-        val onNotificationClick = TaskStackBuilder.create(this).run {
-            addNextIntentWithParentStack(openMainActivity)
-            val intent = getPendingIntent(
-                0,
-                PendingIntent.FLAG_UPDATE_CURRENT or
-                    PendingIntent.FLAG_IMMUTABLE,
-            )
-
-            // getPendingIntent() returns null only if
-            // PendingIntent.FLAG_NO_CREATE applied
-            requireNotNull(intent)
-        }
-
-        return buildInfoNotification(
-            state,
-            this,
-            onClose,
-            onNotificationClick,
-        )
-    }
-
-    @SuppressLint("WakelockTimeout")
-    private fun acquireWakeLock() {
-        val pm = getSystemService(POWER_SERVICE) as PowerManager
-
-        wakeLock = pm.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK,
-            "Cpcam::EndpointService",
-        )
-
-        wakeLock?.acquire()
-    }
-
-    private fun releaseWakeLock() {
-        wakeLock?.let {
-            if (it.isHeld) {
-                it.release()
-            }
-        }
-    }
-
-    private fun acquireWifiLock() {
-        val wm = applicationContext.getSystemService(
-            WIFI_SERVICE,
-        ) as WifiManager
-
-        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            WifiManager.WIFI_MODE_FULL_LOW_LATENCY
-        } else {
-            @Suppress("DEPRECATION")
-            WifiManager.WIFI_MODE_FULL
-        }
-
-        wifiLock = wm.createWifiLock(mode, "Cpcam::EndpointService")
-        wifiLock?.acquire()
-    }
-
-    private fun releaseWifiLock() {
-        wifiLock?.let {
-            if (it.isHeld) {
-                it.release()
-            }
         }
     }
 
     companion object {
         const val ACTION_START_ENDPOINT = "StartEndpoint"
         const val ACTION_STOP_ENDPOINT = "StopEndpoint"
+
+        const val REQUIRED_PERMISSION = Manifest.permission.CAMERA
 
         @SuppressLint("InlinedApi")
         fun getForegroundType(context: Context): Int {
@@ -277,65 +167,6 @@ class EndpointService : Service() {
             return type
         }
     }
-}
-
-/**
- * Starts the [EndpointService] with streaming configuration.
- *
- * @param context Application context
- */
-fun startEndpointService(context: Context) {
-    if (EndpointService.getForegroundType(context) == 0) {
-        Log.e(TAG, "Unable to start: Doesn't have permissions")
-        return
-    }
-
-    val intent =
-        Intent(context, EndpointService::class.java)
-            .setAction(EndpointService.ACTION_START_ENDPOINT)
-
-    ContextCompat.startForegroundService(context, intent)
-}
-
-/**
- * Stops the [EndpointService] and terminates streaming.
- *
- * @param context Application context
- */
-fun stopEndpointService(context: Context) {
-    if (EndpointService.getForegroundType(context) == 0) {
-        Log.e(TAG, "Unable to stop: Doesn't have permissions")
-        return
-    }
-
-    val intent =
-        Intent(context, EndpointService::class.java)
-            .setAction(EndpointService.ACTION_STOP_ENDPOINT)
-
-    ContextCompat.startForegroundService(context, intent)
-}
-
-@SuppressLint("InlinedApi")
-private fun Context.createServiceNotificationChannel() {
-    val manager = NotificationManagerCompat.from(this)
-
-    manager.createNotificationChannelsCompat(
-        listOf(
-            buildChannel(STREAM_SERVICE_CHANNEL, IMPORTANCE_DEFAULT) {
-                setName("Service")
-            },
-        ),
-    )
-}
-
-private inline fun buildChannel(
-    channel: String,
-    importance: Int,
-    setProps: (NotificationChannelCompat.Builder.() -> Unit),
-): NotificationChannelCompat {
-    val builder = NotificationChannelCompat.Builder(channel, importance)
-    builder.setProps()
-    return builder.build()
 }
 
 private const val TAG = "EndpointService"

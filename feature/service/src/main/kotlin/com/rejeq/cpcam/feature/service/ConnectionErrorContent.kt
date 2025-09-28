@@ -49,6 +49,10 @@ fun EndpointErrorKind.toConnectionError(): ConnectionError = when (this) {
         title = stringResource(R.string.endpoint_not_configured_title),
         desc = stringResource(R.string.endpoint_not_configured_desc),
     )
+    EndpointErrorKind.FailedRetrieveEndpoint -> ConnectionError(
+        title = stringResource(R.string.endpoint_not_retrieved_title),
+        desc = stringResource(R.string.endpoint_not_retrieved_desc),
+    )
     is EndpointErrorKind.ObsError -> this.kind.toConnectionError()
     is EndpointErrorKind.StreamError -> this.kind.toConnectionError()
     is EndpointErrorKind.UnknownError -> ConnectionError(
@@ -105,12 +109,20 @@ fun ObsStreamErrorKind.toConnectionError(): ConnectionError = when (this) {
         desc = stringResource(R.string.stream_error_no_data_desc),
     )
 
-    is ObsStreamErrorKind.StreamError -> this.kind.toConnectiongError()
+    is ObsStreamErrorKind.StreamError -> this.kind.toConnectionError()
 }
 
 @Composable
 @ReadOnlyComposable
-fun StreamErrorKind.toConnectiongError(): ConnectionError = when (this) {
+fun StreamErrorKind.toConnectionError(): ConnectionError = when (this) {
+    StreamErrorKind.AlreadyStarted -> ConnectionError(
+        title = stringResource(R.string.stream_error_already_started_title),
+        desc = stringResource(R.string.stream_error_already_started_desc),
+    )
+    is StreamErrorKind.NoHost -> ConnectionError(
+        title = stringResource(R.string.stream_error_no_host_title),
+        desc = stringResource(R.string.stream_error_no_host_desc),
+    )
     is StreamErrorKind.NoVideoConfig -> ConnectionError(
         title = stringResource(R.string.stream_error_no_video_config_title),
         desc = stringResource(R.string.stream_error_no_video_config_desc),

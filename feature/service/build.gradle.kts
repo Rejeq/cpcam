@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.decompose.core)
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.service)
     implementation(libs.kotlinx.coroutines)
 
     implementation(libs.ktobs.core)

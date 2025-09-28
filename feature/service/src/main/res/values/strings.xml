@@ -1,6 +1,8 @@
 <resources>
+    <string name="endpoint_channel_name">Endpoint</string>
     <string name="endpoint_started">Started</string>
     <string name="endpoint_stopped">Stopped</string>
+    <string name="endpoint_failed">Failed</string>
     <string name="endpoint_connecting">Connecting</string>
 
     <string name="notification_action_close">Close</string>

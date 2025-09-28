@@ -2,7 +2,12 @@
     <string name="connection_error_confirm">Open Endpoint Settings</string>
 
     <string name="endpoint_not_configured_title">Endpoint is not configured</string>
+    <string name="endpoint_not_retrieved_title">Failed to retrieve endpoint</string>
     <string name="endpoint_unknown_error_title">Unknown endpoint error occurred</string>
+
+    <string name="endpoint_not_configured_desc">Please configure the endpoint settings in the app configuration before attempting to connect.</string>
+    <string name="endpoint_not_retrieved_desc">Some internal error happened which doesn\'t allow to get endpoint instance.</string>
+    <string name="endpoint_unknown_error_desc">Unknown endpoint error occurred:\n%1$s</string>
 
     <string name="obs_error_auth_failed_title">Authentication failed</string>
     <string name="obs_error_connection_refused_title">Connection refused by server</string>
@@ -13,11 +18,6 @@
     <string name="obs_error_unknown_host_title">Could not find server host</string>
     <string name="obs_error_unknown_input_title">Invalid input configuration</string>
 
-    <string name="stream_error_no_data_title">Stream data not configured</string>
-
-    <string name="endpoint_not_configured_desc">Please configure the endpoint settings in the app configuration before attempting to connect.</string>
-    <string name="endpoint_unknown_error_desc">Unknown endpoint error occurred:\n%1$s</string>
-
     <string name="obs_error_auth_failed_desc">Authentication with OBS failed. Please verify your password and try again.</string>
     <string name="obs_error_connection_refused_desc">The OBS server actively refused the connection. Make sure OBS is running and WebSocket server is enabled.</string>
     <string name="obs_error_connection_timeout_desc">Connection to OBS server timed out. Check if the server is reachable and the network connection is stable.</string>
@@ -27,7 +27,15 @@
     <string name="obs_error_unknown_host_desc">Could not find the OBS server. Verify the hostname/IP address is correct and the server is reachable.</string>
     <string name="obs_error_unknown_input_desc">The input configuration is invalid. Please check your OBS scene and source settings.</string>
 
+    <string name="stream_error_no_data_title">Stream data not configured</string>
+
     <string name="stream_error_no_data_desc">Stream configuration is missing or incomplete. Please configure the stream settings before connecting.</string>
+
+    <string name="stream_error_already_started_title">Stream Already Started</string>
+    <string name="stream_error_already_started_desc">The stream is already started. Please disable it firstly.</string>
+
+    <string name="stream_error_no_host_title">Stream Host Missing</string>
+    <string name="stream_error_no_host_desc">The stream host is not properly set up. Please check your settings and ensure all required parameters are configured.</string>
 
     <string name="stream_error_no_video_config_title">Video Configuration Missing</string>
     <string name="stream_error_no_video_config_desc">The video configuration is not properly set up. Please check your video settings and ensure all required parameters are configured.</string>
