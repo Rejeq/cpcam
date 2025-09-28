@@ -30,9 +30,9 @@ import androidx.compose.ui.tooling.preview.PreviewDynamicColors
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.rejeq.cpcam.core.camera.ui.CameraContent
-import com.rejeq.cpcam.core.camera.ui.HandleCameraTargetLifecycle
 import com.rejeq.cpcam.core.camera.ui.SwitchCameraButton
 import com.rejeq.cpcam.core.camera.ui.TorchButton
 import com.rejeq.cpcam.core.common.decodeBitmapFromUri
@@ -78,7 +78,13 @@ fun QrScannerContent(
         }
     }
 
-    HandleCameraTargetLifecycle(component.qrAnalyzer)
+    LifecycleStartEffect(Unit) {
+        component.onRestartAnalyzer()
+
+        onStopOrDispose {
+            component.onStopAnalyzer()
+        }
+    }
 
     QrScannerScreenLayout(
         modifier = modifier,
@@ -219,7 +225,6 @@ fun ActionBar(
             onClick = {},
             enabled = false,
             modifier = Modifier.requiredSize(rowHeight).adaptiveRotation(),
-//            contentPadding = PaddingValues(16.dp),
         )
 
         Box(modifier = Modifier.requiredSize(48.dp)) {

@@ -1,14 +1,18 @@
 package com.rejeq.cpcam.core.ui
 
+import android.app.Activity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.app.ActivityCompat
+import kotlinx.coroutines.launch
 
 interface PermissionLauncher {
-    fun launch()
+    fun launch(permission: String)
 }
 
 sealed interface PermissionState {
@@ -19,10 +23,11 @@ sealed interface PermissionState {
 
 @Composable
 fun rememberPermissionLauncher(
-    permWasLaunched: Boolean,
-    permission: String,
     onPermissionResult: (PermissionState) -> Unit,
 ): PermissionLauncher {
+    val permStorage = LocalPermissionStorage.current
+    val scope = rememberCoroutineScope()
+
     val activityLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -35,25 +40,39 @@ fun rememberPermissionLauncher(
         onPermissionResult(state)
     }
 
+    suspend fun handleRequest(perm: String, activity: Activity) {
+        val permWasLaunched = permStorage?.wasLaunched(perm) ?: false
+
+        if (permWasLaunched && activity.isPermissionDenied(perm)) {
+            onPermissionResult(
+                PermissionState.PermanentlyDenied,
+            )
+            return
+        }
+
+        permStorage?.launch(perm)
+        activityLauncher.launch(perm)
+    }
+
     val activity = LocalActivity.current
-    return remember(permWasLaunched, permission, activityLauncher) {
+    return remember(activityLauncher) {
         object : PermissionLauncher {
-            override fun launch() {
+            override fun launch(permission: String) {
                 activity?.let { activity ->
-                    val isDenied =
-                        !ActivityCompat.shouldShowRequestPermissionRationale(
-                            activity,
-                            permission,
-                        )
-
-                    if (permWasLaunched && isDenied) {
-                        onPermissionResult(PermissionState.PermanentlyDenied)
-                        return
-                    }
+                    scope.launch { handleRequest(permission, activity) }
                 }
-
-                activityLauncher.launch(permission)
             }
         }
     }
 }
+
+interface PermissionStorage {
+    suspend fun wasLaunched(permission: String): Boolean
+    suspend fun launch(permission: String)
+}
+
+val LocalPermissionStorage =
+    staticCompositionLocalOf<PermissionStorage?> { null }
+
+private fun Activity.isPermissionDenied(perm: String) =
+    !ActivityCompat.shouldShowRequestPermissionRationale(this, perm)

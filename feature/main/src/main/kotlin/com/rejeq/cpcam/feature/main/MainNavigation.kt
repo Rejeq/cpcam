@@ -7,7 +7,6 @@ import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.value.Value
-import com.rejeq.cpcam.core.ui.PermissionBlockedComponent
 import com.rejeq.cpcam.feature.main.MainNavigation.Dialog
 import com.rejeq.cpcam.feature.main.info.InfoComponent
 import kotlinx.serialization.Serializable
@@ -17,14 +16,8 @@ interface MainNavigation {
 
     fun showStreamInfo()
 
-    fun showPermissionBlocked(permission: String)
-
     sealed interface Dialog {
         data class Info(val component: InfoComponent) : Dialog
-
-        data class PermissionBlocked(
-            val component: PermissionBlockedComponent,
-        ) : Dialog
     }
 }
 
@@ -45,15 +38,6 @@ class DefaultMainNavigation(componentContext: ComponentContext) :
                         onFinished = dialogNavigation::dismiss,
                     ),
                 )
-
-                is DialogConfig.PermissionBlocked ->
-                    Dialog.PermissionBlocked(
-                        PermissionBlockedComponent(
-                            childComponentContext,
-                            config.permissions,
-                            onFinished = dialogNavigation::dismiss,
-                        ),
-                    )
             }
         }
 
@@ -61,18 +45,9 @@ class DefaultMainNavigation(componentContext: ComponentContext) :
         dialogNavigation.activate(DialogConfig.Info)
     }
 
-    override fun showPermissionBlocked(permission: String) {
-        dialogNavigation.activate(
-            DialogConfig.PermissionBlocked(permission),
-        )
-    }
-
     @Serializable
     private sealed interface DialogConfig {
         @Serializable
         data object Info : DialogConfig
-
-        @Serializable
-        data class PermissionBlocked(val permissions: String) : DialogConfig
     }
 }

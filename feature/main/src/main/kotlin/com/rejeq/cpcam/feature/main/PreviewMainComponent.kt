@@ -14,7 +14,6 @@ class PreviewMainNavigation : MainNavigation {
         MutableValue(ChildSlot<Any, Dialog>(null))
 
     override fun showStreamInfo() {}
-    override fun showPermissionBlocked(permission: String) {}
 }
 
 class PreviewMainComponent : MainComponent {
@@ -26,16 +25,6 @@ class PreviewMainComponent : MainComponent {
     override val showInfoButton = MutableStateFlow(true)
     override val keepScreenAwake = MutableStateFlow(false)
     override val dimScreenDelay = MutableStateFlow(null)
-
-    override fun onSettingsClick() { }
-
-    override fun onStartEndpoint() {
-        streamButtonState.animTarget = MorphIconTarget.Started
-    }
-
-    override fun onStopEndpoint() {
-        streamButtonState.animTarget = MorphIconTarget.Stopped
-    }
 
     override fun readyToShow(): Boolean = true
 }

@@ -1,6 +1,5 @@
 package com.rejeq.cpcam.core.camera.ui
 
-import android.Manifest
 import android.os.Build
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
@@ -17,22 +16,19 @@ import com.rejeq.cpcam.core.camera.operation.FocusError
 import com.rejeq.cpcam.core.camera.operation.GetCurrentBestPreviewResolutionOp
 import com.rejeq.cpcam.core.camera.operation.HasFlashUnitOp
 import com.rejeq.cpcam.core.camera.operation.IsTorchEnabledOp
-import com.rejeq.cpcam.core.camera.operation.SetFocusPointForTargetOp
+import com.rejeq.cpcam.core.camera.operation.SetFocusPointForSurfaceOp
 import com.rejeq.cpcam.core.camera.operation.ShiftZoomOp
-import com.rejeq.cpcam.core.camera.target.CameraTarget
+import com.rejeq.cpcam.core.camera.target.CameraRequestState
 import com.rejeq.cpcam.core.camera.target.PreviewCameraTarget
 import com.rejeq.cpcam.core.data.model.Resolution
-import com.rejeq.cpcam.core.data.repository.AppearanceRepository
 import com.rejeq.cpcam.core.device.DndListener
 import com.rejeq.cpcam.core.device.DndState
-import com.rejeq.cpcam.core.ui.PermissionState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,22 +41,22 @@ import kotlinx.coroutines.launch
 
 interface CameraComponent {
     val state: StateFlow<CameraPreviewState>
-    val cameraPermission: String
-    val isCameraPermissionWasLaunched: Flow<Boolean>
     val hasMultipleCameras: StateFlow<Boolean>
     val hasTorch: StateFlow<Boolean>
     val isTorchEnabled: StateFlow<Boolean>
     val focusIndicator: StateFlow<FocusIndicatorState>
-    val target: CameraTarget<SurfaceRequestWrapper>
 
-    fun provideScreenResolution(resolution: Resolution)
-
-    fun onCameraPermissionResult(state: PermissionState)
+    fun onPermissionBlocked(permission: String)
     fun onSwitchCamera()
     fun onToggleTorch()
-    fun onRestartCamera()
+    fun onRestartCamera(resolution: Resolution? = null)
+    fun onStopCamera()
     fun onShiftZoom(zoom: Float)
-    fun onSetFocus(offset: Offset, transformed: Offset)
+    fun onSetFocus(
+        request: SurfaceRequestWrapper,
+        offset: Offset,
+        transformed: Offset,
+    )
 
     fun onStartMonitoringDnd()
     fun onStopMonitoringDnd()
@@ -68,21 +64,24 @@ interface CameraComponent {
 
 class DefaultCameraComponent @AssistedInject constructor(
     private val dndListener: DndListener,
-    private val appearanceRepo: AppearanceRepository,
-    override val target: PreviewCameraTarget,
+    val target: PreviewCameraTarget,
     camOpExecutor: CameraOpExecutor,
-    @Assisted val onPermissionBlocked: (String) -> Unit,
+    @Assisted private val onPermissionBlocked: (String) -> Unit,
     @Assisted private val scope: CoroutineScope,
     @Assisted componentContext: ComponentContext,
 ) : CameraComponent,
     ComponentContext by componentContext,
     CameraOpExecutor by camOpExecutor {
     private val screenResolution = MutableStateFlow<Resolution?>(null)
+    private val targetRequest =
+        MutableStateFlow<CameraRequestState<SurfaceRequestWrapper>>(
+            CameraRequestState.Stopped,
+        )
     private var lastPreviewSize: Resolution? = null
 
     override val state = combine(
         CameraStateOp().invoke(),
-        target.request,
+        targetRequest,
         screenResolution,
     ) { state, requestState, screenRes ->
         // We must update the preview resolution only when camera is fully
@@ -101,28 +100,8 @@ class DefaultCameraComponent @AssistedInject constructor(
         CameraPreviewState.Closed(),
     )
 
-    override val cameraPermission = Manifest.permission.CAMERA
-    override val isCameraPermissionWasLaunched =
-        appearanceRepo.permissionWasLaunched(cameraPermission)
-
-    override fun onCameraPermissionResult(state: PermissionState) {
-        scope.launch {
-            appearanceRepo.launchPermission(cameraPermission)
-
-            when (state) {
-                PermissionState.Granted -> {
-                    onRestartCamera()
-                }
-                PermissionState.PermanentlyDenied -> {
-                    onPermissionBlocked(cameraPermission)
-                }
-                PermissionState.Denied -> { }
-            }
-        }
-    }
-
-    override fun provideScreenResolution(resolution: Resolution) {
-        screenResolution.value = resolution
+    override fun onPermissionBlocked(permission: String) {
+        onPermissionBlocked.invoke(permission)
     }
 
     override val hasMultipleCameras = state.map {
@@ -169,11 +148,26 @@ class DefaultCameraComponent @AssistedInject constructor(
         }
     }
 
-    override fun onRestartCamera() {
-        scope.launch {
-            Log.i(TAG, "Reopening camera")
-            target.start()
+    private var camStartJob: Job? = null
+    override fun onRestartCamera(resolution: Resolution?) {
+        camStartJob?.cancel()
+        camStartJob = scope.launch {
+            Log.i(TAG, "Restarting camera")
+
+            resolution?.let {
+                screenResolution.value = it
+            }
+
+            val request = target.start()
+            request.collect { requestState ->
+                targetRequest.value = requestState
+            }
         }
+    }
+
+    override fun onStopCamera() {
+        camStartJob?.cancel()
+        target.stop()
     }
 
     override fun onShiftZoom(zoom: Float) {
@@ -188,7 +182,11 @@ class DefaultCameraComponent @AssistedInject constructor(
     override val focusIndicator = _focusIndicator.asStateFlow()
 
     private var focusJob: Job? = null
-    override fun onSetFocus(offset: Offset, transformed: Offset) {
+    override fun onSetFocus(
+        request: SurfaceRequestWrapper,
+        offset: Offset,
+        transformed: Offset,
+    ) {
         focusJob?.cancel()
         focusJob = scope.launch {
             val intOffset = IntOffset(offset.x.toInt(), offset.y.toInt())
@@ -196,10 +194,10 @@ class DefaultCameraComponent @AssistedInject constructor(
             _focusIndicator.value = FocusIndicatorState.Focusing(intOffset)
 
             launch {
-                val err = SetFocusPointForTargetOp(
+                val err = SetFocusPointForSurfaceOp(
                     transformed.x,
                     transformed.y,
-                    target,
+                    request,
                 ).invoke()
 
                 if (_focusIndicator.value is FocusIndicatorState.Focusing) {

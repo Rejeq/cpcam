@@ -1,5 +1,6 @@
 package com.rejeq.cpcam.core.camera.ui
 
+import android.Manifest
 import android.graphics.Point
 import android.os.Build
 import android.view.WindowManager
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,31 +19,38 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.toSize
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
-import com.rejeq.cpcam.core.camera.target.CameraTarget
-import com.rejeq.cpcam.core.camera.target.lifecycleObserver
 import com.rejeq.cpcam.core.data.model.Resolution
+import com.rejeq.cpcam.core.ui.PermissionState
 import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
 
 @Composable
 fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
     val activity = LocalActivity.current
     if (activity != null) {
-        LaunchedEffect(Unit) {
-            val res = getScreenResolution(activity.windowManager)
-            component.provideScreenResolution(res)
+        LifecycleStartEffect(Unit) {
+            val resolution = getScreenResolution(activity.windowManager)
+            component.onRestartCamera(resolution)
+
+            onStopOrDispose {
+                component.onStopCamera()
+            }
         }
     }
 
-    HandleCameraTargetLifecycle(component.target)
-
-    val permLauncher = rememberPermissionLauncher(
-        permWasLaunched = component.isCameraPermissionWasLaunched
-            .collectAsState(true).value,
-        permission = component.cameraPermission,
-        onPermissionResult = component::onCameraPermissionResult,
-    )
+    val perm = Manifest.permission.CAMERA
+    val permLauncher = rememberPermissionLauncher { state ->
+        when (state) {
+            is PermissionState.Granted -> {
+                component.onRestartCamera()
+            }
+            is PermissionState.PermanentlyDenied -> {
+                component.onPermissionBlocked(perm)
+            }
+            is PermissionState.Denied -> { }
+        }
+    }
 
     val state = component.state.collectAsState().value
     when (state) {
@@ -54,7 +60,7 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
                 onEvent = {
                     when (it) {
                         CameraErrorEvent.GrantCameraPermission -> {
-                            permLauncher.launch()
+                            permLauncher.launch(perm)
                         }
                         CameraErrorEvent.StartMonitoringDnd -> {
                             component.onStartMonitoringDnd()
@@ -90,7 +96,7 @@ fun CameraContent(component: CameraComponent, modifier: Modifier = Modifier) {
 fun CameraPreviewContainer(
     request: SurfaceRequestWrapper,
     onShiftZoom: (Float) -> Unit,
-    onFocus: (Offset, Offset) -> Unit,
+    onFocus: (SurfaceRequestWrapper, Offset, Offset) -> Unit,
     focus: FocusIndicatorState,
     size: Resolution,
     modifier: Modifier = Modifier,
@@ -120,7 +126,7 @@ fun CameraPreviewContainer(
                                 pos.y * size.height / posSize.height,
                             )
 
-                            onFocus(pos, transformed)
+                            onFocus(request, pos, transformed)
                         }
                     },
             )
@@ -128,22 +134,6 @@ fun CameraPreviewContainer(
             FocusIndicator(
                 state = focus,
             )
-        }
-    }
-}
-
-@Composable
-fun HandleCameraTargetLifecycle(target: CameraTarget<*>) {
-    val lifecycle = LocalLifecycleOwner.current
-    DisposableEffect(lifecycle) {
-        // Used lifecycle here, since the camera need to be disabled when the
-        // activity going to the STOP state (onDispose not called in this case)
-        val observer = target.lifecycleObserver()
-        lifecycle.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycle.lifecycle.removeObserver(observer)
-            target.stop()
         }
     }
 }

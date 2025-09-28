@@ -5,7 +5,6 @@ import android.util.Log
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.rejeq.cpcam.core.camera.target.CameraRequestState
-import com.rejeq.cpcam.core.camera.target.CameraTarget
 import com.rejeq.cpcam.core.camera.target.QrAnalyzerCameraTarget
 import com.rejeq.cpcam.core.camera.target.QrRequest
 import com.rejeq.cpcam.core.camera.ui.CameraComponent
@@ -23,24 +22,21 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 interface QrScannerComponent : ChildComponent {
-    val cam: CameraComponent
-
-    val qrAnalyzer: CameraTarget<QrRequest>
     val scanState: StateFlow<ScannerButtonState>
-
+    val cam: CameraComponent
     val nav: QrScannerNavigation
 
+    fun onRestartAnalyzer()
+    fun onStopAnalyzer()
     fun analyzeBitmap(bitmap: Bitmap)
     fun onFinished()
 }
 
 class DefaultQrScannerComponent @AssistedInject constructor(
-    override val qrAnalyzer: QrAnalyzerCameraTarget,
+    private val qrAnalyzer: QrAnalyzerCameraTarget,
     cameraFactory: DefaultCameraComponent.Factory,
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
@@ -54,6 +50,24 @@ class DefaultQrScannerComponent @AssistedInject constructor(
         componentContext = this,
     )
 
+    private var analyzerStartJob: Job? = null
+    override fun onRestartAnalyzer() {
+        analyzerStartJob?.cancel()
+        analyzerStartJob = scope.launch {
+            val request = qrAnalyzer.start()
+            request.collect {
+                if (it is CameraRequestState.Available) {
+                    onQrRequest(it.value)
+                }
+            }
+        }
+    }
+
+    override fun onStopAnalyzer() {
+        analyzerStartJob?.cancel()
+        qrAnalyzer.stop()
+    }
+
     override val cam = cameraFactory.create(
         scope = scope,
         componentContext = this,
@@ -66,18 +80,10 @@ class DefaultQrScannerComponent @AssistedInject constructor(
     private var oldRequestData: String? = null
     private var resetStateJob: Job? = null
 
-    init {
-        qrAnalyzer.request.onEach {
-            if (it is CameraRequestState.Available) {
-                processQrRequest(it.value)
-            }
-        }.launchIn(scope)
-    }
-
     override fun analyzeBitmap(bitmap: Bitmap) {
         qrAnalyzer.analyzeBitmap(
             bitmap,
-            onResult = ::processQrRequest,
+            onResult = ::onQrRequest,
         )
     }
 
@@ -85,7 +91,7 @@ class DefaultQrScannerComponent @AssistedInject constructor(
         onFinished.invoke(null)
     }
 
-    private fun processQrRequest(request: QrRequest) {
+    private fun onQrRequest(request: QrRequest) {
         request.values.fastForEach { value ->
             Log.i(TAG, "scanning QR code: ${value.data}")
 
@@ -104,6 +110,7 @@ class DefaultQrScannerComponent @AssistedInject constructor(
                         delay(DEFAULT_RESET_STATE_DELAY)
 
                         _scanState.value = ScannerButtonState.Analyzing
+                        oldRequestData = null
                     }
                 }
             }

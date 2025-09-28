@@ -13,6 +13,7 @@ import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
 import com.rejeq.cpcam.core.ui.MorphButtonState
 import com.rejeq.cpcam.core.ui.MorphIconTarget
+import com.rejeq.cpcam.core.ui.PermissionLauncher
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -37,10 +38,6 @@ interface MainComponent : ChildComponent {
     val showInfoButton: StateFlow<Boolean>
     val keepScreenAwake: StateFlow<Boolean>
     val dimScreenDelay: StateFlow<Long?>
-
-    fun onSettingsClick()
-    fun onStartEndpoint()
-    fun onStopEndpoint()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,9 +49,7 @@ class DefaultMainComponent @AssistedInject constructor(
     screenRepo: ScreenRepository,
     @Assisted componentContext: ComponentContext,
     @Assisted mainContext: CoroutineContext,
-    @Assisted("onSettingsClick") val onSettingsClick: () -> Unit,
-    @Assisted("onStartEndpoint") val onStartEndpoint: () -> Unit,
-    @Assisted("onStopEndpoint") val onStopEndpoint: () -> Unit,
+    @Assisted("onPermissionBlocked") val onPermissionBlocked: (String) -> Unit,
 ) : MainComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope(mainContext + SupervisorJob())
@@ -66,7 +61,7 @@ class DefaultMainComponent @AssistedInject constructor(
     override val cam = cameraFactory.create(
         scope = scope,
         componentContext = this,
-        onPermissionBlocked = nav::showPermissionBlocked,
+        onPermissionBlocked = onPermissionBlocked,
     )
 
     override val streamButtonState = MorphButtonState(MorphIconTarget.Stopped)
@@ -102,6 +97,7 @@ class DefaultMainComponent @AssistedInject constructor(
         endpoint.state
             .onEach {
                 streamButtonState.animTarget = when (it) {
+                    is EndpointState.Failed -> MorphIconTarget.Stopped
                     is EndpointState.Stopped -> MorphIconTarget.Stopped
                     is EndpointState.Started -> MorphIconTarget.Started
                     is EndpointState.Connecting -> MorphIconTarget.Loading
@@ -117,18 +113,14 @@ class DefaultMainComponent @AssistedInject constructor(
             state is CameraPreviewState.Failed
     }
 
-    override fun onSettingsClick() = onSettingsClick.invoke()
-    override fun onStartEndpoint() = onStartEndpoint.invoke()
-    override fun onStopEndpoint() = onStopEndpoint.invoke()
-
     @AssistedFactory
     interface Factory {
         fun create(
             componentContext: ComponentContext,
             mainContext: CoroutineContext,
-            @Assisted("onSettingsClick") onSettingsClick: () -> Unit,
-            @Assisted("onStartEndpoint") onStartEndpoint: () -> Unit,
-            @Assisted("onStopEndpoint") onStopEndpoint: () -> Unit,
+            @Assisted("onPermissionBlocked") onPermissionBlocked: (
+                String,
+            ) -> Unit,
         ): DefaultMainComponent
     }
 }

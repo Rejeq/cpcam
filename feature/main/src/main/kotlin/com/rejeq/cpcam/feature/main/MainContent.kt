@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +53,9 @@ fun MainContent(
     modifier: Modifier = Modifier,
     dimScreenAllowed: Boolean = true,
     snackbarDispatcher: SnackbarDispatcher? = null,
+    onSettingsClick: () -> Unit = {},
+    onStartEndpoint: () -> Unit = {},
+    onStopEndpoint: () -> Unit = {},
 ) {
     val dialog = component.nav.dialog.subscribeAsState().value
     val dialogInstance = dialog.child?.instance
@@ -59,9 +63,6 @@ fun MainContent(
     dialogInstance?.let {
         when (it) {
             is MainNavigation.Dialog.Info -> InfoContent(it.component)
-
-            is MainNavigation.Dialog.PermissionBlocked ->
-                PermissionBlockedContent(it.component)
         }
     }
 
@@ -90,7 +91,7 @@ fun MainContent(
         },
         top = {
             InfoBar(
-                onSettingsClick = component::onSettingsClick,
+                onSettingsClick = onSettingsClick,
                 onStreamInfoClick = component.nav::showStreamInfo,
                 hasStreamInfo = component.showInfoButton.collectAsState().value,
                 isTorchEnabled = component.cam.isTorchEnabled
@@ -107,9 +108,9 @@ fun MainContent(
                 streamButtonState = streamState,
                 onStreamClick = {
                     when (streamState.animTarget) {
-                        MorphIconTarget.Stopped -> component.onStartEndpoint()
+                        MorphIconTarget.Stopped -> onStartEndpoint()
                         MorphIconTarget.Loading -> {}
-                        MorphIconTarget.Started -> component.onStopEndpoint()
+                        MorphIconTarget.Started -> onStopEndpoint()
                     }
                 },
                 showStreamButton = component.showStreamButton
@@ -272,8 +273,18 @@ fun ActionBar(
 private fun PreviewMainContent() {
     CpcamTheme {
         Surface {
+            val component = remember { PreviewMainComponent() }
+
             MainContent(
-                component = PreviewMainComponent(),
+                component = component,
+                onStartEndpoint = {
+                    component.streamButtonState.animTarget =
+                        MorphIconTarget.Started
+                },
+                onStopEndpoint = {
+                    component.streamButtonState.animTarget =
+                        MorphIconTarget.Stopped
+                },
             )
         }
     }

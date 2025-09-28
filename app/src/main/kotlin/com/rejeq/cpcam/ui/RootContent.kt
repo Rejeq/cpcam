@@ -14,6 +14,10 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.rejeq.cpcam.core.ui.LocalIsWindowFocused
+import com.rejeq.cpcam.core.ui.LocalPermissionStorage
+import com.rejeq.cpcam.core.ui.PermissionBlockedContent
+import com.rejeq.cpcam.core.ui.PermissionState
+import com.rejeq.cpcam.core.ui.rememberPermissionLauncher
 import com.rejeq.cpcam.core.ui.theme.CpcamTheme
 import com.rejeq.cpcam.core.ui.wantUseDarkMode
 import com.rejeq.cpcam.feature.about.LibrariesContent
@@ -39,7 +43,10 @@ fun RootContent(
             onDarkModeChange(wantUseDarkMode)
         }
 
-        CompositionLocalProvider(LocalIsWindowFocused provides hasWindowFocus) {
+        CompositionLocalProvider(
+            LocalIsWindowFocused provides hasWindowFocus,
+            LocalPermissionStorage provides component.permissionStorage,
+        ) {
             RootChildren(component)
         }
     }
@@ -65,6 +72,24 @@ fun RootChildren(component: RootComponent, modifier: Modifier = Modifier) {
                     ConnectionErrorContent(it.component)
                 is RootComponent.DialogChild.ConfirmAppRestart ->
                     ConfirmAppRestartDialogContent(it.component)
+                is RootComponent.DialogChild.PermissionBlocked ->
+                    PermissionBlockedContent(it.component)
+            }
+        }
+
+        val endpointPerms = component.endpointService.requiredPermissions
+        val endpointPermLauncher = rememberPermissionLauncher { state ->
+            when (state) {
+                is PermissionState.Granted -> {
+                    component.onStartEndpoint()
+                }
+                is PermissionState.PermanentlyDenied -> {
+                    // TODO: When endpoint service would required several
+                    //  permissions to run, show dialog only when all permission
+                    //  are permanently denied
+                    component.onPermissionBlocked(endpointPerms)
+                }
+                is PermissionState.Denied -> { }
             }
         }
 
@@ -74,6 +99,15 @@ fun RootChildren(component: RootComponent, modifier: Modifier = Modifier) {
                     component = child.component,
                     dimScreenAllowed = dialogInstance == null,
                     snackbarDispatcher = component.snackbarDispatcher,
+                    onSettingsClick = component::onSettingsClick,
+                    onStartEndpoint = {
+                        if (!component.endpointService.hasPermissions()) {
+                            endpointPermLauncher.launch(endpointPerms)
+                        } else {
+                            component.onStartEndpoint()
+                        }
+                    },
+                    onStopEndpoint = component::onStopEndpoint,
                 )
 
                 is RootComponent.Child.Settings -> SettingsContent(

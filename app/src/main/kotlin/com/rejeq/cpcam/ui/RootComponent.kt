@@ -25,6 +25,7 @@ import com.rejeq.cpcam.core.data.repository.DataSourceRepository
 import com.rejeq.cpcam.core.endpoint.EndpointErrorKind
 import com.rejeq.cpcam.core.endpoint.EndpointHandler
 import com.rejeq.cpcam.core.endpoint.EndpointState
+import com.rejeq.cpcam.core.ui.PermissionBlockedComponent
 import com.rejeq.cpcam.core.ui.SnackbarDispatcher
 import com.rejeq.cpcam.feature.about.LibrariesComponent
 import com.rejeq.cpcam.feature.about.LibraryComponent
@@ -34,8 +35,7 @@ import com.rejeq.cpcam.feature.main.MainComponent
 import com.rejeq.cpcam.feature.scanner.qr.DefaultQrScannerComponent
 import com.rejeq.cpcam.feature.scanner.qr.QrScannerComponent
 import com.rejeq.cpcam.feature.service.ConnectionErrorComponent
-import com.rejeq.cpcam.feature.service.startEndpointService
-import com.rejeq.cpcam.feature.service.stopEndpointService
+import com.rejeq.cpcam.feature.service.EndpointServiceComponent
 import com.rejeq.cpcam.feature.settings.DefaultSettingsComponent
 import com.rejeq.cpcam.feature.settings.SettingsComponent
 import com.rejeq.cpcam.feature.settings.endpoint.DefaultEndpointComponent
@@ -47,8 +47,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -65,6 +66,8 @@ class RootComponent @AssistedInject constructor(
     appearanceRepo: AppearanceRepository,
     dataSourceRepo: DataSourceRepository,
     val snackbarDispatcher: SnackbarDispatcher,
+    val permissionStorage: RootPermissionStorage,
+    val endpointService: EndpointServiceComponent,
     private val endpoint: EndpointHandler,
     private val mainFactory: DefaultMainComponent.Factory,
     private val settingsFactory: DefaultSettingsComponent.Factory,
@@ -82,7 +85,7 @@ class RootComponent @AssistedInject constructor(
         handleBackButton = true,
     ) { config, childComponentContext ->
         when (config) {
-            is DialogConfig.ConnectionError ->
+            is DialogConfig.EndpointError ->
                 DialogChild.ConnectionError(
                     ConnectionErrorComponent(
                         childComponentContext,
@@ -96,6 +99,14 @@ class RootComponent @AssistedInject constructor(
             is DialogConfig.ConfirmAppRestart ->
                 DialogChild.ConfirmAppRestart(
                     ConfirmAppRestartComponent(
+                        onFinished = dialogNavigation::dismiss,
+                    ),
+                )
+            is DialogConfig.PermissionBlocked ->
+                DialogChild.PermissionBlocked(
+                    PermissionBlockedComponent(
+                        childComponentContext,
+                        config.permissions,
                         onFinished = dialogNavigation::dismiss,
                     ),
                 )
@@ -157,9 +168,7 @@ class RootComponent @AssistedInject constructor(
     private fun mainComponent(context: ComponentContext) = mainFactory.create(
         componentContext = context,
         mainContext = mainContext,
-        onSettingsClick = { nav.pushNew(Config.Settings) },
-        onStartEndpoint = ::startEndpoint,
-        onStopEndpoint = ::stopEndpoint,
+        onPermissionBlocked = ::onPermissionBlocked,
     )
 
     private fun settingsComponent(context: ComponentContext) =
@@ -217,45 +226,60 @@ class RootComponent @AssistedInject constructor(
         state = config.state,
     )
 
-    private fun startEndpoint() {
-        scope.launch {
-            val newState = async(Dispatchers.Default) {
-                startEndpointService(context)
-                endpoint.connect()
-            }.await()
+    init {
+        endpoint.state
+            .filterIsInstance<EndpointState.Failed>()
+            .distinctUntilChanged()
+            .onEach { stopped ->
+                stopped.reason.let(::onShowEndpointError)
+            }
+            .launchIn(scope)
+    }
 
-            if (newState is EndpointState.Stopped) {
-                stopEndpointService(context)
+    fun onSettingsClick() {
+        nav.pushNew(Config.Settings)
+    }
 
-                val reason = newState.reason
-                if (reason != null) {
-                    Log.w(TAG, "Unable to connect to endpoint: $reason")
-                    showConnectionError(reason)
-                } else {
-                    Log.w(TAG, "Unable to connect to endpoint: Without reason")
-                }
+    fun onStartEndpoint() {
+        scope.launch(Dispatchers.Default) {
+            val errors = endpointService.start()
+            if (errors != null) {
+                Log.w(TAG, "Failed to start endpoint service: $errors")
             }
         }
     }
 
-    private fun stopEndpoint() {
+    fun onStopEndpoint() {
         scope.launch(Dispatchers.Default) {
-            stopEndpointService(context)
-            endpoint.disconnect()
+            val errors = endpointService.stop()
+            if (errors != null) {
+                Log.w(TAG, "Failed to stop endpoint service: $errors")
+            }
         }
     }
 
-    private fun showConnectionError(reason: EndpointErrorKind) {
-        dialogNavigation.activate(DialogConfig.ConnectionError(reason))
+    fun onShowEndpointError(reason: EndpointErrorKind) {
+        dialogNavigation.activate(DialogConfig.EndpointError(reason))
+    }
+
+    fun onPermissionBlocked(permission: String) {
+        dialogNavigation.activate(
+            DialogConfig.PermissionBlocked(permission),
+        )
     }
 
     private fun onAppRestart() {
         scope.launch {
             when (endpoint.state.first()) {
-                is EndpointState.Stopped -> {
+                is EndpointState.Failed,
+                is EndpointState.Stopped,
+                -> {
                     restartApp(context)
                 }
-                else -> {
+
+                is EndpointState.Connecting,
+                is EndpointState.Started,
+                -> {
                     dialogNavigation.activate(DialogConfig.ConfirmAppRestart)
                 }
             }
@@ -289,10 +313,13 @@ class RootComponent @AssistedInject constructor(
     @Serializable
     private sealed interface DialogConfig {
         @Serializable
-        data class ConnectionError(val reason: EndpointErrorKind) : DialogConfig
+        data class EndpointError(val reason: EndpointErrorKind) : DialogConfig
 
         @Serializable
         data object ConfirmAppRestart : DialogConfig
+
+        @Serializable
+        data class PermissionBlocked(val permissions: String) : DialogConfig
     }
 
     sealed interface Child {
@@ -313,6 +340,10 @@ class RootComponent @AssistedInject constructor(
 
         class ConfirmAppRestart(val component: ConfirmAppRestartComponent) :
             DialogChild
+
+        data class PermissionBlocked(
+            val component: PermissionBlockedComponent,
+        ) : DialogChild
     }
 
     @AssistedFactory
