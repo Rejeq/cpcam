@@ -154,6 +154,22 @@ Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_setResolution(
     stream->set_frame_size(width, height);
 }
 
+JNIEXPORT jint JNICALL
+Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_getWidth(
+        JNIEnv * /* env */, jobject /* obj */, jlong rawStream) {
+    auto *stream = (FFmpegVideoStream *)rawStream;
+
+    return stream->get_width();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_getHeight(
+        JNIEnv * /* env */, jobject /* obj */, jlong rawStream) {
+    auto *stream = (FFmpegVideoStream *)rawStream;
+
+    return stream->get_height();
+}
+
 JNIEXPORT void JNICALL
 Java_com_rejeq_cpcam_core_stream_jni_FFmpegVideoStreamJni_start(
     JNIEnv * /* env */, jobject /* obj */, jlong rawStream) {

@@ -3,6 +3,7 @@ package com.rejeq.cpcam.core.stream.output
 import android.util.Log
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.map
 import com.github.michaelbull.result.mapError
 import com.rejeq.cpcam.core.data.model.PixFmt
 import com.rejeq.cpcam.core.data.model.StreamProtocol
@@ -11,21 +12,22 @@ import com.rejeq.cpcam.core.data.model.VideoConfig
 import com.rejeq.cpcam.core.stream.StreamErrorKind
 import com.rejeq.cpcam.core.stream.jni.FFmpegOutputJni
 import com.rejeq.cpcam.core.stream.jni.FFmpegPixFmt
-import com.rejeq.cpcam.core.stream.jni.FFmpegVideoStreamJni
 import com.rejeq.cpcam.core.stream.jni.StreamError
 import com.rejeq.cpcam.core.stream.jni.toFFmpegCodecName
 import com.rejeq.cpcam.core.stream.jni.toFFmpegConfig
 import com.rejeq.cpcam.core.stream.jni.toFFmpegString
 import com.rejeq.cpcam.core.stream.jni.toPixFmt
+import com.rejeq.cpcam.core.stream.relay.FFmpegVideoRelay
+import com.rejeq.cpcam.core.stream.relay.VideoRelay
 
 internal class FFmpegOutput(val protocol: StreamProtocol, host: String) :
     StreamOutput {
     private var detail: FFmpegOutputJni? =
         FFmpegOutputJni(protocol.toFFmpegString(), host)
 
-    fun makeVideoStream(
+    override fun makeVideoRelay(
         config: VideoConfig,
-    ): Result<FFmpegVideoStreamJni, StreamError> {
+    ): Result<VideoRelay, StreamError> {
         val detail = requireNotNull(detail)
 
         val config = config.toFFmpegConfig()
@@ -34,7 +36,11 @@ internal class FFmpegOutput(val protocol: StreamProtocol, host: String) :
             return Err(StreamError.InvalidState)
         }
 
-        return detail.makeVideoStream(config)
+        val relay = detail.makeVideoStream(config).map { stream ->
+            FFmpegVideoRelay(stream)
+        }
+
+        return relay
     }
 
     override fun open(): Result<Unit, StreamErrorKind> {

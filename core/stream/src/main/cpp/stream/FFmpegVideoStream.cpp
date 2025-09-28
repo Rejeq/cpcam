@@ -41,7 +41,9 @@ FFmpegVideoStream *FFmpegVideoStream::build(AVFormatContext *octx,
         return nullptr;
     }
 
-    return new FFmpegVideoStream(octx, cctx, packet, frame, stream_index);
+    auto *stream = new FFmpegVideoStream(octx, cctx, packet, frame, stream_index);
+    stream->set_frame_size(cctx->width, cctx->height);
+    return stream;
 }
 
 void FFmpegVideoStream::send_frame(const FrameData &data) {
@@ -51,9 +53,7 @@ void FFmpegVideoStream::send_frame(const FrameData &data) {
     }
 
     if (m_frame_width != data.width && m_frame_height != data.height) {
-        LOG_WARN("Frame size was incorrect: Updating frame size to (%d, %d)",
-                 data.width, data.height);
-
+        LOG_WARN("Updating frame size to (%d, %d)", data.width, data.height);
         set_frame_size(data.width, data.height);
     }
 

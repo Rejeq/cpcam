@@ -10,16 +10,14 @@ import java.nio.ByteBuffer
 
 internal class FFmpegVideoRelay(
     private val stream: FFmpegVideoStreamJni,
-    width: Int,
-    height: Int,
     format: Int = ImageFormat.YUV_420_888,
     maxImages: Int = 2,
 ) : VideoRelay {
-    private var bgThread = HandlerThread("FFmpegVideoEncoder").apply { start() }
-    private var bgHandler = Handler(bgThread.looper)
+    private val bgThread = HandlerThread("FFmpegVideoRelay").apply { start() }
+    private val bgHandler = Handler(bgThread.looper)
     private val imageReader = ImageReader.newInstance(
-        width,
-        height,
+        stream.getWidth(),
+        stream.getHeight(),
         format,
         maxImages,
     )
@@ -32,11 +30,12 @@ internal class FFmpegVideoRelay(
     override val surface: Surface get() = imageReader.surface
 
     init {
-        stream.setResolution(width, height)
-
         imageReader.setOnImageAvailableListener({ reader ->
-            val image = reader.acquireLatestImage()
-            if (image != null) {
+            reader.acquireLatestImage().use { image ->
+                if (image == null) {
+                    return@use
+                }
+
                 val planes = image.planes
                 val len = planes.size
 
@@ -58,8 +57,6 @@ internal class FFmpegVideoRelay(
                     strides,
                     pixelStrides,
                 )
-
-                image.close()
             }
         }, bgHandler)
     }
@@ -73,6 +70,7 @@ internal class FFmpegVideoRelay(
     }
 
     override fun destroy() {
+        stream.destroy()
         bgThread.quitSafely()
     }
 }

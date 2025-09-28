@@ -33,6 +33,9 @@ class FFmpegVideoStream {
     AVPixelFormat pixel_format() const { return m_pix_fmt; }
     int plane_count() const { return m_pix_fmt_plane_count; }
 
+    int get_width() const { return m_frame_width; }
+    int get_height() const { return m_frame_height; }
+
     void start();
     void stop();
 

@@ -2,6 +2,13 @@ package com.rejeq.cpcam.core.stream.relay
 
 import android.view.Surface
 
+interface Relay {
+    fun start()
+    fun stop()
+
+    fun destroy()
+}
+
 /**
  * Interface for relaying raw video frames to an underlying video encoder.
  *
@@ -11,11 +18,6 @@ import android.view.Surface
  * encoder. The encoder uses the provided `Surface` to receive the raw frames
  * and process them for encoding.
  */
-interface VideoRelay {
+interface VideoRelay : Relay {
     val surface: Surface
-
-    fun start()
-    fun stop()
-
-    fun destroy()
 }

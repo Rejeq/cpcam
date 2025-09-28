@@ -35,6 +35,10 @@ internal class FFmpegVideoStreamJni(val handle: Long) {
     fun setResolution(width: Int, height: Int) =
         setResolution(handle, width, height)
 
+    fun getWidth(): Int = getWidth(handle)
+
+    fun getHeight(): Int = getHeight(handle)
+
     fun start() = start(handle)
 
     fun stop() = stop(handle)
@@ -54,6 +58,8 @@ internal class FFmpegVideoStreamJni(val handle: Long) {
     private external fun destroy(handle: Long)
 
     private external fun setResolution(handle: Long, width: Int, height: Int)
+    private external fun getWidth(handle: Long): Int
+    private external fun getHeight(handle: Long): Int
 
     private external fun start(handle: Long)
     private external fun stop(handle: Long)

@@ -1,63 +1,46 @@
 package com.rejeq.cpcam.core.stream.target
 
 import android.util.Log
-import android.util.Range
 import com.rejeq.cpcam.core.camera.SurfaceRequestWrapper
+import com.rejeq.cpcam.core.camera.target.CameraRequestFlow
 import com.rejeq.cpcam.core.camera.target.CameraRequestState
 import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
-import com.rejeq.cpcam.core.common.di.ApplicationScope
 import com.rejeq.cpcam.core.stream.relay.VideoRelay
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class CameraVideoTarget @Inject constructor(
     private val target: RecordCameraTarget,
-    @ApplicationScope scope: CoroutineScope,
 ) : VideoTarget {
-    private var relay: VideoRelay? = null
+    override suspend fun use(
+        state: VideoTargetState,
+        block: suspend () -> Unit,
+    ): Unit = coroutineScope {
+        try {
+            val request = target.start(state.framerate)
+            launchCameraListener(request, state.relay, this@coroutineScope)
 
-    init {
-        target.request.onEach {
-            when (it) {
-                is CameraRequestState.Available<SurfaceRequestWrapper> -> {
-                    relay?.let { encoder ->
-                        attachRelay(it.value, encoder)
-                    }
-                }
-                else -> {}
+            state.relay.start()
+            block()
+        } finally {
+            state.relay.stop()
+            target.stop()
+        }
+    }
+
+    private fun launchCameraListener(
+        request: CameraRequestFlow<SurfaceRequestWrapper>,
+        relay: VideoRelay,
+        scope: CoroutineScope,
+    ) {
+        request.onEach {
+            if (it is CameraRequestState.Available<SurfaceRequestWrapper>) {
+                attachRelay(it.value, relay)
             }
         }.launchIn(scope)
-    }
-
-    override fun setRelay(relay: VideoRelay) {
-        Log.i(TAG, "Updating relay to: $relay")
-
-        when (val request = target.request.value) {
-            is CameraRequestState.Available<SurfaceRequestWrapper> -> {
-                request.value.invalidate()
-                attachRelay(request.value, relay)
-            }
-            else -> {}
-        }
-
-        this.relay?.destroy()
-        this.relay = relay
-    }
-
-    override fun start() {
-        target.start()
-        relay?.start()
-    }
-
-    override fun stop() {
-        target.stop()
-        relay?.stop()
-    }
-
-    override fun setFramerate(framerate: Range<Int>) {
-        target.setFramerate(framerate)
     }
 
     private fun attachRelay(
