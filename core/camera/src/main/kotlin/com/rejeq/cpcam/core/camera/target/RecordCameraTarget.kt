@@ -21,47 +21,38 @@ import com.rejeq.cpcam.core.camera.source.CameraSource
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 @Singleton
 class RecordCameraTarget @Inject constructor(
     private val source: CameraSource,
     @MainExecutor private val executor: Executor,
-    val scope: CoroutineScope,
-) : CameraTarget<SurfaceRequestWrapper> {
+) {
     private val targetId = CameraTargetId.Record
 
-    private var framerate: Range<Int>? = null
-
-    private val _request =
-        MutableStateFlow<CameraRequestState<SurfaceRequestWrapper>>(
-            CameraRequestState.Stopped,
-        )
-    override val request = _request.asStateFlow()
-
-    override fun start() {
-        val useCase = buildUseCase(framerate)
-        source.attach(targetId, useCase)
-    }
-
-    override fun stop() {
-        source.detach(targetId)
-        _request.value = CameraRequestState.Stopped
-    }
-
     /**
-     * Sets the desired framerate for the video capture.
-     * The framerate will not be applied immediately, but when target is started
-     * again
+     * Launches the camera target for recording.
+     * The use case would be started until `block` completes
      *
      * @param framerate The desired framerate as a range of integers.
      *        `null` indicates that the framerate should not be explicitly set,
      *        allowing the camerax to choose the best available option.
+     * @return A [CameraRequestFlow] to observe surface requests.
      */
-    fun setFramerate(framerate: Range<Int>?) {
-        this.framerate = framerate
+    fun start(
+        framerate: Range<Int>?,
+    ): CameraRequestFlow<SurfaceRequestWrapper> {
+        val request = MutableCameraRequestFlow<SurfaceRequestWrapper>(
+            CameraRequestState.Stopped,
+        )
+        val useCase = buildUseCase(request, framerate)
+
+        source.attach(targetId, useCase)
+        return request.asStateFlow()
+    }
+
+    fun stop() {
+        source.detach(targetId)
     }
 
     /**
@@ -77,27 +68,25 @@ class RecordCameraTarget @Inject constructor(
      * @return A configured Preview use case
      */
     @SuppressLint("RestrictedApi")
-    private fun buildUseCase(framerate: Range<Int>?): Preview =
-        Preview.Builder().apply {
-            setCaptureType(CaptureType.VIDEO_CAPTURE)
+    private fun buildUseCase(
+        request: MutableCameraRequestFlow<SurfaceRequestWrapper>,
+        framerate: Range<Int>?,
+    ): Preview = Preview.Builder().apply {
+        setCaptureType(CaptureType.VIDEO_CAPTURE)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val streamUseCase = SCALER_AVAILABLE_STREAM_USE_CASES_VIDEO_CALL
-                setStreamUseCase(streamUseCase.toLong())
-            }
-
-            if (framerate != null) {
-                setTargetFrameRate(framerate)
-            }
-        }.build().apply {
-            executor.execute {
-                setSurfaceProvider { newSurfaceRequest ->
-                    _request.value = CameraRequestState.Available(
-                        SurfaceRequestWrapper(newSurfaceRequest),
-                    )
-                }
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val streamUseCase = SCALER_AVAILABLE_STREAM_USE_CASES_VIDEO_CALL
+            setStreamUseCase(streamUseCase.toLong())
         }
+
+        if (framerate != null) {
+            setTargetFrameRate(framerate)
+        }
+    }.build().apply {
+        executor.execute {
+            configureSurfaceProvider(request, executor)
+        }
+    }
 
     @SuppressLint("RestrictedApi")
     @OptIn(ExperimentalCamera2Interop::class)

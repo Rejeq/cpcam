@@ -14,7 +14,6 @@ import com.rejeq.cpcam.core.camera.source.CameraSource
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
@@ -25,52 +24,26 @@ import kotlinx.coroutines.flow.asStateFlow
 class QrAnalyzerCameraTarget @Inject constructor(
     private val source: CameraSource,
     @MainExecutor private val executor: Executor,
-) : CameraTarget<QrRequest> {
+) {
     private val targetId = CameraTargetId.Analyzer
-
-    private val _request = MutableStateFlow<CameraRequestState<QrRequest>>(
-        CameraRequestState.Stopped,
-    )
-    override val request = _request.asStateFlow()
 
     private val options = BarcodeScannerOptions.Builder()
         .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
         .build()
     private val barcodeScanner = BarcodeScanning.getClient(options)
 
-    private val analyzer = MlKitAnalyzer(
-        listOf(barcodeScanner),
-        ImageAnalysis.COORDINATE_SYSTEM_ORIGINAL,
-        executor,
-    ) {
-        // New images can be processed after the target is stopped.
-        // And to preserve invariant, we must store the value of [request] as a
-        // Stopped state
-        if (!source.isAttached(targetId)) {
-            return@MlKitAnalyzer
-        }
+    fun start(): CameraRequestFlow<QrRequest> {
+        val request = MutableCameraRequestFlow<QrRequest>(
+            CameraRequestState.Stopped,
+        )
+        val useCase = buildUseCase(request)
 
-        val result = it?.getValue(barcodeScanner)
-            ?.toQrRequest()
-            ?: QrRequest(emptyList())
-
-        _request.value = CameraRequestState.Available(result)
-    }
-
-    private val useCase = ImageAnalysis.Builder()
-        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-        .build()
-        .apply {
-            setAnalyzer(executor, analyzer)
-        }
-
-    override fun start() {
         source.attach(targetId, useCase)
+        return request.asStateFlow()
     }
 
-    override fun stop() {
+    fun stop() {
         source.detach(targetId)
-        _request.value = CameraRequestState.Stopped
     }
 
     fun analyzeBitmap(bitmap: Bitmap, onResult: (QrRequest) -> Unit) {
@@ -83,6 +56,29 @@ class QrAnalyzerCameraTarget @Inject constructor(
             .addOnFailureListener { e ->
                 Log.e(TAG, "Failed to analyze bitmap", e)
                 onResult(QrRequest(emptyList()))
+            }
+    }
+
+    private fun buildUseCase(
+        request: MutableCameraRequestFlow<QrRequest>,
+    ): ImageAnalysis {
+        val analyzer = MlKitAnalyzer(
+            listOf(barcodeScanner),
+            ImageAnalysis.COORDINATE_SYSTEM_ORIGINAL,
+            executor,
+        ) {
+            val result = it?.getValue(barcodeScanner)
+                ?.toQrRequest()
+                ?: QrRequest(emptyList())
+
+            request.value = CameraRequestState.Available(result)
+        }
+
+        return ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+            .apply {
+                setAnalyzer(executor, analyzer)
             }
     }
 

@@ -1,6 +1,8 @@
 package com.rejeq.cpcam.core.camera
 
 import android.view.Surface
+import androidx.camera.core.MeteringPoint
+import androidx.camera.core.SurfaceOrientedMeteringPointFactory
 import androidx.camera.core.SurfaceRequest
 
 /**
@@ -9,7 +11,7 @@ import androidx.camera.core.SurfaceRequest
  * modules that only need basic surface management capabilities.
  */
 @JvmInline
-value class SurfaceRequestWrapper(private val request: SurfaceRequest) {
+value class SurfaceRequestWrapper(internal val request: SurfaceRequest) {
     /**
      * The resolution of the surface request
      *
@@ -47,6 +49,17 @@ value class SurfaceRequestWrapper(private val request: SurfaceRequest) {
      * @see SurfaceRequest.invalidate
      */
     fun invalidate() = request.invalidate()
+
+    fun getPoint(x: Float, y: Float): MeteringPoint {
+        val meteringPointFactory = SurfaceOrientedMeteringPointFactory(
+            request.resolution.width.toFloat(),
+            request.resolution.height.toFloat(),
+        )
+
+        return meteringPointFactory.createPoint(x, y)
+    }
+
+    override fun toString(): String = request.toString()
 }
 
 enum class SurfaceRequestResult {

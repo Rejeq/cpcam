@@ -8,8 +8,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import com.rejeq.cpcam.core.camera.operation.CameraOpExecutor
 import com.rejeq.cpcam.core.camera.operation.DefaultCameraOpExecutor
 import com.rejeq.cpcam.core.camera.source.CameraLifecycle
-import com.rejeq.cpcam.core.camera.source.CameraSource
-import com.rejeq.cpcam.core.camera.target.RecordCameraTarget
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -19,8 +17,6 @@ import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.Executor
 import javax.inject.Qualifier
 import javax.inject.Singleton
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 @Retention(AnnotationRetention.BINARY)
 @Qualifier
@@ -64,17 +60,6 @@ internal object CameraModule {
     ) = CameraLifecycle(
         cameraProviderFuture = ProcessCameraProvider.getInstance(context),
         executor = executor,
-    )
-
-    @Provides
-    @Singleton
-    fun provideRecordCameraTarget(
-        source: CameraSource,
-        @MainExecutor executor: Executor,
-    ) = RecordCameraTarget(
-        source = source,
-        executor = executor,
-        scope = CoroutineScope(Dispatchers.Unconfined),
     )
 
     @Module

@@ -15,7 +15,6 @@ import com.rejeq.cpcam.core.data.model.Resolution
 import com.rejeq.cpcam.core.data.model.long
 import com.rejeq.cpcam.core.data.model.short
 import kotlin.math.abs
-import kotlin.math.max
 
 /**
  * This file provides utility methods for handling camera resolution and
